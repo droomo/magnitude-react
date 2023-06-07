@@ -162,13 +162,16 @@ const surveyJson = {
         },
         page_data.writing_type === 1 && {
             elements: [
-                Object.assign(page_data.goal_type === 1 ? {
-                    "title": "请您用一到两分钟时间描述一下对意义的追寻意味着什么。请如实写下来。",
-                    "description": "例如，对意义的渴望意味着我要去完成更多有意义的事情，这意味着我可能需要克制短期欲望，去实现我的长远人生目标……（请写一写你自己的感悟）",
-                } : {
-                    "title": "请您用一到两分钟时间描述一下对快乐的渴望意味着什么。请如实写下来。",
-                    "description": "例如，对快乐的渴望意味着我会暂时抛开长远目标，不再克制欲望，及时享乐……（请写一写你自己的感悟）",
-                }, {
+                Object.assign([
+                    {
+                        "title": "请您用一到两分钟时间描述一下对快乐的渴望意味着什么。请如实写下来。",
+                        "description": "例如，对快乐的渴望意味着我会暂时抛开长远目标，不再克制欲望，及时享乐……（请写一写你自己的感悟）",
+                    },
+                    {
+                        "title": "请您用一到两分钟时间描述一下对意义的追寻意味着什么。请如实写下来。",
+                        "description": "例如，对意义的渴望意味着我要去完成更多有意义的事情，这意味着我可能需要克制短期欲望，去实现我的长远人生目标……（请写一写你自己的感悟）",
+                    }
+                ][page_data.goal_type], {
                     "type": "comment",
                     "name": "description_of_goal",
                     "rows": 10,
@@ -185,8 +188,8 @@ const surveyJson = {
                     type: 'html',
                     html: `<div>${
                         [
+                            '<p style="line-height: 1.5">当您做出以下选择时，<strong style="color:#2690fe;">请专注于从你的选择中获得快乐。</strong>也就是说，专注于每个选项中让您满意且您认为有趣的方面。真的试着享受，让它成为<strong style="color:#2690fe;">一种愉快</strong>的体验！</p>',
                             '<p style="line-height: 1.5">当您做出以下选择时，<strong style="color:#2690fe;">请专注于从你的选择中获得意义。</strong>也就是说，专注于每个选择中你认为最有目的、最有成就感和最有价值的方面。试着让它成为一次<strong style="color:#2690fe;">有意义</strong>的经历！</p>',
-                            '<p style="line-height: 1.5">当您做出以下选择时，<strong style="color:#2690fe;">请专注于从你的选择中获得快乐。</strong>也就是说，专注于每个选项中让您满意且您认为有趣的方面。真的试着享受，让它成为<strong style="color:#2690fe;">一种愉快</strong>的体验！</p>'
                         ][page_data.goal_type]
                     }
  <p style="line-height: 1.5">同时，请您设想以下选择都是<strong style="color:#2690fe;">以您的真实经济水平</strong>，在<strong style="color:#2690fe;">您的生活中真实发生的</strong>。</p>
@@ -278,7 +281,7 @@ function AppSurvey() {
     survey.locale = 'zh-cn';
 
     survey.completedHtml = `<div>感谢您的参与以及对消费心理学的贡献！🌹<br/><p style="font-size: 16px">ID: ${page_data.subject_id}</p></div>`
-    survey.currentPage = 4
+    // survey.currentPage = 4
 
     survey.onComplete.add(function (sender, options) {
         options.showSaveInProgress();
