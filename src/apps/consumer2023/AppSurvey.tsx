@@ -6,6 +6,7 @@ import {Survey} from 'survey-react-ui';
 import 'survey-core/modern.min.css';
 import './surveyApp.css'
 import axios from "axios";
+import {API} from "../const";
 
 const controlVariable = [
     "我羡慕那些拥有昂贵的房子、汽车和衣服的人。",
@@ -20,6 +21,16 @@ const controlVariable = [
     "令我烦恼的是，我买不起所有我喜欢的东西。",
     "生活中一些最重要的成就包括获得物质财富。",
 ]
+
+// @ts-ignore
+const page_data: {
+    goal_type: number,
+    writing_type: number,
+    subject_id: string,
+    api_url: string,
+} =
+    // @ts-ignore
+    JSON.parse(document.getElementById('page_data').innerText)
 
 
 const shopping = [
@@ -148,18 +159,22 @@ const surveyJson = {
                 })
             ]
         },
-        {
+        page_data.writing_type === 1 && {
             elements: [
-                {
+                Object.assign(page_data.goal_type === 1 ? {
+                    "title": "请您用一到两分钟时间描述一下对意义的追寻意味着什么。请如实写下来。",
+                    "description": "例如，对意义的渴望意味着我要去完成更多有意义的事情，这意味着我可能需要克制短期欲望，去实现我的长远人生目标……（请写一写你自己的感悟）",
+                } : {
+                    "title": "请您用一到两分钟时间描述一下对快乐的渴望意味着什么。请如实写下来。",
+                    "description": "例如，对快乐的渴望意味着我会暂时抛开长远目标，不再克制欲望，及时享乐……（请写一写你自己的感悟）",
+                }, {
                     "type": "comment",
-                    "name": "what_is_meaning",
-                    "title": "为了帮助您进入状态，请您用一到两分钟时间描述一下主要由对意义的渴望驱动的选择意味着什么。请如实写下来。",
-                    // "description": "",
+                    "name": "description_of_goal",
                     "rows": 10,
                     "autoGrow": true,
                     "allowResize": false,
                     isRequired: true,
-                }
+                })
             ]
         },
         {
@@ -167,8 +182,12 @@ const surveyJson = {
             elements: [
                 {
                     type: 'html',
-                    html: ` <div>
- <p style="line-height: 1.5">当您做出以下选择时，<strong style="color:#2690fe;">请专注于从你的选择中获得意义。</strong>也就是说，专注于每个选择中你认为最有目的、最有成就感和最有价值的方面。试着让它成为一次有意义的经历！</p>
+                    html: `<div>${
+                        [
+                            '<p style="line-height: 1.5">当您做出以下选择时，<strong style="color:#2690fe;">请专注于从你的选择中获得意义。</strong>也就是说，专注于每个选择中你认为最有目的、最有成就感和最有价值的方面。试着让它成为一次<strong style="color:#2690fe;">有意义</strong>的经历！</p>',
+                            '<p style="line-height: 1.5">当您做出以下选择时，<strong style="color:#2690fe;">请专注于从你的选择中获得快乐。</strong>也就是说，专注于每个选项中让您满意且您认为有趣的方面。真的试着享受，让它成为<strong style="color:#2690fe;">一种愉快</strong>的体验！</p>'
+                        ][page_data.goal_type]
+                    }
  <p style="line-height: 1.5">同时，请您设想以下选择都是<strong style="color:#2690fe;">以您的真实经济水平</strong>，在<strong style="color:#2690fe;">您的生活中真实发生的</strong>。</p>
 </div>`
                 },
@@ -215,7 +234,7 @@ const surveyJson = {
                     "title": "您在上一页选择商品的过程中，多大程度上考虑了金钱的机会成本？",
                     "description": "即，您在多大程度上考虑过，选择便宜的商品是因为在生活中需要节省下来钱，去买更有用的东西。",
                     "rateCount": 10,
-                    "rateValues": [ 1, 2, 3, 4, 5, 6, 7,],
+                    "rateValues": [1, 2, 3, 4, 5, 6, 7,],
                     isRequired: true,
                 },
             ]
@@ -257,17 +276,19 @@ function AppSurvey() {
 
     survey.locale = 'zh-cn';
 
-    survey.completedHtml = '<div>感谢参与，请完成后续实验。</div>';
-    survey.currentPage = 2
+    survey.completedHtml = `<div>感谢您的参与以及对消费心理学的贡献！🌹<br/>ID: ${page_data.subject_id}</div>`
+    // survey.currentPage = 4
 
     survey.onComplete.add(function (sender, options) {
         options.showSaveInProgress();
         axios.post(
-            '',
-            // API.submit_before,
+            API.base_url + page_data.api_url,
             {
                 question: surveyJson,
                 answer: sender.data,
+                subject_id: page_data.subject_id,
+                writing_type: page_data.writing_type,
+                goal_type: page_data.goal_type,
             }
         ).then(resp => {
             return resp.data
