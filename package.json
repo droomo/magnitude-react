@@ -28,6 +28,10 @@
       "react-app/jest"
     ]
   },
+  "devDependencies": {
+    "webpack-bundle-tracker": "^2.0.0",
+    "yarn": "^1.22.19"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
