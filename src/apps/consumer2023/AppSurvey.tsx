@@ -28,6 +28,7 @@ const page_data: {
     writing_type: number,
     subject_id: string,
     api_url: string,
+    csrf_token: string,
 } =
     // @ts-ignore
     JSON.parse(document.getElementById('page_data').innerText)
@@ -276,20 +277,20 @@ function AppSurvey() {
 
     survey.locale = 'zh-cn';
 
-    survey.completedHtml = `<div>感谢您的参与以及对消费心理学的贡献！🌹<br/>ID: ${page_data.subject_id}</div>`
-    // survey.currentPage = 4
+    survey.completedHtml = `<div>感谢您的参与以及对消费心理学的贡献！🌹<br/><p style="font-size: 16px">ID: ${page_data.subject_id}</p></div>`
+    survey.currentPage = 4
 
     survey.onComplete.add(function (sender, options) {
         options.showSaveInProgress();
-        axios.post(
-            API.base_url + page_data.api_url,
+        axios.post(API.base_url + page_data.api_url,
             {
                 question: surveyJson,
                 answer: sender.data,
                 subject_id: page_data.subject_id,
                 writing_type: page_data.writing_type,
                 goal_type: page_data.goal_type,
-            }
+            },
+            {headers: {"X-CSRFToken": page_data.csrf_token}}
         ).then(resp => {
             return resp.data
         }).then(data => {
