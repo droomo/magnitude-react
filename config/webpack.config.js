@@ -203,6 +203,7 @@ module.exports = function (webpackEnv) {
         // These are the "entry points" to our application.
         // This means they will be the "root" imports that are included in JS bundle.
         entry: {
+            consumer2023: [paths.consumer2023],
             main: [paths.appIndexJs],
         },
         output: {
@@ -717,7 +718,7 @@ module.exports = function (webpackEnv) {
                 issue: {
                     // This one is specifically to match during CI tests,
                     // as micromatch doesn't match
-                    // '../cra-template-typescript/template/src/App.tsx'
+                    // '../cra-template-typescript/template/src/Survey.tsx'
                     // otherwise.
                     include: [
                         {file: '../**/src/**/*.{ts,tsx}'},
