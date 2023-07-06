@@ -2,7 +2,9 @@ import React from 'react';
 import {CircleI, CircleIPair} from './KonvaPatch';
 import Konva from "konva";
 import classes from './numberSense.module.scss'
-import {InputNumber, Form} from 'antd';
+import {InputNumber, Form, Button, Row, Col, message, Table} from 'antd';
+import axios from "axios";
+import {API} from "../const";
 
 
 // 笔记本屏幕参数
@@ -20,6 +22,10 @@ const calculateCurrentPixel = (px: number) => {
     return px * ((widthPX / widthMM + heightPX / heightMM) / 2) * ((338 / 1280 + 270 / 1024) / 2)
 }
 
+const toFixed4 = (n: number) => {
+    return Math.round(n * 10000) / 10000
+}
+
 const canvas = {
     width: calculateCurrentPixel(240),
     height: calculateCurrentPixel(240),
@@ -27,10 +33,19 @@ const canvas = {
 
 const R = calculateCurrentPixel(10)
 
+const page_data: {
+    api_url: string,
+    api_stage_count: string,
+    csrf_token: string,
+} =
+    // @ts-ignore
+    JSON.parse(document.getElementById('page_data').innerText)
+
 class StimuliGenerator2 extends React.Component<any, {
     spacingRatio: number
     circleNumber: number
     circlePairedNumber: number
+    countTable: Object[]
 }> {
     private stage: Konva.Stage | null;
     private layer: Konva.Layer | null
@@ -43,7 +58,8 @@ class StimuliGenerator2 extends React.Component<any, {
         this.state = {
             spacingRatio: 2,
             circleNumber: 12,
-            circlePairedNumber: 0
+            circlePairedNumber: 0,
+            countTable: []
         }
     }
 
@@ -64,8 +80,28 @@ class StimuliGenerator2 extends React.Component<any, {
         layer.add(bg);
         this.stage.add(layer);
 
-
         this.reRenderCanvas()
+        this.loadCountTableData()
+    }
+
+    loadCountTableData() {
+        axios.get(page_data.api_stage_count).then(resp => {
+            return resp.data
+        }).then(result => {
+            if (result.status === 200) {
+                this.setState({
+                    countTable: result.data.map((item: any)=>{
+                        return Object.assign({
+                            key: '' + item.circle_paired_number + item.circle_number
+                        }, item)
+                    })
+                })
+            } else {
+                message.error('error happened while fetching table data')
+            }
+        }).catch(() => {
+            message.error('network failed')
+        })
     }
 
     reRenderCanvas() {
@@ -142,77 +178,157 @@ class StimuliGenerator2 extends React.Component<any, {
 
     render() {
         return (
-            <div className={classes.container}>
-                <div className={classes.canvasContainer} id="canvasContainer"/>
+            <Row className={classes.page}>
+                <Col span={12}>
+                    <div className={classes.container}>
+                        <div className={classes.canvasContainer} id="canvasContainer"/>
 
-                <div className={classes.control}>
-                    <p>You may drag the circles above.</p>
-                    <Form
-                        // form={form}
-                        layout="vertical"
-                        // onFinish={onFinish}
-                        // onFinishFailed={onFinishFailed}
-                        autoComplete="off"
-                    >
-                        <Form.Item label="Minimum distance(times radius)" rules={[{required: true}]}>
-                            <InputNumber<number>
-                                style={{width: 200}}
-                                defaultValue={this.state.spacingRatio}
-                                min={0}
-                                max={4}
-                                step={0.1}
-                                onChange={(value) => {
-                                    if (value !== null) {
-                                        this.setState({
-                                            spacingRatio: value
-                                        }, () => {
-                                            this.reRenderCanvas()
-                                        })
+                        <div className={classes.control}>
+                            <p>You may drag the circles above.</p>
+                            <Form
+                                layout="vertical"
+                                onFinish={(values) => {
+                                    const scaleUnit =  calculateCurrentPixel(1)
+
+                                    const content = {
+                                        circle: this.stage?.find('CircleI').map((c)=>{
+                                            return {
+                                                x: toFixed4(c.x() / scaleUnit),
+                                                y: toFixed4(c.y() / scaleUnit),
+                                                radius: toFixed4(c.attrs.radius / scaleUnit),
+                                                direction: toFixed4(c.rotation() / 360 * 2 * Math.PI)
+                                            }
+                                        }),
+                                        circlePaired: this.stage?.find('CircleIPair').map((c)=>{
+                                            return {
+                                                x: toFixed4(c.x() / scaleUnit),
+                                                y: toFixed4(c.y() / scaleUnit),
+                                                radius: toFixed4(c.attrs.radius / scaleUnit),
+                                                direction: toFixed4(c.attrs.direction)
+                                            }
+                                        }),
                                     }
-                                }}
-                            />
-                        </Form.Item>
 
-                        <Form.Item name='circle_number' label="Number of circles" rules={[{required: true}]} initialValue={this.state.circleNumber}>
-                            <InputNumber<number>
-                                style={{width: 200}}
-                                min={9}
-                                max={15}
-                                step={1}
-                                onChange={(value) => {
-                                    if (value !== null) {
-                                        this.setState({
-                                            circleNumber: value
-                                        }, () => {
+                                    axios.post(API.base_url + page_data.api_url,
+                                        Object.assign(values, {
+                                            content: content
+                                        }),
+                                        {headers: {"X-CSRFToken": page_data.csrf_token}}
+                                    ).then(resp => {
+                                        return resp.data
+                                    }).then(result => {
+                                        if (result.status === 200) {
+                                            message.success(`Saved canvas. ID(${result.data.pk})` )
                                             this.reRenderCanvas()
-                                        })
-                                    }
+                                            this.loadCountTableData()
+                                        } else {
+                                            message.error(result.message)
+                                        }
+                                    }).catch(() => {
+                                        message.error('network failed')
+                                    })
                                 }}
-                            />
-                        </Form.Item>
+                                // onFinishFailed={onFinishFailed}
+                                autoComplete="off"
+                            >
+                                <Form.Item label="Minimum distance(times radius)" rules={[{required: true}]}>
+                                    <InputNumber<number>
+                                        style={{width: 200}}
+                                        defaultValue={this.state.spacingRatio}
+                                        min={0}
+                                        max={4}
+                                        step={0.1}
+                                        onChange={(value) => {
+                                            if (value !== null) {
+                                                this.setState({
+                                                    spacingRatio: value
+                                                }, () => {
+                                                    this.reRenderCanvas()
+                                                })
+                                            }
+                                        }}
+                                    />
+                                </Form.Item>
 
-                        <Form.Item name='circle_paired_number' label="Number IC pairs" rules={[{required: true}]} initialValue={this.state.circlePairedNumber}>
-                            <InputNumber<number>
-                                style={{width: 200}}
-                                min={0}
-                                max={4}
-                                step={2}
-                                onChange={(value) => {
-                                    if (value !== null) {
-                                        this.setState({
-                                            circlePairedNumber: value
-                                        }, () => {
-                                            this.reRenderCanvas()
-                                        })
-                                    }
-                                }}
-                            />
-                        </Form.Item>
+                                <Form.Item name='circle_number' label="Number of circles" rules={[{required: true}]}
+                                           initialValue={this.state.circleNumber}>
+                                    <InputNumber<number>
+                                        style={{width: 200}}
+                                        min={9}
+                                        max={15}
+                                        step={1}
+                                        onChange={(value) => {
+                                            if (value !== null) {
+                                                this.setState({
+                                                    circleNumber: value
+                                                }, () => {
+                                                    this.reRenderCanvas()
+                                                })
+                                            }
+                                        }}
+                                    />
+                                </Form.Item>
 
-                    </Form>
+                                <Form.Item name='circle_paired_number' label="Number of IC pairs"
+                                           rules={[{required: true}]}
+                                           initialValue={this.state.circlePairedNumber}>
+                                    <InputNumber<number>
+                                        style={{width: 200}}
+                                        min={0}
+                                        max={4}
+                                        step={2}
+                                        onChange={(value) => {
+                                            if (value !== null) {
+                                                this.setState({
+                                                    circlePairedNumber: value
+                                                }, () => {
+                                                    this.reRenderCanvas()
+                                                })
+                                            }
+                                        }}
+                                    />
+                                </Form.Item>
 
-                </div>
-            </div>
+                                <Form.Item>
+                                    <Button onClick={() => {
+                                        this.reRenderCanvas()
+                                    }}>Re-render the canvas</Button>
+                                </Form.Item>
+
+                                <Form.Item>
+                                    <Button type="primary" htmlType="submit">
+                                        Submit
+                                    </Button>
+                                </Form.Item>
+                            </Form>
+
+                        </div>
+                    </div>
+                </Col>
+                <Col span={12}>
+                    <Table
+                        size={'small'}
+                        pagination={false}
+                        dataSource={this.state.countTable}
+                        columns={[
+                        {
+                            title: 'IC pairs',
+                            dataIndex: 'circle_paired_number',
+                            key: 'circle_paired_number',
+                        },
+                        {
+                            title: 'Circles',
+                            dataIndex: 'circle_number',
+                            key: 'circle_number',
+                        },
+                        {
+                            title: 'Count',
+                            dataIndex: 'count',
+                            key: 'count',
+                        },
+                    ]} />
+                </Col>
+            </Row>
         );
     }
 }
