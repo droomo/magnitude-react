@@ -204,6 +204,7 @@ module.exports = function (webpackEnv) {
         // This means they will be the "root" imports that are included in JS bundle.
         entry: {
             consumer2023: [paths.consumer2023],
+            number_sense: [paths.numberSense],
             main: [paths.appIndexJs],
         },
         output: {
