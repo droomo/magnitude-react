@@ -56,7 +56,8 @@ export interface DataTypeStage {
     id: number,
     circle_paired_number: number,
     circle_number: number,
-    content: DataTypeContent
+    content: DataTypeContent,
+    img_file: string,
 }
 
 export const page_data_number_sense: {
@@ -67,6 +68,47 @@ export const page_data_number_sense: {
 } =
     // @ts-ignore
     JSON.parse(document.getElementById('page_data').innerText)
+
+export function saveStage(stage: Konva.Stage, callback: CallableFunction, values: Object, pk?: number) {
+    const scaleUnit = calculateCurrentPixel(1)
+
+    const content = {
+        circle: stage?.find('CircleI').map((c) => {
+            return {
+                x: toFixed4(c.x() / scaleUnit),
+                y: toFixed4(c.y() / scaleUnit),
+                radius: toFixed4(c.attrs.radius / scaleUnit),
+                direction: toFixed4(c.rotation() / 360 * 2 * Math.PI)
+            }
+        }),
+        circlePaired: stage?.find('CircleIPair').map((c) => {
+            return {
+                x: toFixed4(c.x() / scaleUnit),
+                y: toFixed4(c.y() / scaleUnit),
+                radius: toFixed4(c.attrs.radius / scaleUnit),
+                direction: toFixed4(c.attrs.direction)
+            }
+        }),
+    }
+
+    axios.post(API.base_url + page_data_number_sense.api_url_save_stage + (pk === undefined ? '' : pk),
+        Object.assign(values, {
+            content: content
+        }),
+        {headers: {"X-CSRFToken": page_data_number_sense.csrf_token}}
+    ).then(resp => {
+        return resp.data
+    }).then(result => {
+        if (result.status === 200) {
+            message.success(`Saved canvas. ID(${result.data.stage.id})`)
+            callback(result.data)
+        } else {
+            message.error(result.message)
+        }
+    }).catch(() => {
+        message.error('network failed')
+    })
+}
 
 class StimuliGenerator2 extends React.Component<any, {
     spacingRatio: number
@@ -215,45 +257,14 @@ class StimuliGenerator2 extends React.Component<any, {
                             <Form
                                 layout="vertical"
                                 onFinish={(values) => {
-                                    const scaleUnit = calculateCurrentPixel(1)
-
-                                    const content = {
-                                        circle: this.stage?.find('CircleI').map((c) => {
-                                            return {
-                                                x: toFixed4(c.x() / scaleUnit),
-                                                y: toFixed4(c.y() / scaleUnit),
-                                                radius: toFixed4(c.attrs.radius / scaleUnit),
-                                                direction: toFixed4(c.rotation() / 360 * 2 * Math.PI)
-                                            }
-                                        }),
-                                        circlePaired: this.stage?.find('CircleIPair').map((c) => {
-                                            return {
-                                                x: toFixed4(c.x() / scaleUnit),
-                                                y: toFixed4(c.y() / scaleUnit),
-                                                radius: toFixed4(c.attrs.radius / scaleUnit),
-                                                direction: toFixed4(c.attrs.direction)
-                                            }
-                                        }),
-                                    }
-
-                                    axios.post(API.base_url + page_data_number_sense.api_url_save_stage,
-                                        Object.assign(values, {
-                                            content: content
-                                        }),
-                                        {headers: {"X-CSRFToken": page_data_number_sense.csrf_token}}
-                                    ).then(resp => {
-                                        return resp.data
-                                    }).then(result => {
-                                        if (result.status === 200) {
-                                            message.success(`Saved canvas. ID(${result.data.pk})`)
+                                    if (this.stage) {
+                                        saveStage(this.stage, () => {
                                             this.reRenderCanvas()
                                             this.loadCountTableData()
-                                        } else {
-                                            message.error(result.message)
-                                        }
-                                    }).catch(() => {
-                                        message.error('network failed')
-                                    })
+                                        }, values)
+                                    } else {
+                                        message.error('error')
+                                    }
                                 }}
                                 // onFinishFailed={onFinishFailed}
                                 autoComplete="off"

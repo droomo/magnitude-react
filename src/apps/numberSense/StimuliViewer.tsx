@@ -10,12 +10,14 @@ import {
     canvas, DataTypeContent,
     DataTypeStage,
     expStageSize,
-    page_data_number_sense,
+    page_data_number_sense, saveStage,
 } from "./StimuliGenerator2";
 
 const {Text} = Typography;
 
 const drawStage = (stageSize: number, elementID: string, content: DataTypeContent, draggable?: boolean) => {
+    const scaleUnit = calculateCurrentPixel(1)
+
     const stageRatio = stageSize / expStageSize
     const stage = new Konva.Stage({
         container: elementID,
@@ -28,17 +30,17 @@ const drawStage = (stageSize: number, elementID: string, content: DataTypeConten
     const bg = new Konva.Rect({
         x: 0,
         y: 0,
-        width: canvas.width,
-        height: canvas.height,
+        width: calculateCurrentPixel(stageSize),
+        height: calculateCurrentPixel(stageSize),
         fill: 'rgb(127,127,127)'
     });
     layer.add(bg)
 
     for (const c of content.circle) {
         const circleI = new CircleI({
-            x: c.x * stageRatio,
-            y: c.y * stageRatio,
-            radius: c.radius * stageRatio,
+            x: c.x * stageRatio * scaleUnit,
+            y: c.y * stageRatio * scaleUnit,
+            radius: c.radius * stageRatio * scaleUnit,
             rotation: c.direction / 2 / Math.PI * 360,
             fill: 'black',
             draggable: draggable === true
@@ -47,15 +49,17 @@ const drawStage = (stageSize: number, elementID: string, content: DataTypeConten
     }
     for (const c of content.circlePaired) {
         const circleIPair = new CircleIPair({
-            x: c.x * stageRatio,
-            y: c.y * stageRatio,
-            radius: c.radius * stageRatio,
+            x: c.x * stageRatio * scaleUnit,
+            y: c.y * stageRatio * scaleUnit,
+            radius: c.radius * stageRatio * scaleUnit,
             direction: c.direction,
             fill: 'black',
             draggable: draggable === true
         });
         layer.add(circleIPair);
     }
+
+    return stage
 }
 
 class StimuliViewer extends React.Component<any, {
@@ -70,8 +74,11 @@ class StimuliViewer extends React.Component<any, {
     countTable: DataTypeStage[]
     previewingData: DataTypeStage | undefined
 }> {
+    private stage: Konva.Stage | null;
+
     constructor(props: never) {
         super(props);
+        this.stage = null
 
         this.state = {
             pagination: {
@@ -91,8 +98,8 @@ class StimuliViewer extends React.Component<any, {
         this.loadCountTableData()
     }
 
-    loadCountTableData(current?: number, size?: number) {
-        this.cleanCanvas()
+    loadCountTableData(current?: number, size?: number, stackViewer?: boolean) {
+        if (!stackViewer) this.cleanCanvas()
 
         this.setState({
             loading: true
@@ -166,7 +173,7 @@ class StimuliViewer extends React.Component<any, {
     render() {
         return (
             <Row className={classes.viewerPage}>
-                <Col span={18}>
+                <Col span={12}>
                     <Table
                         loading={this.state.loading}
                         size={'small'}
@@ -212,7 +219,7 @@ class StimuliViewer extends React.Component<any, {
                                                 this.setState({
                                                     previewingData: data
                                                 }, () => {
-                                                    drawStage(240, 'canvasContainer', content, true)
+                                                    this.stage = drawStage(expStageSize, 'canvasContainer', content, true)
                                                 })
                                             }}
                                         >预览</Button>
@@ -238,24 +245,74 @@ class StimuliViewer extends React.Component<any, {
                                                 });
                                             }}
                                         >删除</Button>
+                                        {data.img_file ? <Text type='success'>已生成静态图</Text> :
+                                            <Text type='danger'>无静态图</Text>}
+
                                     </Space>
                                 }
                             }
                         ]}/>
                 </Col>
-                <Col span={6}>
+                <Col span={11} offset={1}>
                     {this.state.previewingData && <div className={classes.container}>
-                        <div>
-                            <h3>数据渲染图</h3>
+                        <Space wrap direction='vertical'>
+                            <h3>渲染图</h3>
+                            <Text strong>ID: {this.state.previewingData?.id}</Text>
                             <div className={classes.canvasContainer} id="canvasContainer"/>
-                            <div>
-                                <Text strong>ID: {this.state.previewingData?.id}</Text>
+                        </Space>
+                        <br/>
+                        <Space wrap direction='vertical'>
+                            <h3>静态图</h3>
+                            <Space wrap>
+                                <Button
+                                    onClick={() => {
+                                        if (this.stage) {
+                                            saveStage(this.stage, (data: any) => {
+                                                this.setState({
+                                                    previewingData: data.stage
+                                                })
+                                                this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
+                                            }, {}, this.state.previewingData?.id)
+                                        }
+
+                                    }}
+                                >保存修改</Button>
+                                <Button
+                                    onClick={() => {
+                                        axios.post(page_data_number_sense.api_url_save_stage + this.state.previewingData?.id, {
+                                            image: this.stage?.toDataURL({pixelRatio: 10})
+                                        }, {
+                                            headers: {"X-CSRFToken": page_data_number_sense.csrf_token}
+                                        }).then((resp) => {
+                                            return resp.data
+                                        }).then((data) => {
+                                            if (data.status === 200) {
+                                                message.success('成功')
+                                                this.setState({
+                                                    previewingData: data.data.stage
+                                                })
+                                            }
+                                        })
+                                        this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
+                                    }}
+                                >（重新）生成静态图</Button>
+                            </Space>
+                            <div className={classes.canvasContainer}>
+                                {this.state.previewingData?.img_file ?
+                                    (() => {
+                                        const url = this.state.previewingData?.img_file + '?_t=' + Date.now()
+                                        return <a href={url} target="_blank" rel="noreferrer">
+                                            <img
+                                                src={url}
+                                                className={classes.imgViewer}
+                                                alt={'' + this.state.previewingData?.id}
+                                            />
+                                        </a>
+                                    })()
+                                    : <Text type='danger'>未生成图片</Text>
+                                }
                             </div>
-                        </div>
-                        <div>
-                            <h3>生成图</h3>
-                            <div className={classes.canvasContainer} id="canvasContainer"/>
-                        </div>
+                        </Space>
                     </div>}
                 </Col>
             </Row>
