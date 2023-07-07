@@ -6,16 +6,20 @@ import {InputNumber, Form, Button, Row, Col, message, Table} from 'antd';
 import axios from "axios";
 import {API} from "../const";
 
+// 屏幕物理尺寸 mm
+// 屏幕分辨率 pixel
 
 // 笔记本屏幕参数
 // const [widthMM, heightMM] = [343, 215]
 // const [widthPX, heightPX] = [1536, 960]
 
-// Screen 2
-// 屏幕物理尺寸 mm
-const [widthMM, heightMM] = [597.7, 336.2]
-// 屏幕分辨率 pixel
-const [widthPX, heightPX] = [2560, 1440]
+// // Screen 2
+// const [widthMM, heightMM] = [597.7, 336.2]
+// const [widthPX, heightPX] = [2560, 1440]
+
+// 实验室显示器
+const [widthMM, heightMM] = [550, 346]
+const [widthPX, heightPX] = [1920, 1200]
 
 const calculateCurrentPixel = (px: number) => {
     // Magic numbers originate from the literature
@@ -90,7 +94,7 @@ class StimuliGenerator2 extends React.Component<any, {
         }).then(result => {
             if (result.status === 200) {
                 this.setState({
-                    countTable: result.data.map((item: any)=>{
+                    countTable: result.data.map((item: any) => {
                         return Object.assign({
                             key: '' + item.circle_paired_number + item.circle_number
                         }, item)
@@ -188,10 +192,10 @@ class StimuliGenerator2 extends React.Component<any, {
                             <Form
                                 layout="vertical"
                                 onFinish={(values) => {
-                                    const scaleUnit =  calculateCurrentPixel(1)
+                                    const scaleUnit = calculateCurrentPixel(1)
 
                                     const content = {
-                                        circle: this.stage?.find('CircleI').map((c)=>{
+                                        circle: this.stage?.find('CircleI').map((c) => {
                                             return {
                                                 x: toFixed4(c.x() / scaleUnit),
                                                 y: toFixed4(c.y() / scaleUnit),
@@ -199,7 +203,7 @@ class StimuliGenerator2 extends React.Component<any, {
                                                 direction: toFixed4(c.rotation() / 360 * 2 * Math.PI)
                                             }
                                         }),
-                                        circlePaired: this.stage?.find('CircleIPair').map((c)=>{
+                                        circlePaired: this.stage?.find('CircleIPair').map((c) => {
                                             return {
                                                 x: toFixed4(c.x() / scaleUnit),
                                                 y: toFixed4(c.y() / scaleUnit),
@@ -218,7 +222,7 @@ class StimuliGenerator2 extends React.Component<any, {
                                         return resp.data
                                     }).then(result => {
                                         if (result.status === 200) {
-                                            message.success(`Saved canvas. ID(${result.data.pk})` )
+                                            message.success(`Saved canvas. ID(${result.data.pk})`)
                                             this.reRenderCanvas()
                                             this.loadCountTableData()
                                         } else {
@@ -311,22 +315,22 @@ class StimuliGenerator2 extends React.Component<any, {
                         pagination={false}
                         dataSource={this.state.countTable}
                         columns={[
-                        {
-                            title: 'IC pairs',
-                            dataIndex: 'circle_paired_number',
-                            key: 'circle_paired_number',
-                        },
-                        {
-                            title: 'Circles',
-                            dataIndex: 'circle_number',
-                            key: 'circle_number',
-                        },
-                        {
-                            title: 'Count',
-                            dataIndex: 'count',
-                            key: 'count',
-                        },
-                    ]} />
+                            {
+                                title: 'IC pairs',
+                                dataIndex: 'circle_paired_number',
+                                key: 'circle_paired_number',
+                            },
+                            {
+                                title: 'Circles',
+                                dataIndex: 'circle_number',
+                                key: 'circle_number',
+                            },
+                            {
+                                title: 'Count',
+                                dataIndex: 'count',
+                                key: 'count',
+                            },
+                        ]}/>
                 </Col>
             </Row>
         );
