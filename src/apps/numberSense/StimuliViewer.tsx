@@ -259,6 +259,28 @@ class StimuliViewer extends React.Component<any, {
                             <h3>渲染图</h3>
                             <Text strong>ID: {this.state.previewingData?.id}</Text>
                             <div className={classes.canvasContainer} id="canvasContainer"/>
+                            <Button
+                                onClick={() => {
+                                    if (this.state.previewingData) {
+                                        let i = 0
+                                        for (i = 0; i < this.state.countTable.length; i++) {
+                                            if (this.state.countTable[i].id === this.state.previewingData.id) {
+                                                i++
+                                                break
+                                            }
+                                        }
+                                        if (i === this.state.countTable.length) {
+                                            message.error('reached last row')
+                                        } else {
+                                            this.setState({
+                                                previewingData: this.state.countTable[i]
+                                            }, () => {
+                                                this.stage = drawStage(expStageSize, 'canvasContainer', this.state.countTable[i].content, true)
+                                            })
+                                        }
+                                    }
+                                }}
+                            >下一个</Button>
                         </Space>
                         <br/>
                         <Space wrap direction='vertical'>
@@ -291,9 +313,9 @@ class StimuliViewer extends React.Component<any, {
                                                 this.setState({
                                                     previewingData: data.data.stage
                                                 })
+                                                this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
                                             }
                                         })
-                                        this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
                                     }}
                                 >（重新）生成静态图</Button>
                             </Space>
