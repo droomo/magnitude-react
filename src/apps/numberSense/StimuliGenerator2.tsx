@@ -18,10 +18,10 @@ import {API} from "../const";
 // const [widthPX, heightPX] = [2560, 1440]
 
 // 实验室显示器
-const [widthMM, heightMM] = [550, 346]
-const [widthPX, heightPX] = [1920, 1200]
+export const [widthMM, heightMM] = [550, 346]
+export const [widthPX, heightPX] = [1920, 1200]
 
-const calculateCurrentPixel = (px: number) => {
+export const calculateCurrentPixel = (px: number) => {
     // Magic numbers originate from the literature
     return px * ((widthPX / widthMM + heightPX / heightMM) / 2) * ((338 / 1280 + 270 / 1024) / 2)
 }
@@ -30,16 +30,39 @@ const toFixed4 = (n: number) => {
     return Math.round(n * 10000) / 10000
 }
 
-const canvas = {
-    width: calculateCurrentPixel(240),
-    height: calculateCurrentPixel(240),
+export const expStageSize = 240
+
+export const canvas = {
+    width: calculateCurrentPixel(expStageSize),
+    height: calculateCurrentPixel(expStageSize),
 }
 
-const R = calculateCurrentPixel(10)
+export const R = calculateCurrentPixel(10)
 
-const page_data: {
-    api_url: string,
+
+interface DataTypeCircleI {
+    x: number
+    y: number
+    radius: number
+    direction: number
+}
+
+export interface DataTypeContent {
+    circle: DataTypeCircleI[]
+    circlePaired: DataTypeCircleI[]
+}
+
+export interface DataTypeStage {
+    id: number,
+    circle_paired_number: number,
+    circle_number: number,
+    content: DataTypeContent
+}
+
+export const page_data_number_sense: {
+    api_url_save_stage: string,
     api_stage_count: string,
+    api_json_stage_detail: string,
     csrf_token: string,
 } =
     // @ts-ignore
@@ -89,7 +112,7 @@ class StimuliGenerator2 extends React.Component<any, {
     }
 
     loadCountTableData() {
-        axios.get(page_data.api_stage_count).then(resp => {
+        axios.get(page_data_number_sense.api_stage_count).then(resp => {
             return resp.data
         }).then(result => {
             if (result.status === 200) {
@@ -213,11 +236,11 @@ class StimuliGenerator2 extends React.Component<any, {
                                         }),
                                     }
 
-                                    axios.post(API.base_url + page_data.api_url,
+                                    axios.post(API.base_url + page_data_number_sense.api_url_save_stage,
                                         Object.assign(values, {
                                             content: content
                                         }),
-                                        {headers: {"X-CSRFToken": page_data.csrf_token}}
+                                        {headers: {"X-CSRFToken": page_data_number_sense.csrf_token}}
                                     ).then(resp => {
                                         return resp.data
                                     }).then(result => {
