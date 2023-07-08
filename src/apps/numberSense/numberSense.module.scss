@@ -25,7 +25,18 @@
 }
 
 .viewerPage {
-  .container {
+  .tableWrapper {
+    width: 50%;
+  }
+
+  .fixedWrapper {
+    position: fixed;
+    top: 0;
+    width: 50%;
+    right: 0;
+  }
+
+  .viewerContainer {
     display: flex;
     flex-direction: column;
     width: 100%;

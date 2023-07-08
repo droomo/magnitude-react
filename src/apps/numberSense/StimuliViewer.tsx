@@ -2,7 +2,8 @@ import React from 'react';
 import {CircleI, CircleIPair} from './KonvaPatch';
 import Konva from "konva";
 import classes from './numberSense.module.scss'
-import {Button, Row, Col, message, Table, Typography, Space, Modal} from 'antd';
+import './style.css'
+import {Button, message, Table, Typography, Space, Modal, Switch, Form} from 'antd';
 import axios from "axios";
 
 import {
@@ -72,9 +73,13 @@ class StimuliViewer extends React.Component<any, {
     circleNumber: number
     circlePairedNumber: number
     countTable: DataTypeStage[]
-    previewingData: DataTypeStage | undefined
+    activeData: DataTypeStage | undefined
+    activeRow: number | undefined
+    autoImaging: boolean
 }> {
     private stage: Konva.Stage | null;
+    private buttonNext: React.RefObject<HTMLButtonElement>;
+    private buttonSaveImage: React.RefObject<HTMLButtonElement>;
 
     constructor(props: never) {
         super(props);
@@ -86,12 +91,17 @@ class StimuliViewer extends React.Component<any, {
                 pageSize: undefined,
                 total: undefined,
             },
-            previewingData: undefined,
+            activeData: undefined,
+            activeRow: undefined,
             loading: true,
             circleNumber: 12,
             circlePairedNumber: 0,
-            countTable: []
+            countTable: [],
+            autoImaging: false
         }
+
+        this.buttonNext = React.createRef()
+        this.buttonSaveImage = React.createRef()
     }
 
     componentDidMount() {
@@ -138,7 +148,8 @@ class StimuliViewer extends React.Component<any, {
 
     cleanCanvas() {
         this.setState({
-            previewingData: undefined
+            activeData: undefined,
+            activeRow: undefined
         })
 
         if (document.getElementById('canvasContainer') === null) return;
@@ -172,9 +183,12 @@ class StimuliViewer extends React.Component<any, {
 
     render() {
         return (
-            <Row className={classes.viewerPage}>
-                <Col span={12}>
+            <div className={classes.viewerPage}>
+                <div className={classes.tableWrapper}>
                     <Table
+                        rowClassName={(record, index) => {
+                            return index === this.state.activeRow ? 'table-row-active' : ''
+                        }}
                         loading={this.state.loading}
                         size={'small'}
                         pagination={this.state.pagination}
@@ -210,14 +224,15 @@ class StimuliViewer extends React.Component<any, {
                                 title: 'Action',
                                 dataIndex: 'content',
                                 key: 'action',
-                                render: (content, data) => {
+                                render: (content, data, index) => {
                                     return <Space wrap>
                                         <Button
                                             size='small'
                                             type='primary'
                                             onClick={() => {
                                                 this.setState({
-                                                    previewingData: data
+                                                    activeData: data,
+                                                    activeRow: index
                                                 }, () => {
                                                     this.stage = drawStage(expStageSize, 'canvasContainer', content, true)
                                                 })
@@ -252,92 +267,122 @@ class StimuliViewer extends React.Component<any, {
                                 }
                             }
                         ]}/>
-                </Col>
-                <Col span={11} offset={1}>
-                    {this.state.previewingData && <div className={classes.container}>
-                        <Space wrap direction='vertical'>
-                            <h3>渲染图</h3>
-                            <Text strong>ID: {this.state.previewingData?.id}</Text>
-                            <div className={classes.canvasContainer} id="canvasContainer"/>
-                            <Button
-                                onClick={() => {
-                                    if (this.state.previewingData) {
-                                        let i = 0
-                                        for (i = 0; i < this.state.countTable.length; i++) {
-                                            if (this.state.countTable[i].id === this.state.previewingData.id) {
-                                                i++
-                                                break
-                                            }
-                                        }
-                                        if (i === this.state.countTable.length) {
-                                            message.error('reached last row')
-                                        } else {
-                                            this.setState({
-                                                previewingData: this.state.countTable[i]
-                                            }, () => {
-                                                this.stage = drawStage(expStageSize, 'canvasContainer', this.state.countTable[i].content, true)
-                                            })
-                                        }
-                                    }
-                                }}
-                            >下一个</Button>
-                        </Space>
-                        <br/>
-                        <Space wrap direction='vertical'>
-                            <h3>静态图</h3>
-                            <Space wrap>
-                                <Button
-                                    onClick={() => {
-                                        if (this.stage) {
-                                            saveStage(this.stage, (data: any) => {
-                                                this.setState({
-                                                    previewingData: data.stage
-                                                })
-                                                this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
-                                            }, {}, this.state.previewingData?.id)
-                                        }
+                </div>
+                <div className={classes.fixedWrapper}>
+                    {this.state.activeData && <div className={classes.viewerContainer}>
+                        <div>
+                            <Space wrap direction='vertical'>
+                                <h3>渲染图 ID: {this.state.activeData?.id}</h3>
 
-                                    }}
-                                >保存修改</Button>
-                                <Button
-                                    onClick={() => {
-                                        axios.post(page_data_number_sense.api_url_save_stage + this.state.previewingData?.id, {
-                                            image: this.stage?.toDataURL({pixelRatio: 10})
-                                        }, {
-                                            headers: {"X-CSRFToken": page_data_number_sense.csrf_token}
-                                        }).then((resp) => {
-                                            return resp.data
-                                        }).then((data) => {
-                                            if (data.status === 200) {
-                                                message.success('成功')
-                                                this.setState({
-                                                    previewingData: data.data.stage
-                                                })
-                                                this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
+                                <div className={classes.canvasContainer} id="canvasContainer"/>
+                                <Space wrap direction='vertical'>
+                                    <Button
+                                        ref={this.buttonNext}
+                                        onClick={() => {
+                                            if (this.state.activeData) {
+                                                let i = 0
+                                                for (i = 0; i < this.state.countTable.length; i++) {
+                                                    if (this.state.countTable[i].id === this.state.activeData.id) {
+                                                        i++
+                                                        break
+                                                    }
+                                                }
+                                                if (i === this.state.countTable.length) {
+                                                    message.error('reached last row')
+                                                } else {
+                                                    this.setState({
+                                                        activeData: this.state.countTable[i],
+                                                        activeRow: i
+                                                    }, () => {
+                                                        this.stage = drawStage(expStageSize, 'canvasContainer', this.state.countTable[i].content, true)
+
+                                                        if (this.state.autoImaging) {
+                                                            setTimeout(() => {
+                                                                this.buttonSaveImage.current?.click()
+                                                            }, 20)
+                                                        }
+                                                    })
+                                                }
                                             }
-                                        })
-                                    }}
-                                >（重新）生成静态图</Button>
+                                        }}
+                                    >下一个</Button>
+                                    <Form.Item label="Auto generating" rules={[{required: true}]}>
+                                        <Switch
+                                            checkedChildren="Active" unCheckedChildren="Disabled"
+                                            onChange={(active) => {
+                                                this.setState({
+                                                    autoImaging: active
+                                                })
+                                            }}
+                                        />
+                                    </Form.Item>
+                                </Space>
                             </Space>
-                            <div className={classes.canvasContainer}>
-                                {this.state.previewingData?.img_file ?
-                                    (() => {
-                                        const url = this.state.previewingData?.img_file + '?_t=' + Date.now()
-                                        return <a href={url} target="_blank" rel="noreferrer">
-                                            <img
-                                                src={url}
-                                                className={classes.imgViewer}
-                                                alt={'' + this.state.previewingData?.id}
-                                            />
-                                        </a>
-                                    })()
-                                    : <Text type='danger'>未生成图片</Text>
-                                }
-                            </div>
-                        </Space>
+                            <br/>
+                            <Space wrap direction='vertical'>
+                                <h3>静态图</h3>
+                                <Space wrap>
+                                    <Button
+                                        onClick={() => {
+                                            if (this.stage) {
+                                                saveStage(this.stage, (data: any) => {
+                                                    this.setState({
+                                                        activeData: data.stage
+                                                    })
+                                                    this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
+                                                }, {}, this.state.activeData?.id)
+                                            }
+
+                                        }}
+                                    >保存修改</Button>
+                                    <Button
+                                        ref={this.buttonSaveImage}
+                                        onClick={() => {
+                                            axios.post(page_data_number_sense.api_url_save_stage + this.state.activeData?.id, {
+                                                image: this.stage?.toDataURL({pixelRatio: 10})
+                                            }, {
+                                                headers: {"X-CSRFToken": page_data_number_sense.csrf_token}
+                                            }).then((resp) => {
+                                                return resp.data
+                                            }).then((data) => {
+                                                if (data.status === 200) {
+                                                    message.success('成功')
+                                                    this.setState({
+                                                        activeData: data.data.stage
+                                                    }, () => {
+                                                        this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
+
+                                                        if (this.state.autoImaging) {
+                                                            setTimeout(() => {
+                                                                this.buttonNext.current?.click()
+                                                            }, 500)
+                                                        }
+                                                    })
+                                                }
+                                            })
+                                        }}
+                                    >（重新）生成静态图</Button>
+                                </Space>
+                                <div className={classes.canvasContainer}>
+                                    {this.state.activeData?.img_file ?
+                                        (() => {
+                                            const url = this.state.activeData?.img_file + '?_t=' + Date.now()
+                                            return <a href={url} target="_blank" rel="noreferrer">
+                                                <img
+                                                    src={url}
+                                                    className={classes.imgViewer}
+                                                    alt={'' + this.state.activeData?.id}
+                                                />
+                                            </a>
+                                        })()
+                                        : <Text type='danger'>未生成图片</Text>
+                                    }
+                                </div>
+                            </Space>
+                        </div>
                     </div>}
-                </Col>
-            </Row>
+                </div>
+            </div>
         );
     }
 }
