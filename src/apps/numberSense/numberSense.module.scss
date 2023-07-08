@@ -27,6 +27,10 @@
 .viewerPage {
   .tableWrapper {
     width: 50%;
+
+    .viewerControl {
+      cursor: pointer;
+    }
   }
 
   .fixedWrapper {
@@ -41,16 +45,16 @@
     flex-direction: column;
     width: 100%;
     text-align: center;
-  }
 
-  .canvasContainer {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-
-    .imgViewer {
+    .canvasContainer {
       width: 100%;
-      max-width: 640px;
+      display: flex;
+      justify-content: center;
+
+      .imgViewer {
+        width: 100%;
+        max-width: 640px;
+      }
     }
   }
 }

@@ -57,7 +57,8 @@ export interface DataTypeStage {
     circle_paired_number: number,
     circle_number: number,
     content: DataTypeContent,
-    img_file: string,
+    img_file: string | null,
+    img_time: number | null
 }
 
 export const page_data_number_sense: {

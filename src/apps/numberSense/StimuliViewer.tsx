@@ -73,7 +73,7 @@ class StimuliViewer extends React.Component<any, {
     circleNumber: number
     circlePairedNumber: number
     countTable: DataTypeStage[]
-    activeData: DataTypeStage | undefined
+    activeData?: DataTypeStage
     activeRow: number | undefined
     autoImaging: boolean
 }> {
@@ -216,35 +216,44 @@ class StimuliViewer extends React.Component<any, {
                                 title: 'Preview',
                                 dataIndex: 'id',
                                 key: 'preview',
-                                render: (id: number) => {
-                                    return <span id={`stage_preview_${id}`}>Preview-{id}</span>
+                                render: (id: number, data, index) => {
+                                    return <Space
+                                        wrap
+                                        direction='horizontal'
+                                        className={classes.viewerControl}
+                                        onClick={() => {
+                                            this.setState({
+                                                activeData: data,
+                                                activeRow: index
+                                            }, () => {
+                                                this.stage = drawStage(expStageSize, 'canvasContainer', data.content, true)
+                                            })
+                                        }}
+                                    >
+                                        <span id={`stage_preview_${id}`}>Preview-{id}</span>
+                                        {data.img_time ?
+                                            <Text type='success'>已生成@ {data.img_time}</Text> :
+                                            <Text type='danger'>无静态图</Text>
+                                        }
+                                    </Space>
                                 }
                             },
                             {
+                                align: 'center',
                                 title: 'Action',
                                 dataIndex: 'content',
                                 key: 'action',
-                                render: (content, data, index) => {
+                                render: (content, data) => {
                                     return <Space wrap>
-                                        <Button
-                                            size='small'
-                                            type='primary'
-                                            onClick={() => {
-                                                this.setState({
-                                                    activeData: data,
-                                                    activeRow: index
-                                                }, () => {
-                                                    this.stage = drawStage(expStageSize, 'canvasContainer', content, true)
-                                                })
-                                            }}
-                                        >预览</Button>
                                         <Button
                                             size='small'
                                             danger
                                             onClick={() => {
                                                 Modal.confirm({
                                                     title: 'Confirm',
-                                                    content: <span>删除图片<Text mark strong>{`ID[${data.id}]`}</Text>？</span>,
+                                                    content: <span>删除图片数据 <Text
+                                                        mark
+                                                        strong>{`ID[${data.id}]`}</Text>？</span>,
                                                     okText: '确认',
                                                     cancelText: '取消',
                                                     onOk: () => {
@@ -260,9 +269,6 @@ class StimuliViewer extends React.Component<any, {
                                                 });
                                             }}
                                         >删除</Button>
-                                        {data.img_file ? <Text type='success'>已生成静态图</Text> :
-                                            <Text type='danger'>无静态图</Text>}
-
                                     </Space>
                                 }
                             }
@@ -275,53 +281,7 @@ class StimuliViewer extends React.Component<any, {
                                 <h3>渲染图 ID: {this.state.activeData?.id}</h3>
 
                                 <div className={classes.canvasContainer} id="canvasContainer"/>
-                                <Space wrap direction='vertical'>
-                                    <Button
-                                        ref={this.buttonNext}
-                                        onClick={() => {
-                                            if (this.state.activeData) {
-                                                let i = 0
-                                                for (i = 0; i < this.state.countTable.length; i++) {
-                                                    if (this.state.countTable[i].id === this.state.activeData.id) {
-                                                        i++
-                                                        break
-                                                    }
-                                                }
-                                                if (i === this.state.countTable.length) {
-                                                    message.error('reached last row')
-                                                } else {
-                                                    this.setState({
-                                                        activeData: this.state.countTable[i],
-                                                        activeRow: i
-                                                    }, () => {
-                                                        this.stage = drawStage(expStageSize, 'canvasContainer', this.state.countTable[i].content, true)
-
-                                                        if (this.state.autoImaging) {
-                                                            setTimeout(() => {
-                                                                this.buttonSaveImage.current?.click()
-                                                            }, 20)
-                                                        }
-                                                    })
-                                                }
-                                            }
-                                        }}
-                                    >下一个</Button>
-                                    <Form.Item label="Auto generating" rules={[{required: true}]}>
-                                        <Switch
-                                            checkedChildren="Active" unCheckedChildren="Disabled"
-                                            onChange={(active) => {
-                                                this.setState({
-                                                    autoImaging: active
-                                                })
-                                            }}
-                                        />
-                                    </Form.Item>
-                                </Space>
-                            </Space>
-                            <br/>
-                            <Space wrap direction='vertical'>
-                                <h3>静态图</h3>
-                                <Space wrap>
+                                <Space wrap direction='horizontal'>
                                     <Button
                                         onClick={() => {
                                             if (this.stage) {
@@ -336,8 +296,51 @@ class StimuliViewer extends React.Component<any, {
                                         }}
                                     >保存修改</Button>
                                     <Button
+                                        ref={this.buttonNext}
+                                        onClick={() => {
+                                            if (this.state.activeData) {
+                                                let i = 0
+                                                for (i = 0; i < this.state.countTable.length; i++) {
+                                                    if (this.state.countTable[i].id === this.state.activeData.id) {
+                                                        i++
+                                                        break
+                                                    }
+                                                }
+                                                if (i === this.state.countTable.length) {
+                                                    message.error('Reached the last row')
+                                                } else {
+                                                    this.setState({
+                                                        activeData: this.state.countTable[i],
+                                                        activeRow: i
+                                                    }, () => {
+                                                        this.stage = drawStage(expStageSize, 'canvasContainer', this.state.countTable[i].content, true)
+
+                                                        if (this.state.autoImaging) {
+                                                            setTimeout(() => {
+                                                                this.buttonSaveImage.current?.click()
+                                                            }, 50)
+                                                        }
+                                                    })
+                                                }
+                                            }
+                                        }}
+                                    >下一个</Button>
+                                </Space>
+                            </Space>
+                            <br/>
+                            <Space wrap direction='vertical'>
+                                <h3>静态图{this.state.activeData?.img_file ? <Text type='success'>{this.state.activeData?.img_time}</Text>: <Text type='danger'>未生成</Text>}</h3>
+                                <Space wrap direction='vertical'>
+                                    <Button
                                         ref={this.buttonSaveImage}
                                         onClick={() => {
+                                            if (this.state.activeData)
+                                                this.setState({
+                                                    activeData: {
+                                                        ...this.state.activeData,
+                                                        img_file: null
+                                                    }
+                                                })
                                             axios.post(page_data_number_sense.api_url_save_stage + this.state.activeData?.id, {
                                                 image: this.stage?.toDataURL({pixelRatio: 10})
                                             }, {
@@ -346,36 +349,50 @@ class StimuliViewer extends React.Component<any, {
                                                 return resp.data
                                             }).then((data) => {
                                                 if (data.status === 200) {
-                                                    message.success('成功')
+                                                    message.success(`成功(ID: ${data.data.stage.id})`)
+                                                    this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
+                                                    const stageData: DataTypeStage = data.data.stage
                                                     this.setState({
-                                                        activeData: data.data.stage
+                                                        activeData: stageData
                                                     }, () => {
-                                                        this.loadCountTableData(this.state.pagination.current, this.state.pagination.pageSize, true)
 
-                                                        if (this.state.autoImaging) {
-                                                            setTimeout(() => {
-                                                                this.buttonNext.current?.click()
-                                                            }, 500)
+                                                        if (this.state.autoImaging && stageData.img_file) {
+                                                            var img = new Image();
+                                                            img.src = stageData.img_file;
+                                                            img.onload = () => {
+                                                                setTimeout(() => {
+                                                                    this.buttonNext.current?.click()
+                                                                }, 500)
+                                                            }
                                                         }
                                                     })
                                                 }
                                             })
                                         }}
                                     >（重新）生成静态图</Button>
+                                    <Form.Item label="Auto generating" rules={[{required: true}]}>
+                                        <Switch
+                                            {...{defaultChecked: this.state.autoImaging}}
+                                            checkedChildren="Active"
+                                            unCheckedChildren="Disabled"
+                                            onChange={(active) => {
+                                                this.setState({
+                                                    autoImaging: active
+                                                })
+                                            }}
+
+                                        />
+                                    </Form.Item>
                                 </Space>
                                 <div className={classes.canvasContainer}>
-                                    {this.state.activeData?.img_file ?
-                                        (() => {
-                                            const url = this.state.activeData?.img_file + '?_t=' + Date.now()
-                                            return <a href={url} target="_blank" rel="noreferrer">
-                                                <img
-                                                    src={url}
-                                                    className={classes.imgViewer}
-                                                    alt={'' + this.state.activeData?.id}
-                                                />
-                                            </a>
-                                        })()
-                                        : <Text type='danger'>未生成图片</Text>
+                                    {this.state.activeData?.img_file &&
+                                        <a href={this.state.activeData?.img_file} target="_blank" rel="noreferrer">
+                                            <img
+                                                src={this.state.activeData?.img_file}
+                                                className={classes.imgViewer}
+                                                alt={'' + this.state.activeData?.id}
+                                            />
+                                        </a>
                                     }
                                 </div>
                             </Space>
