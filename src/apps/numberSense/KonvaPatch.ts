@@ -1,4 +1,5 @@
 import Konva from "konva";
+import {DataTypePoint} from "./StimuliGenerator2";
 
 export class CircleI extends Konva.Shape {
     _sceneFunc(context: Konva.Context) {
@@ -49,12 +50,11 @@ export class CircleIPair extends Konva.Shape {
 
         context.fillStrokeShape(this);
 
-
         // move to next circle position
-        const pairD = 14 / 5 * this.attrs.radius
         context.translate(
-            pairD * Math.cos(this.attrs.direction),
-            pairD * Math.sin(this.attrs.direction));
+            this.__pairD() * Math.cos(this.attrs.direction),
+            this.__pairD() * Math.sin(this.attrs.direction)
+        )
         context.beginPath();
 
         const tempAngle2 = Math.asin(chord / this.attrs.radius * 0.5) + Math.PI
@@ -78,7 +78,19 @@ export class CircleIPair extends Konva.Shape {
         context.fillStrokeShape(this);
 
     }
+
+    __pairD() {
+        return 14 / 5 * this.attrs.radius
+    }
+
+    getPoint2(): DataTypePoint {
+        return {
+            x: this.attrs.x + this.__pairD() * Math.cos(this.attrs.direction),
+            y: this.attrs.y + this.__pairD() * Math.sin(this.attrs.direction)
+        }
+    }
 }
+
 CircleIPair.prototype._centroid = true;
 CircleIPair.prototype.className = 'CircleIPair';
 CircleIPair.prototype._attrsAffectingSize = ['radius', 'direction'];

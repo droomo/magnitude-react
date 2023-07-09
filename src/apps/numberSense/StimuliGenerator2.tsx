@@ -39,10 +39,12 @@ export const canvas = {
 
 export const R = calculateCurrentPixel(10)
 
-
-interface DataTypeCircleI {
-    x: number
+export interface DataTypePoint {
+    x: number,
     y: number
+}
+
+interface DataTypeCircleI extends DataTypePoint {
     radius: number
     direction: number
 }
@@ -109,6 +111,11 @@ export function saveStage(stage: Konva.Stage, callback: CallableFunction, values
     }).catch(() => {
         message.error('network failed')
     })
+}
+
+function ifSmallerDistance(point1: DataTypePoint, point2: DataTypePoint, distance: number) {
+    const [a, b] = [point1.x - point2.x, point1.y - point2.y]
+    return Math.sqrt(a * a + b * b) < distance
 }
 
 class StimuliGenerator2 extends React.Component<any, {
@@ -183,31 +190,30 @@ class StimuliGenerator2 extends React.Component<any, {
         this.layer = new Konva.Layer()
         this.stage.add(this.layer)
 
+        const existingPoints: DataTypePoint[] = []
+
         for (let i = 0; i < this.state.circleNumber - this.state.circlePairedNumber * 2;) {
             while (1) {
-                let fail = false
 
-                let [x, y] = [
-                    Math.random() * (canvas.width - R * 6) + R * 3,
-                    Math.random() * (canvas.height - R * 6) + R * 3
-                ]
-                for (const c of this.stage.find('CircleI')) {
-                    const [a, b] = [x - c.x(), y - c.y()]
-                    if (Math.sqrt(a * a + b * b) < R * this.state.spacingRatio) {
-                        fail = true
+                let point: DataTypePoint | undefined = {
+                    x: Math.random() * (canvas.width - R * 6) + R * 3,
+                    y: Math.random() * (canvas.height - R * 6) + R * 3
+                }
+                for (const c of existingPoints) {
+                    if (ifSmallerDistance(point, c, R * this.state.spacingRatio)) {
+                        point = undefined
                         break
                     }
                 }
-                if (!fail) {
-                    const circleI = new CircleI({
-                        x: x,
-                        y: y,
+                if (point) {
+                    this.layer.add(new CircleI({
+                        ...point,
                         radius: R,
                         rotation: Math.random() * 360,
                         fill: 'black',
                         draggable: true,
-                    });
-                    this.layer.add(circleI);
+                    }))
+                    existingPoints.push(point)
                     i++
                     break
                 }
@@ -216,29 +222,41 @@ class StimuliGenerator2 extends React.Component<any, {
 
         for (let i = 0; i < this.state.circlePairedNumber;) {
             while (1) {
-                let fail = false
-
-                let [x, y] = [
-                    Math.random() * (canvas.width - R * 6) + R * 3,
-                    Math.random() * (canvas.height - R * 6) + R * 3
-                ]
-                for (const c of [...this.stage.find('CircleI'), ...this.stage.find('CircleIPair')]) {
-                    const [a, b] = [x - c.x(), y - c.y()]
-                    if (Math.sqrt(a * a + b * b) < R * this.state.spacingRatio) {
-                        fail = true
-                        break
-                    }
+                let point: DataTypePoint = {
+                    x: Math.random() * (canvas.width - R * 6) + R * 3,
+                    y: Math.random() * (canvas.height - R * 6) + R * 3
                 }
-                if (!fail) {
-                    const circleIPair = new CircleIPair({
-                        x: x,
-                        y: y,
+                let circleIPair = undefined
+                for (const c of existingPoints) {
+                    circleIPair = new CircleIPair({
+                        ...point,
                         radius: R,
                         direction: Math.random() * 2 * Math.PI,
                         fill: 'black',
                         draggable: true,
-                    });
-                    this.layer.add(circleIPair);
+                    })
+                    if (ifSmallerDistance(point, c, R * this.state.spacingRatio)) {
+                        circleIPair = undefined
+                        break
+                    }
+                }
+                if (circleIPair) {
+                    const point2 = circleIPair.getPoint2()
+                    for (const c of existingPoints) {
+                        if (
+                            ifSmallerDistance(point2, c, R * this.state.spacingRatio) ||
+                            point2.x < R * 3 || point2.x > canvas.width - R * 3 ||
+                            point2.y < R * 3 || point2.y > canvas.width - R * 3
+                        ) {
+                            circleIPair = undefined
+                            break
+                        }
+                    }
+                }
+                if (circleIPair) {
+                    this.layer.add(circleIPair)
+                    existingPoints.push(point)
+                    existingPoints.push(circleIPair.getPoint2())
                     i++
                     break
                 }
@@ -252,7 +270,6 @@ class StimuliGenerator2 extends React.Component<any, {
                 <Col span={12}>
                     <div className={classes.container}>
                         <div className={classes.canvasContainer} id="canvasContainer"/>
-
                         <div className={classes.control}>
                             <p>You may drag the circles above.</p>
                             <Form
@@ -267,7 +284,6 @@ class StimuliGenerator2 extends React.Component<any, {
                                         message.error('error')
                                     }
                                 }}
-                                // onFinishFailed={onFinishFailed}
                                 autoComplete="off"
                             >
                                 <Form.Item label="Minimum distance(times radius)" rules={[{required: true}]}>
