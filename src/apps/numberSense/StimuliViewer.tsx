@@ -138,7 +138,7 @@ class StimuliViewer extends React.Component<any, {
                 loading: false
             }, () => {
                 for (const stageData of this.state.countTable) {
-                    drawStage(50, `stage_preview_${stageData.id}`, stageData.content)
+                    drawStage(72, `stage_preview_${stageData.id}`, stageData.content)
                 }
             })
         }).catch(() => {
