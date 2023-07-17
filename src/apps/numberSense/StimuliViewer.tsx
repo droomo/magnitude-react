@@ -342,7 +342,7 @@ class StimuliViewer extends React.Component<any, {
                                                     }
                                                 })
                                             axios.post(page_data_number_sense.api_url_save_stage + this.state.activeData?.id, {
-                                                image: this.stage?.toDataURL({pixelRatio: 10})
+                                                image: this.stage?.toDataURL({pixelRatio: 3})
                                             }, {
                                                 headers: {"X-CSRFToken": page_data_number_sense.csrf_token}
                                             }).then((resp) => {
