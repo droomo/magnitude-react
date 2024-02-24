@@ -203,6 +203,7 @@ module.exports = function (webpackEnv) {
         // These are the "entry points" to our application.
         // This means they will be the "root" imports that are included in JS bundle.
         entry: {
+            space_time: [paths.space_time],
             consumer2023: [paths.consumer2023],
             number_sense: [paths.numberSense],
             main: [paths.appIndexJs],
@@ -582,6 +583,7 @@ module.exports = function (webpackEnv) {
                 Object.assign(
                     {},
                     {
+                        chunks: ["main"],
                         inject: true,
                         template: paths.appHtml,
                     },
