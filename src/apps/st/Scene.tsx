@@ -4,9 +4,6 @@ import type {OrbitControls as OrbitControlsImpl} from 'three-stdlib'
 import {OrbitControls, Box, PerspectiveCamera, Sky} from '@react-three/drei';
 import {useTexture} from '@react-three/drei';
 import {
-    BufferGeometry,
-    Float32BufferAttribute,
-    MeshStandardMaterial,
     RepeatWrapping,
     TextureLoader,
     Vector2,
@@ -14,21 +11,21 @@ import {
     Group
 } from 'three';
 import * as THREE from 'three';
-import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader'
-import {EXRLoader} from 'three/examples/jsm/loaders/EXRLoader'
 
 const BASE_URL = 'http://127.0.0.1:9000'
 
-// 墙壁的厚度
+// 墙壁
 const wallThickness = 0.12;
-// 墙壁的高度
 const wallHeight = 5;
 const wallWidth = 20;
 const wallDepth = 15;
 
-// 门宽度
+// 门
 const doorWidth = 1;
 const doorHeight = 2 * doorWidth;
+
+// 贴图重复
+const repeat = new Vector2(10, 4);
 
 function Ground() {
     const [map, metalnessMap, normalMap, aoMap] = useLoader(TextureLoader, [
@@ -38,7 +35,6 @@ function Ground() {
         `${BASE_URL}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`,
     ]);
 
-    const repeat = new Vector2(4000, 4000); // 根据您的需要调整这个值
     [map, metalnessMap, normalMap, aoMap].forEach(texture => {
         texture.wrapS = RepeatWrapping;
         texture.wrapT = RepeatWrapping;
@@ -66,7 +62,7 @@ function Ground() {
 export default function Scene(props: any) {
     return (
         <Canvas>
-            <PerspectiveCamera makeDefault position={[0, doorHeight * 0.6, -10]}/>
+            <PerspectiveCamera makeDefault position={[0, doorHeight * 0.6, 10]}/>
             {/*<OrbitControls/>*/}
             <CameraController/>
             <ambientLight intensity={1}/>
@@ -134,7 +130,7 @@ function Door() {
 
     useEffect(() => {
         if (doorRefBox.current) {
-            doorRefBox.current.geometry.translate(-doorWidth * 0.5, 0, 0);
+            doorRefBox.current.geometry.translate(doorWidth * 0.5, 0, 0);
         }
     }, [])
 
@@ -143,7 +139,8 @@ function Door() {
         targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
     };
 
-    return <group ref={doorGroupRef} position={[doorWidth * 0.5, doorHeight * 0.5, -wallDepth / 2]} onClick={toggleOpen}>
+    return <group ref={doorGroupRef} position={[-doorWidth * 0.5, doorHeight * 0.5, wallDepth / 2]}
+                  onClick={toggleOpen}>
         <mesh>
             <Box args={[doorWidth, doorHeight, 0.1]} ref={doorRefBox}>
                 <meshStandardMaterial attach="material" {...doorMaterial}/>
@@ -154,14 +151,15 @@ function Door() {
 
 
 function Room() {
-    const [map, metalnessMap, normalMap, aoMap] = useTexture([
+    const textures = useTexture([
         `${BASE_URL}/wall/1/wall_BaseColor.png`,
         `${BASE_URL}/wall/1/wall_MetallicRoughness.png`,
         `${BASE_URL}/wall/1/wall_Normal.png`,
         `${BASE_URL}/wall/1/wall_Occlusion.png`,
-    ])
+    ]);
 
-    const repeat = new Vector2(10, 10);
+
+    let [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
 
     [map, metalnessMap, normalMap, aoMap].forEach(texture => {
         texture.wrapS = RepeatWrapping;
@@ -170,16 +168,65 @@ function Room() {
     })
 
     const mixedTexture = {
-        map,
-        metalnessMap,
-        normalMap,
-        aoMap,
+        map, metalnessMap, normalMap, aoMap,
         metalness: 0.4,
         roughness: 0.5,
         normalScale: new Vector2(2, 2),
     };
 
-    const halfWallWidth = wallWidth / 2 - doorWidth / 2;
+    const halfWallWidth = (wallWidth - doorWidth) * 0.5;
+
+    console.log(doorWidth, wallWidth, halfWallWidth);
+
+    [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
+    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
+        texture.wrapS = RepeatWrapping;
+        texture.wrapT = RepeatWrapping;
+        texture.repeat.set(
+            (wallWidth - doorWidth) / 2 / wallWidth * repeat.x,
+            doorHeight / wallHeight * repeat.y
+        );
+        texture.offset.set(0, doorHeight / wallHeight);
+    })
+    const mixedTextureFrontHalfWallBottomLeft = {
+        map, metalnessMap, normalMap, aoMap,
+        metalness: 0.4,
+        roughness: 0.5,
+        normalScale: new Vector2(2, 2),
+    };
+
+    [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
+    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
+        texture.wrapS = RepeatWrapping;
+        texture.wrapT = RepeatWrapping;
+        texture.repeat.set(
+            (wallWidth - doorWidth) / 2 / wallWidth * repeat.x,
+            doorHeight / wallHeight * repeat.y
+        );
+        texture.offset.set(0, doorHeight / wallHeight)
+    })
+    const mixedTextureFrontHalfWallBottomRight = {
+        map, metalnessMap, normalMap, aoMap,
+        metalness: 0.4,
+        roughness: 0.5,
+        normalScale: new Vector2(2, 2),
+    };
+
+    [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
+    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
+        texture.wrapS = RepeatWrapping;
+        texture.wrapT = RepeatWrapping;
+        texture.repeat.set(
+            repeat.x,
+            (wallHeight - doorHeight) / wallHeight * repeat.y
+        );
+    })
+    const mixedTextureFrontHalfWallTop = {
+        map, metalnessMap, normalMap, aoMap,
+        metalness: 0.4,
+        roughness: 0.5,
+        normalScale: new Vector2(2, 2),
+    };
 
     return (
         <mesh>
@@ -199,34 +246,35 @@ function Room() {
 
             {/* 后墙 */}
             <Box args={[wallWidth, wallHeight, wallThickness]}
-                 position={[0, wallHeight / 2, wallDepth / 2]}>
+                 position={[0, wallHeight * 0.5, - wallDepth * 0.5]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 左墙 */}
             <Box args={[wallThickness, wallHeight, wallDepth]}
-                 position={[-wallWidth / 2, wallHeight / 2, 0]}>
+                 position={[-wallWidth * 0.5, wallHeight * 0.5, 0]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 右墙 */}
             <Box args={[wallThickness, wallHeight, wallDepth]}
-                 position={[wallWidth / 2, wallHeight / 2, 0]}>
+                 position={[wallWidth * 0.5, wallHeight * 0.5, 0]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
 
+            {/* 门上方的墙壁部分 */}
+            <Box args={[wallWidth, wallHeight - doorHeight, wallThickness]}
+                 position={[0, (wallHeight + doorHeight) * 0.5, wallDepth * 0.5]}>
+                <meshStandardMaterial attach="material" {...mixedTextureFrontHalfWallTop}/>
+            </Box>
+
             {/* 门左侧的墙壁部分 */}
-            <Box args={[halfWallWidth, wallHeight, wallThickness]}
-                 position={[-halfWallWidth / 2 - doorWidth / 2, wallHeight / 2, -wallDepth / 2]}>
-                <meshStandardMaterial attach="material" {...mixedTexture}/>
+            <Box args={[halfWallWidth, doorHeight, wallThickness]}
+                 position={[-(halfWallWidth + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5]}>
+                <meshStandardMaterial attach="material" {...mixedTextureFrontHalfWallBottomLeft}/>
             </Box>
             {/* 门右侧的墙壁部分 */}
-            <Box args={[halfWallWidth, wallHeight, wallThickness]}
-                 position={[halfWallWidth / 2 + doorWidth / 2, wallHeight / 2, -wallDepth / 2]}>
-                <meshStandardMaterial attach="material" {...mixedTexture}/>
-            </Box>
-            {/* 门上方的墙壁部分 */}
-            <Box args={[doorWidth, wallHeight - doorHeight, wallThickness]}
-                 position={[0, (wallHeight + doorHeight) * 0.5, -wallDepth / 2]}>
-                <meshStandardMaterial attach="material" {...mixedTexture}/>
+            <Box args={[halfWallWidth, doorHeight, wallThickness]}
+                 position={[(halfWallWidth + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5]}>
+                <meshStandardMaterial attach="material" {...mixedTextureFrontHalfWallBottomRight}/>
             </Box>
 
         </mesh>
