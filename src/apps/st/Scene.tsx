@@ -16,16 +16,16 @@ const BASE_URL = 'http://127.0.0.1:9000'
 
 // 墙壁
 const wallThickness = 0.12;
-const wallHeight = 5;
-const wallWidth = 20;
-const wallDepth = 15;
+const wallHeight = 10;
+const wallWidth = 13;
+const wallDepth = 12;
 
 // 门
 const doorWidth = 1;
 const doorHeight = 2 * doorWidth;
 
 // 贴图重复
-const repeat = new Vector2(10, 4);
+const repeat = new Vector2(17, 14);
 
 function Ground() {
     const [map, metalnessMap, normalMap, aoMap] = useLoader(TextureLoader, [
@@ -203,7 +203,11 @@ function Room() {
             (wallWidth - doorWidth) / 2 / wallWidth * repeat.x,
             doorHeight / wallHeight * repeat.y
         );
-        texture.offset.set(0, doorHeight / wallHeight)
+        texture.offset.set(
+            // - ((wallWidth / repeat.x / 2) - doorWidth / 2) / (wallWidth / repeat.x), // 门的剩余宽度占每块贴纸的比例
+            (doorWidth * repeat.x - wallWidth) / wallWidth * 0.5,
+            doorHeight / wallHeight
+        )
     })
     const mixedTextureFrontHalfWallBottomRight = {
         map, metalnessMap, normalMap, aoMap,
@@ -246,7 +250,7 @@ function Room() {
 
             {/* 后墙 */}
             <Box args={[wallWidth, wallHeight, wallThickness]}
-                 position={[0, wallHeight * 0.5, - wallDepth * 0.5]}>
+                 position={[0, wallHeight * 0.5, -wallDepth * 0.5]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 左墙 */}
