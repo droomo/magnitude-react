@@ -22,7 +22,9 @@ const BASE_URL = 'http://127.0.0.1:9000'
 // 墙壁的厚度
 const wallThickness = 0.12;
 // 墙壁的高度
-const wallHeight = 3;
+const wallHeight = 5;
+const wallWidth = 20;
+const wallDepth = 15;
 
 // 门宽度
 const doorWidth = 1;
@@ -141,7 +143,7 @@ function Door() {
         targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
     };
 
-    return <group ref={doorGroupRef} position={[doorWidth * 0.5, doorHeight * 0.5, -5]} onClick={toggleOpen}>
+    return <group ref={doorGroupRef} position={[doorWidth * 0.5, doorHeight * 0.5, -wallDepth / 2]} onClick={toggleOpen}>
         <mesh>
             <Box args={[doorWidth, doorHeight, 0.1]} ref={doorRefBox}>
                 <meshStandardMaterial attach="material" {...doorMaterial}/>
@@ -177,46 +179,53 @@ function Room() {
         normalScale: new Vector2(2, 2),
     };
 
+    const halfWallWidth = wallWidth / 2 - doorWidth / 2;
+
     return (
         <mesh>
             {/* 门模型 */}
             <Door/>
 
             {/* 地板 */}
-            {/*<Box args={[10 - wallThickness, wallThickness, 10 - wallThickness]}*/}
+            {/*<Box args={[wallWidth - wallThickness, wallThickness, wallDepth - wallThickness]}*/}
             {/*     position={[0, wallThickness / 2, 0]}>*/}
             {/*    <meshStandardMaterial attach="material" {...mixedTexture}/>*/}
             {/*</Box>*/}
             {/* 天花板 */}
-            <Box args={[10 - wallThickness, wallThickness, 10 - wallThickness]}
+            <Box args={[wallWidth - wallThickness, wallThickness, wallDepth - wallThickness]}
                  position={[0, wallHeight - wallThickness / 2, 0]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
 
             {/* 后墙 */}
-            <Box args={[10, wallHeight, wallThickness]} position={[0, wallHeight / 2, 5]}>
+            <Box args={[wallWidth, wallHeight, wallThickness]}
+                 position={[0, wallHeight / 2, wallDepth / 2]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 左墙 */}
-            <Box args={[wallThickness, wallHeight, 10]} position={[-5, wallHeight / 2, 0]}>
+            <Box args={[wallThickness, wallHeight, wallDepth]}
+                 position={[-wallWidth / 2, wallHeight / 2, 0]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 右墙 */}
-            <Box args={[wallThickness, wallHeight, 10]} position={[5, wallHeight / 2, 0]}>
+            <Box args={[wallThickness, wallHeight, wallDepth]}
+                 position={[wallWidth / 2, wallHeight / 2, 0]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
 
             {/* 门左侧的墙壁部分 */}
-            <Box args={[4.5, wallHeight, wallThickness]} position={[-2.75, wallHeight / 2, -5]}>
+            <Box args={[halfWallWidth, wallHeight, wallThickness]}
+                 position={[-halfWallWidth / 2 - doorWidth / 2, wallHeight / 2, -wallDepth / 2]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 门右侧的墙壁部分 */}
-            <Box args={[4.5, wallHeight, wallThickness]} position={[2.75, wallHeight / 2, -5]}>
+            <Box args={[halfWallWidth, wallHeight, wallThickness]}
+                 position={[halfWallWidth / 2 + doorWidth / 2, wallHeight / 2, -wallDepth / 2]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
             {/* 门上方的墙壁部分 */}
             <Box args={[doorWidth, wallHeight - doorHeight, wallThickness]}
-                 position={[0, (wallHeight + doorHeight) * 0.5, -5]}>
+                 position={[0, (wallHeight + doorHeight) * 0.5, -wallDepth / 2]}>
                 <meshStandardMaterial attach="material" {...mixedTexture}/>
             </Box>
 
