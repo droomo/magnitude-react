@@ -228,7 +228,7 @@ module.exports = function (webpackEnv) {
             // We inferred the "public path" (such as / or /my-project) from homepage.
 
             // TODO: modify the public path
-            publicPath: isEnvProduction ? "https://source.droomo.top/droomo-react/build/" : 'http://localhost:3000/',
+            publicPath: isEnvProduction ? "https://source.droomo.top/droomo-react/build/" : 'http://192.168.1.5:3000/',
 
             // Point sourcemap entries to original disk location (format as URL on Windows)
             devtoolModuleFilenameTemplate: isEnvProduction

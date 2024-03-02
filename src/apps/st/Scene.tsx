@@ -12,7 +12,7 @@ import {
 } from 'three';
 import * as THREE from 'three';
 
-const BASE_URL = 'http://127.0.0.1:9000'
+const BASE_URL = 'http://192.168.1.5:9000'
 
 // 墙壁
 const wallThickness = 0.12;
@@ -67,7 +67,7 @@ export default function Scene(props: any) {
             <CameraController/>
             <ambientLight intensity={1}/>
             {/*<pointLight position={[0, 3, -6]} intensity={1}/>*/}
-            <pointLight position={[0, doorHeight, 0]} intensity={3}/>
+            {/*<pointLight position={[0, doorHeight, 0]} intensity={1}/>*/}
             <Ground/>
             <Room/>
 
@@ -75,7 +75,7 @@ export default function Scene(props: any) {
                 distance={450000}
                 sunPosition={[5, 100, -20]}
                 inclination={0}
-                azimuth={0.25}
+                azimuth={100}
                 {...props}
             />
         </Canvas>
@@ -151,6 +151,9 @@ function Door() {
 
 
 function Room() {
+    const wallRoughness = 0.8;
+    const wallMetalness = 0.1;
+
     const textures = useTexture([
         `${BASE_URL}/wall/1/wall_BaseColor.png`,
         `${BASE_URL}/wall/1/wall_MetallicRoughness.png`,
@@ -169,14 +172,12 @@ function Room() {
 
     const mixedTexture = {
         map, metalnessMap, normalMap, aoMap,
-        metalness: 0.4,
-        roughness: 0.5,
+        metalness: wallMetalness,
+        roughness: wallRoughness,
         normalScale: new Vector2(2, 2),
     };
 
     const halfWallWidth = (wallWidth - doorWidth) * 0.5;
-
-    console.log(doorWidth, wallWidth, halfWallWidth);
 
     [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
     [map, metalnessMap, normalMap, aoMap].forEach(texture => {
@@ -190,8 +191,8 @@ function Room() {
     })
     const mixedTextureFrontHalfWallBottomLeft = {
         map, metalnessMap, normalMap, aoMap,
-        metalness: 0.4,
-        roughness: 0.5,
+        metalness: wallMetalness,
+        roughness: wallRoughness,
         normalScale: new Vector2(2, 2),
     };
 
@@ -211,8 +212,8 @@ function Room() {
     })
     const mixedTextureFrontHalfWallBottomRight = {
         map, metalnessMap, normalMap, aoMap,
-        metalness: 0.4,
-        roughness: 0.5,
+        metalness: wallMetalness,
+        roughness: wallRoughness,
         normalScale: new Vector2(2, 2),
     };
 
@@ -227,8 +228,8 @@ function Room() {
     })
     const mixedTextureFrontHalfWallTop = {
         map, metalnessMap, normalMap, aoMap,
-        metalness: 0.4,
-        roughness: 0.5,
+        metalness: wallMetalness,
+        roughness: wallRoughness,
         normalScale: new Vector2(2, 2),
     };
 
