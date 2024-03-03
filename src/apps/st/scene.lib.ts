@@ -1,13 +1,10 @@
-import React, {useEffect, useRef} from 'react';
-import {OrbitControls} from 'three-stdlib'
 import {RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
 import {API} from "../const";
-import Stats from 'stats.js';
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 
-const TEXT_BASE = API.texture_base_url
+export const TEXTURE_BASE = API.texture_base_url
 
 // 墙壁
 const wallThickness = 0.12;
@@ -26,14 +23,14 @@ const doorHeight = 2 * doorWidth;
 const repeat = new Vector2(17, 14);
 
 
-function addGround(scene: THREE.Scene) {
+export function addGround(scene: THREE.Scene) {
     const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
     const loader = new THREE.TextureLoader();
 
-    const baseColorTexture = loader.load(`${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`);
-    const metalnessTexture = loader.load(`${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`);
-    const normalTexture = loader.load(`${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`);
-    const aoTexture = loader.load(`${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`);
+    const baseColorTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`);
+    const metalnessTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`);
+    const normalTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`);
+    const aoTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`);
 
     [baseColorTexture, metalnessTexture, normalTexture, aoTexture].forEach(texture => {
         texture.wrapS = THREE.RepeatWrapping;
@@ -58,18 +55,18 @@ function addGround(scene: THREE.Scene) {
 }
 
 
-function addLight(scene: THREE.Scene) {
+export function addLight(scene: THREE.Scene) {
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
     directionalLight.position.set(0, 10, 0);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 }
 
-function makeCamera(): [THREE.PerspectiveCamera, () => void] {
+export function makeCamera(): [THREE.PerspectiveCamera, () => void] {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, doorHeight * 0.6, 10);
     camera.lookAt(0, 0, 0);
@@ -124,12 +121,12 @@ function makeCamera(): [THREE.PerspectiveCamera, () => void] {
     return [camera, moveCamera];
 }
 
-function makeDoor(): [THREE.Group, (clock: THREE.Clock) => void] {
+export function makeDoor(): [THREE.Group, (clock: THREE.Clock) => void] {
     const textureLoader = new THREE.TextureLoader();
     const doorTextures = [
-        textureLoader.load(`${TEXT_BASE}/door/door.png`),
-        textureLoader.load(`${TEXT_BASE}/door/doorM.png`),
-        textureLoader.load(`${TEXT_BASE}/door/doorN.png`),
+        textureLoader.load(`${TEXTURE_BASE}/door/door.png`),
+        textureLoader.load(`${TEXTURE_BASE}/door/doorM.png`),
+        textureLoader.load(`${TEXTURE_BASE}/door/doorN.png`),
     ];
 
     doorTextures.forEach(texture => {
@@ -199,16 +196,16 @@ function loadTextures(texturePaths: string[], onLoad: (textures: THREE.Texture[]
     });
 }
 
-function addWalls(scene: THREE.Scene) {
+export function addWalls(scene: THREE.Scene) {
     const wallRoughness = 0.8;
     const wallMetalness = 0.1;
     const halfWallWidth = (wallWidth - doorWidth) * 0.5;
 
     const texturePaths = [
-        `${TEXT_BASE}/wall/1/wall_BaseColor.png`,
-        `${TEXT_BASE}/wall/1/wall_MetallicRoughness.png`,
-        `${TEXT_BASE}/wall/1/wall_Normal.png`,
-        `${TEXT_BASE}/wall/1/wall_Occlusion.png`,
+        `${TEXTURE_BASE}/wall/1/wall_BaseColor.png`,
+        `${TEXTURE_BASE}/wall/1/wall_MetallicRoughness.png`,
+        `${TEXTURE_BASE}/wall/1/wall_Normal.png`,
+        `${TEXTURE_BASE}/wall/1/wall_Occlusion.png`,
     ];
 
     loadTextures(texturePaths, (originalTextures) => {
@@ -265,7 +262,7 @@ function addWalls(scene: THREE.Scene) {
     })
 }
 
-function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
+export function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
     // See: https://threejs.org/examples/webgl_shaders_sky.html
 
     const sky = new Sky();
@@ -308,75 +305,8 @@ function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE
 
 }
 
-export default function Scene(props: any) {
-
-    const divRef = useRef<HTMLDivElement>(null);
-    const stats = useRef(new Stats()).current;
-
-    useEffect(() => {
-
-        const webGlConfig = {
-            powerPreference: 'high-performance',
-        }
-        const clock = new THREE.Clock();
-        const renderer = new THREE.WebGLRenderer(webGlConfig)
-        const scene = new THREE.Scene();
-        const [camera, moveCamera] = makeCamera();
-        const [door, handleDoor] = makeDoor();
-        const orbitControls = new OrbitControls(camera, renderer.domElement);
-        const helper = new THREE.GridHelper(10000, 2, 0xffffff, 0xffffff);
-
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.5;
-
-        addGround(scene);
-        addLight(scene);
-        addWalls(scene);
-        scene.add(helper);
-        scene.add(door)
-        addSky(scene, renderer, camera);
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            render();
-        }
-
-        function render() {
-            renderer.render(scene, camera);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            moveCamera();
-            handleDoor(clock);
-            stats.begin();
-            stats.end();
-            // orbitControls.update();
-            render()
-        }
-
-        window.addEventListener('resize', onWindowResize);
-
-        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-
-        divRef.current?.appendChild(stats.dom);
-        divRef.current?.appendChild(renderer.domElement);
-        animate();
-
-        const div = divRef.current
-
-        return () => {
-            div?.removeChild(renderer.domElement)
-            div?.removeChild(stats.dom);
-        }
-    }, [stats])
-
-    return (
-        <div ref={divRef}/>
-    );
+export const webGlConfig = {
+    powerPreference: 'high-performance',
+    antialias: true,
+    failIfMajorPerformanceCaveat: true
 }
