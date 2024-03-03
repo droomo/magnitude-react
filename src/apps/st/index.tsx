@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Routes, Route} from "react-router-dom"
 import Scene from "./Scene";
 import './style.css'
+import SceneProcedure from "./SceneProcedure";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -10,7 +11,8 @@ const root = ReactDOM.createRoot(
 root.render(
     <BrowserRouter>
         <Routes>
-            <Route path="/st/" element={<Scene/>}/>
+            <Route path="/stp/" element={<Scene/>}/>
+            <Route path="/st/" element={<SceneProcedure/>}/>
         </Routes>
     </BrowserRouter>
 );
