@@ -1,0 +1,30 @@
+.timeCounter {
+  user-select: none;
+  font-family: "Microsoft YaHei", 微软雅黑, sans-serif;
+
+  .screen {
+    cursor: none;
+    background-color: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+
+    .warningText {
+      font-size: 5rem;
+      font-weight: bold;
+    }
+    .crossText {
+      font-size: 10rem;
+      font-weight: lighter;
+    }
+
+    .descriptionText {
+
+      display: flex;
+      flex-direction: column;
+      font-size: 4rem;
+    }
+  }
+}
