@@ -62,11 +62,9 @@ export default function Scene(props: any) {
         divRef.current?.appendChild(renderer.domElement);
         animate();
 
-        const div = divRef.current
-
         return () => {
-            div?.removeChild(renderer.domElement)
-            div?.removeChild(stats.dom);
+            renderer.domElement.remove();
+            divRef.current?.removeChild(stats.dom);
         }
     }, [stats])
 
