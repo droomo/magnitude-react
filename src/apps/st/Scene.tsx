@@ -1,5 +1,5 @@
-import React, {Ref, useEffect, useMemo, useRef} from 'react';
-import {Canvas, extend, useFrame, useLoader, useThree} from '@react-three/fiber';
+import React, {useEffect, useMemo, useRef} from 'react';
+import {Canvas, PrimitiveProps, useFrame, useLoader, useThree} from '@react-three/fiber';
 import type {OrbitControls as OrbitControlsImpl} from 'three-stdlib'
 import {OrbitControls, Box, PerspectiveCamera, Sky} from '@react-three/drei';
 import {useTexture} from '@react-three/drei';
@@ -8,17 +8,24 @@ import {
     TextureLoader,
     Vector2,
     Mesh,
-    Group
+    Group,
+    DirectionalLightHelper,
+    type DirectionalLight,
 } from 'three';
 import * as THREE from 'three';
+import {API} from "../const";
+import StatsComponent from "./StatsComponent";
 
-const BASE_URL = 'http://192.168.1.5:9000'
+const TEXT_BASE = API.texture_base_url
 
 // 墙壁
 const wallThickness = 0.12;
 const wallHeight = 10;
 const wallWidth = 13;
 const wallDepth = 12;
+
+const frontWallHeight = wallHeight * 100;
+const frontWallWidth = wallWidth * 100;
 
 // 门
 const doorWidth = 1;
@@ -28,28 +35,30 @@ const doorHeight = 2 * doorWidth;
 const repeat = new Vector2(17, 14);
 
 function Ground() {
-    const [map, metalnessMap, normalMap, aoMap] = useLoader(TextureLoader, [
-        `${BASE_URL}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`,
-        `${BASE_URL}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`,
-        `${BASE_URL}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`,
-        `${BASE_URL}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`,
+    const textures = useLoader(TextureLoader, [
+        `${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`,
+        `${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`,
+        `${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`,
+        `${TEXT_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`,
     ]);
 
-    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
-        texture.wrapS = RepeatWrapping;
-        texture.wrapT = RepeatWrapping;
-        texture.repeat.set(repeat.x, repeat.y);
-    });
+    const mixedTexture = useMemo(() => {
+        textures.forEach(texture => {
+            texture.wrapS = RepeatWrapping;
+            texture.wrapT = RepeatWrapping;
+            texture.repeat.set(repeat.x, repeat.y);
+        });
 
-    const mixedTexture = {
-        map,
-        metalnessMap,
-        normalMap,
-        aoMap,
-        metalness: 0.4,
-        roughness: 0.5,
-        normalScale: new Vector2(2, 2),
-    };
+        return {
+            map: textures[0],
+            metalnessMap: textures[1],
+            normalMap: textures[2],
+            aoMap: textures[3],
+            metalness: 0.4,
+            roughness: 0.5,
+            normalScale: new Vector2(2, 2),
+        };
+    }, [textures]);
 
     return (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} castShadow receiveShadow>
@@ -59,13 +68,47 @@ function Ground() {
     );
 }
 
+
 export default function Scene(props: any) {
+
+    const light = useRef<DirectionalLight>(null!);
+
+    console.log(light)
+
+    // useHelper(light, DirectionalLightHelper, 1, "red");
+
+    // useEffect(() => {
+    //     if (light.current && light.current.target) {
+    //         // 设置光源指向场景中心，这里以(0, 0, 0)为例
+    //         light.current.target.position.set(0, 0, 0);
+    //         // 更新光源的目标位置，这对于光源正确照射和阴影生成很重要
+    //         light.current.target.updateMatrixWorld();
+    //     }
+    // }, []);
+
+
     return (
         <Canvas>
+            <StatsComponent/>
             <PerspectiveCamera makeDefault position={[0, doorHeight * 0.6, 10]}/>
             {/*<OrbitControls/>*/}
             <CameraController/>
             <ambientLight intensity={1}/>
+
+            {/*<directionalLight*/}
+            {/*    ref={light}*/}
+            {/*    position={[5, 5, 5]} // 光源位置*/}
+            {/*    castShadow // 允许投射阴影*/}
+            {/*    shadow-mapSize-width={512} // 阴影贴图宽度*/}
+            {/*    shadow-mapSize-height={512} // 阴影贴图高度*/}
+            {/*    shadow-camera-near={0.5} // 阴影摄像机近裁剪面*/}
+            {/*    shadow-camera-far={500} // 阴影摄像机远裁剪面*/}
+            {/*/>*/}
+            {/* 设置光源的目标对象，确保光源朝向某个点 */}
+            {/*<primitive*/}
+            {/*    object={light.current?.target}*/}
+            {/*/>*/}
+
             {/*<pointLight position={[0, 3, -6]} intensity={1}/>*/}
             {/*<pointLight position={[0, doorHeight, 0]} intensity={1}/>*/}
             <Ground/>
@@ -87,9 +130,9 @@ function Door() {
     const doorGroupRef = useRef<Group>(null);
 
     const [map, metalnessMap, normalMap] = useTexture([
-        `${BASE_URL}/door/door.png`,
-        `${BASE_URL}/door/doorM.png`,
-        `${BASE_URL}/door/doorN.png`,
+        `${TEXT_BASE}/door/door.png`,
+        `${TEXT_BASE}/door/doorM.png`,
+        `${TEXT_BASE}/door/doorN.png`,
     ]);
 
     useMemo(() => {
@@ -153,85 +196,57 @@ function Door() {
 function Room() {
     const wallRoughness = 0.8;
     const wallMetalness = 0.1;
-
-    const textures = useTexture([
-        `${BASE_URL}/wall/1/wall_BaseColor.png`,
-        `${BASE_URL}/wall/1/wall_MetallicRoughness.png`,
-        `${BASE_URL}/wall/1/wall_Normal.png`,
-        `${BASE_URL}/wall/1/wall_Occlusion.png`,
-    ]);
-
-
-    let [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
-
-    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
-        texture.wrapS = RepeatWrapping;
-        texture.wrapT = RepeatWrapping;
-        texture.repeat.set(repeat.x, repeat.y);
-    })
-
-    const mixedTexture = {
-        map, metalnessMap, normalMap, aoMap,
-        metalness: wallMetalness,
-        roughness: wallRoughness,
-        normalScale: new Vector2(2, 2),
-    };
-
     const halfWallWidth = (wallWidth - doorWidth) * 0.5;
 
-    [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
-    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
-        texture.wrapS = RepeatWrapping;
-        texture.wrapT = RepeatWrapping;
-        texture.repeat.set(
+    const texturePaths = [
+        `${TEXT_BASE}/wall/1/wall_BaseColor.png`,
+        `${TEXT_BASE}/wall/1/wall_MetallicRoughness.png`,
+        `${TEXT_BASE}/wall/1/wall_Normal.png`,
+        `${TEXT_BASE}/wall/1/wall_Occlusion.png`,
+    ];
+
+    const textures = useTexture(texturePaths);
+
+    const prepareTextures = (textures: any[], repeat: Vector2, offset = new Vector2(0, 0)) => {
+        return textures.map(texture => {
+            const clonedTexture = texture.clone();
+            clonedTexture.wrapS = RepeatWrapping;
+            clonedTexture.wrapT = RepeatWrapping;
+            clonedTexture.repeat.set(repeat.x, repeat.y);
+            clonedTexture.offset.set(offset.x, offset.y);
+            return clonedTexture;
+        });
+    };
+
+    const [mixedTexture, mixedTextureFrontHalfWallBottomLeft, mixedTextureFrontHalfWallBottomRight, mixedTextureFrontHalfWallTop] = useMemo(() => {
+        const mainTextures = prepareTextures(textures, repeat);
+
+        const halfRepeat = new Vector2(
             (wallWidth - doorWidth) / 2 / wallWidth * repeat.x,
             doorHeight / wallHeight * repeat.y
         );
-        texture.offset.set(0, doorHeight / wallHeight);
-    })
-    const mixedTextureFrontHalfWallBottomLeft = {
-        map, metalnessMap, normalMap, aoMap,
-        metalness: wallMetalness,
-        roughness: wallRoughness,
-        normalScale: new Vector2(2, 2),
-    };
+        const halfWallBottomLeftTextures = prepareTextures(textures, halfRepeat, new Vector2(0, doorHeight / wallHeight));
+        const halfWallBottomRightTextures = prepareTextures(textures, halfRepeat, new Vector2((doorWidth * repeat.x - wallWidth) / (2 * wallWidth), doorHeight / wallHeight));
+        const halfWallTopTextures = prepareTextures(textures, new Vector2(repeat.x, (wallHeight - doorHeight) / wallHeight * repeat.y));
 
-    [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
-    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
-        texture.wrapS = RepeatWrapping;
-        texture.wrapT = RepeatWrapping;
-        texture.repeat.set(
-            (wallWidth - doorWidth) / 2 / wallWidth * repeat.x,
-            doorHeight / wallHeight * repeat.y
-        );
-        texture.offset.set(
-            // - ((wallWidth / repeat.x / 2) - doorWidth / 2) / (wallWidth / repeat.x), // 门的剩余宽度占每块贴纸的比例
-            (doorWidth * repeat.x - wallWidth) / wallWidth * 0.5,
-            doorHeight / wallHeight
-        )
-    })
-    const mixedTextureFrontHalfWallBottomRight = {
-        map, metalnessMap, normalMap, aoMap,
-        metalness: wallMetalness,
-        roughness: wallRoughness,
-        normalScale: new Vector2(2, 2),
-    };
+        const makeMaterialProps = (textureArray: any[]) => ({
+            map: textureArray[0],
+            metalnessMap: textureArray[1],
+            normalMap: textureArray[2],
+            aoMap: textureArray[3],
+            metalness: wallMetalness,
+            roughness: wallRoughness,
+            normalScale: new Vector2(2, 2),
+        });
 
-    [map, metalnessMap, normalMap, aoMap] = textures.map(o => o.clone());
-    [map, metalnessMap, normalMap, aoMap].forEach(texture => {
-        texture.wrapS = RepeatWrapping;
-        texture.wrapT = RepeatWrapping;
-        texture.repeat.set(
-            repeat.x,
-            (wallHeight - doorHeight) / wallHeight * repeat.y
-        );
-    })
-    const mixedTextureFrontHalfWallTop = {
-        map, metalnessMap, normalMap, aoMap,
-        metalness: wallMetalness,
-        roughness: wallRoughness,
-        normalScale: new Vector2(2, 2),
-    };
+        return [
+            makeMaterialProps(mainTextures),
+            makeMaterialProps(halfWallBottomLeftTextures),
+            makeMaterialProps(halfWallBottomRightTextures),
+            makeMaterialProps(halfWallTopTextures),
+        ];
+    }, [textures, repeat.x, repeat.y, doorWidth, doorHeight, wallWidth, wallHeight, wallMetalness, wallRoughness]);
+
 
     return (
         <mesh>
