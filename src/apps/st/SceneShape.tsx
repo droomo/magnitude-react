@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {OrbitControls} from 'three-stdlib'
 import * as THREE from 'three';
 import Stats from 'stats.js';
@@ -12,11 +12,17 @@ import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 export default function Scene(props: any) {
 
     const divRef = useRef<HTMLDivElement>(null);
-    const stats = useRef(new Stats()).current;
+    const [radius, setRadius] = useState(5);
+
+    const rotationRef = useRef(0);
+    const rendererRef = useRef(new THREE.WebGLRenderer({antialias: true}));
+
+    rendererRef.current.setPixelRatio(window.devicePixelRatio);
+    rendererRef.current.setSize(window.innerWidth, window.innerHeight);
 
     useEffect(() => {
 
-        let group: THREE.Group, camera: THREE.PerspectiveCamera, scene: THREE.Scene, renderer: THREE.WebGLRenderer;
+        let group: THREE.Group, camera: THREE.PerspectiveCamera, scene: THREE.Scene;
 
         init();
         animate();
@@ -25,23 +31,13 @@ export default function Scene(props: any) {
 
             scene = new THREE.Scene();
 
-            renderer = new THREE.WebGLRenderer({antialias: true});
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+            document.body.appendChild(rendererRef.current.domElement);
 
             // camera
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight);
             camera.position.set(0, 0, 30);
             scene.add(camera);
-
-            // controls
-
-            // const controls = new OrbitControls(camera, renderer.domElement);
-            // controls.minDistance = 20;
-            // controls.maxDistance = 50;
-            // controls.maxPolarAngle = Math.PI / 2;
 
             // ambient light
 
@@ -52,9 +48,6 @@ export default function Scene(props: any) {
             const light = new THREE.PointLight(0xffffff, 3, 0, 0);
             camera.add(light);
 
-            // helper
-
-            // scene.add(new THREE.AxesHelper(20));
 
             // textures
 
@@ -65,11 +58,7 @@ export default function Scene(props: any) {
             group = new THREE.Group();
             scene.add(group);
 
-            // points
-
-            let dodecahedronGeometry = new THREE.DodecahedronGeometry(5, 2);
-
-
+            let dodecahedronGeometry = new THREE.DodecahedronGeometry(radius, 2);
 
             // if normal and uv attributes are not removed, mergeVertices() can't consolidate indentical vertices with different normal/uv data
 
@@ -82,11 +71,9 @@ export default function Scene(props: any) {
             const positionAttribute = dodecahedronGeometry.getAttribute('position');
 
             for (let i = 0; i < positionAttribute.count; i++) {
-
                 const vertex = new THREE.Vector3();
                 vertex.fromBufferAttribute(positionAttribute, i);
                 vertices.push(vertex);
-
             }
 
             const pointsMaterial = new THREE.PointsMaterial({
@@ -115,46 +102,44 @@ export default function Scene(props: any) {
             const mesh = new THREE.Mesh(meshGeometry, meshMaterial);
             group.add(mesh);
 
-            //
-
             window.addEventListener('resize', onWindowResize);
 
         }
 
         function onWindowResize() {
-
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
+            rendererRef.current.setSize(window.innerWidth, window.innerHeight);
         }
 
         function animate() {
-
             requestAnimationFrame(animate);
-
-            group.rotation.y += 0.005;
-
+            group.rotation.y += 0.005 + rotationRef.current;
+            rotationRef.current = 0;
             render();
-
         }
 
         function render() {
-
-            renderer.render(scene, camera);
-
+            rendererRef.current.render(scene, camera);
         }
-
-        const div = divRef.current
 
         return () => {
-            div?.removeChild(renderer.domElement)
-            div?.removeChild(stats.dom);
+            rotationRef.current = group.rotation.y;
+            rendererRef.current.domElement.remove();
+            window.removeEventListener('resize', onWindowResize);
+            scene.clear();
         }
-    }, [stats])
+    }, [radius])
 
     return (
-        <div ref={divRef}/>
+        <div>
+            <div ref={divRef}/>
+            <input
+                type="number"
+                value={radius}
+                onChange={(e) => setRadius(Number(e.target.value))}
+                placeholder="Enter radius"
+            />
+        </div>
     );
 }
