@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Routes, Route} from "react-router-dom"
 import Scene from "./Scene";
 import './style.css'
-import SceneProcedure from "./SceneRoom";
+import SceneShapeRadius from "./SceneShapeRadius";
 import SceneShape from './SceneShape';
 import TimeCounter from "./TimeCounter";
 import Experiment from "./Experiment";
@@ -16,6 +16,7 @@ root.render(
         <Routes>
             <Route path="/st/__react" element={<Scene/>}/>
             <Route path="/st/" element={<Experiment/>}/>
+            <Route path="/st/shaper" element={<SceneShapeRadius/>}/>
             <Route path="/st/shape" element={<SceneShape/>}/>
             <Route path="/st/time" element={<TimeCounter/>}/>
         </Routes>
