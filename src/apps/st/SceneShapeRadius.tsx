@@ -18,7 +18,10 @@ export default function Scene(props: any) {
     const renderer = useMemo(() => {
         const renderer = new THREE.WebGLRenderer(webGlConfig);
         renderer.domElement.addEventListener('wheel', (event) => {
-            setRadius(r => r - event.deltaY / 400)
+            setRadius(r => {
+                const target = r - event.deltaY / 400;
+                return target > 0 ? target : r;
+            })
             setControlTimes(t => t + 1)
         });
         return renderer
