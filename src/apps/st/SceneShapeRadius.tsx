@@ -6,19 +6,22 @@ import {TEXTURE_BASE, webGlConfig} from './scene.lib';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 
-import {Slider} from 'antd';
-
-
 export default function Scene(props: any) {
 
     const [radius, setRadius] = useState(5);
     const [controlTimes, setControlTimes] = useState(0);
 
     const divRef = useRef<HTMLDivElement>(null);
-    const rotationRef = useRef(0);
+    const rotationYRef = useRef(0);
+    const rotationXRef = useRef(0);
 
     const renderer = useMemo(() => {
-        return new THREE.WebGLRenderer(webGlConfig);
+        const renderer = new THREE.WebGLRenderer(webGlConfig);
+        renderer.domElement.addEventListener('wheel', (event) => {
+            setRadius(r => r - event.deltaY / 400)
+            setControlTimes(t => t + 1)
+        });
+        return renderer
     }, [])
 
     const group = useMemo(() => {
@@ -56,11 +59,16 @@ export default function Scene(props: any) {
 
         function animate() {
             requestAnimationFrame(animate);
-            if (rotationRef.current) {
-                group.rotation.y = rotationRef.current;
-                rotationRef.current = 0;
+            if (rotationYRef.current) {
+                group.rotation.y = rotationYRef.current;
+                rotationYRef.current = 0;
             }
-            group.rotation.y += 0.003;
+            if (rotationXRef.current) {
+                group.rotation.x = rotationXRef.current;
+                rotationXRef.current = 0;
+            }
+            group.rotation.y += 0.005;
+            group.rotation.x += 0.003;
             renderer.render(scene, camera);
         }
 
@@ -91,7 +99,6 @@ export default function Scene(props: any) {
         const pointsGeometry = new THREE.BufferGeometry().setFromPoints(vertices);
 
         const points = new THREE.Points(pointsGeometry, pointsMaterial);
-        group.add(points);
 
         // convex hull
         const meshMaterial = new THREE.MeshLambertMaterial({
@@ -103,6 +110,8 @@ export default function Scene(props: any) {
 
         const meshGeometry = new ConvexGeometry(vertices);
         const mesh = new THREE.Mesh(meshGeometry, meshMaterial);
+
+        group.add(points);
         group.add(mesh);
 
         window.addEventListener('resize', onWindowResize);
@@ -116,27 +125,13 @@ export default function Scene(props: any) {
         return () => {
             group.remove(mesh)
             group.remove(points)
-            rotationRef.current = group.rotation.y;
+            rotationYRef.current = group.rotation.y;
+            rotationXRef.current = group.rotation.x;
             window.removeEventListener('resize', onWindowResize);
         }
-    }, [radius, controlTimes, camera, group, scene, renderer, pointsMaterial])
+    }, [radius, camera, group, scene, renderer, pointsMaterial])
 
     return (
-        <div>
-            <div ref={divRef}/>
-            <Slider
-                tooltip={{formatter: null}}
-                defaultValue={radius}
-                onChange={(value: number) => {
-                    setControlTimes((t) => {
-                        return t + 1
-                    })
-                    setRadius(value)
-                }}
-                step={0.2}
-                min={1}
-                max={14}
-            />
-        </div>
+        <div ref={divRef}/>
     );
 }
