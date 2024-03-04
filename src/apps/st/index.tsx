@@ -7,6 +7,7 @@ import SceneShapeRadius from "./SceneShapeRadius";
 import SceneShape from './SceneShape';
 import TimeCounter from "./TimeCounter";
 import Experiment from "./Experiment";
+import Login from "./Login";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -16,6 +17,7 @@ root.render(
         <Routes>
             <Route path="/st/__react" element={<Scene/>}/>
             <Route path="/st/" element={<Experiment/>}/>
+            <Route path="/st/login" element={<Login/>}/>
             <Route path="/st/shaper" element={<SceneShapeRadius/>}/>
             <Route path="/st/shape" element={<SceneShape/>}/>
             <Route path="/st/time" element={<TimeCounter/>}/>
