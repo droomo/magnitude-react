@@ -55,7 +55,7 @@ export default function Scene(props: any) {
     }, [camera, group])
 
     useEffect(() => {
-        divRef.current?.appendChild(renderer.domElement)
+        divRef.current?.append(renderer.domElement)
 
         function animate() {
             requestAnimationFrame(animate);
@@ -73,6 +73,10 @@ export default function Scene(props: any) {
         }
 
         animate();
+
+        return () => {
+            renderer.domElement.remove();
+        }
     }, [camera, group, scene, renderer]);
 
     useEffect(() => {
