@@ -16,12 +16,16 @@ const page_data_str = page_data_doc?.innerText || '{}';
 export const page_data = JSON.parse(page_data_str);
 
 export function getCsrfToken() {
+    return getCookie('csrftoken')
+}
+
+export function getCookie(name: string) {
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
         const cookieName = cookie.split('=')[0];
         const cookieValue = cookie.split('=')[1];
-        if (cookieName === 'csrftoken') {
+        if (cookieName === name) {
             return cookieValue;
         }
     }

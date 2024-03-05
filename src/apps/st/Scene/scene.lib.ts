@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {API} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
-import {PropRoom} from "./SceneRoom";
+import {PropRoom, PropScene} from "./SceneRoom";
 
 export const TEXTURE_BASE = API.texture_base_url
 
@@ -113,7 +113,7 @@ export function makeCamera(): [THREE.PerspectiveCamera, () => void] {
     return [camera, moveCamera];
 }
 
-export function makeDoor(room: PropRoom): [THREE.Group, (clock: THREE.Clock) => void] {
+export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
     const wallDepth = room.depth;
 
     const textureLoader = new THREE.TextureLoader();
@@ -148,10 +148,14 @@ export function makeDoor(room: PropRoom): [THREE.Group, (clock: THREE.Clock) => 
 
     function updateDoor(clock: THREE.Clock) {
         const delta = clock.getDelta();
-        if (open && doorGroup.rotation.y > targetRotationY) {
-            doorGroup.rotation.y -= delta * 3.2;
-            if (doorGroup.rotation.y < targetRotationY) {
-                doorGroup.rotation.y = targetRotationY;
+        if (open) {
+            if (doorGroup.rotation.y > targetRotationY) {
+                doorGroup.rotation.y -= delta * 3.2;
+                if (doorGroup.rotation.y < targetRotationY) {
+                    doorGroup.rotation.y = targetRotationY;
+                }
+            } else {
+                doorOpenedAction()
             }
         } else if (!open && doorGroup.rotation.y < 0) {
             doorGroup.rotation.y += delta * 3.2;

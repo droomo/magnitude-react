@@ -6,7 +6,7 @@ import {TEXTURE_BASE, webGlConfig} from './scene.lib';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 
-export default function Scene(props: any) {
+export default function SceneShapeRadius(props: any) {
 
     const [radius, setRadius] = useState(5);
     const [controlTimes, setControlTimes] = useState(0);

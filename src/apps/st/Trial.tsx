@@ -1,7 +1,8 @@
-import React, {useEffect, useLayoutEffect, useMemo, useRef} from "react";
+import React, {useEffect, useLayoutEffect, useMemo, useState} from "react";
 import {Route, Routes} from "react-router-dom";
 import {getTimestamp} from "../const";
-import Scene from "./Scene/SceneRoom";
+import Scene, {TypeTimeStat} from "./Scene/SceneRoom";
+import SceneShapeRadius from "./Scene/SceneShapeRadius";
 
 export interface TrialData {
     reaction_type: string
@@ -15,43 +16,38 @@ export interface TrialData {
     room_width?: number
 }
 
-interface ComponentTimeStat {
-    mount: number,
-    unmount: number,
-    renderStart: number
-    renderDone: number
-}
-
 function ControlledScene(props: {
     trial: TrialData,
-    done: () => void
+    done: (timeStat: TypeTimeStat) => void
 }) {
-
-    console.log(props.trial.room_duration!)
-    setTimeout(() => {
-        console.log(props.trial.room_duration!)
-        props.done()
-        console.log(props.trial.room_duration!)
-    }, (props.trial.room_duration!) * 1000)
-
     return <Scene
-        depth={props.trial.room_depth!}
-        height={props.trial.room_height!}
-        width={props.trial.room_width!}
-        ground={props.trial.room_ground!}
-        wall={props.trial.room_wall!}
-        duration={props.trial.room_duration!}
+        room={{
+            depth: props.trial.room_depth!,
+            height: props.trial.room_height!,
+            width: props.trial.room_width!,
+            ground: props.trial.room_ground!,
+            wall: props.trial.room_wall!,
+            duration: props.trial.room_duration!,
+        }}
+        done={(timeStat: TypeTimeStat) => {
+            props.done(timeStat)
+        }}
     />
 }
 
-function TrialSpace(props: {
+function TrialProcess(props: {
     trial: TrialData,
     done: () => void
 }) {
-    return <ControlledScene
+    const [sceneStage, setSceneStage] = useState<boolean>(true);
+
+    return sceneStage ? <ControlledScene
         trial={props.trial}
-        done={props.done}
-    />
+        done={(timeStat: TypeTimeStat) => {
+            console.log(timeStat)
+            setSceneStage(false)
+        }}
+    /> : <SceneShapeRadius/>
 }
 
 export default function Trial(props: {
@@ -64,7 +60,7 @@ export default function Trial(props: {
             case 'T':
                 return <div>Time</div>
             case 'S':
-                return <TrialSpace trial={props.trial} done={props.done}/>
+                return <TrialProcess trial={props.trial} done={props.done}/>
             case 'P':
                 return <div>Pause</div>
             case '0':

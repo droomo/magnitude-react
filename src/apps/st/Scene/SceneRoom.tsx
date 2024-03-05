@@ -1,8 +1,7 @@
 import React, {useEffect, useRef} from 'react';
-import {OrbitControls} from 'three-stdlib'
 import * as THREE from 'three';
-import Stats from 'stats.js';
 import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
+import {getTimestamp} from "../../const";
 
 export interface PropRoom {
     width: number;
@@ -13,19 +12,43 @@ export interface PropRoom {
     duration: number;
 }
 
-export default function Scene(props: PropRoom) {
+export interface PropScene {
+    room: PropRoom,
+    done: (timeStat: TypeTimeStat) => void
+}
+
+export interface TypeTimeStat {
+    door_opened: number,
+    camera_moved: number,
+    done_from_camera_moved: number
+}
+
+export default function Scene(props: PropScene) {
+    const room = props.room;
 
     const divRef = useRef<HTMLDivElement>(null);
-    const stats = useRef(new Stats()).current;
+    const doorOpened = useRef(false);
+    const timeStat = useRef<TypeTimeStat>({
+        door_opened: -1,
+        camera_moved: -1,
+        done_from_camera_moved: -1
+    }).current
 
     useEffect(() => {
+        const [camera,] = makeCamera();
+
+        function onDoorOpen() {
+            doorOpened.current = true;
+            timeStat.door_opened = getTimestamp();
+            camera.position.set(0, room.height / 2, room.depth / 2);
+            camera.lookAt(0, room.height / 2, 0);
+            timeStat.camera_moved = getTimestamp();
+        }
 
         const clock = new THREE.Clock();
         const renderer = new THREE.WebGLRenderer(webGlConfig)
         const scene = new THREE.Scene();
-        const [camera, moveCamera] = makeCamera();
-        const [door, handleDoor] = makeDoor(props);
-        const orbitControls = new OrbitControls(camera, renderer.domElement);
+        const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -34,7 +57,7 @@ export default function Scene(props: PropRoom) {
 
         addGround(scene);
         addLight(scene);
-        addWalls(scene, props);
+        addWalls(scene, room);
         scene.add(door)
         addSky(scene, renderer, camera);
 
@@ -50,29 +73,29 @@ export default function Scene(props: PropRoom) {
         }
 
         function animate() {
+            if (timeStat.camera_moved > -1) {
+                if (room.duration + timeStat.camera_moved < getTimestamp()) {
+                    timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
+                    timeStat.camera_moved -= timeStat.door_opened
+                    timeStat.door_opened -= timeStat.door_opened
+                    props.done(timeStat)
+                    return
+                }
+            }
             requestAnimationFrame(animate);
-
-            moveCamera();
-            handleDoor(clock);
-            stats.begin();
-            stats.end();
-            // orbitControls.update();
+            if (!doorOpened.current) handleDoor(clock);
             render()
         }
 
         window.addEventListener('resize', onWindowResize);
 
-        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-
-        divRef.current?.appendChild(stats.dom);
         divRef.current?.appendChild(renderer.domElement);
         animate();
 
         return () => {
             renderer.domElement.remove();
-            divRef.current?.removeChild(stats.dom);
         }
-    }, [stats])
+    }, [props, room, timeStat])
 
     return (
         <div ref={divRef}/>
