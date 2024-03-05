@@ -5,6 +5,7 @@ import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import PageIntroduction from "./Page/PageIntroduction";
 import TimeCounter from "./Scene/TimeCounter";
 import classes from "./css/timeCounter.module.scss";
+import WebGLProvider from "./WebGLProvider";
 import axios from "axios";
 
 export interface TrialData {

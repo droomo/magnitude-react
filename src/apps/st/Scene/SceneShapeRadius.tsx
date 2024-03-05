@@ -1,12 +1,13 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import * as THREE from 'three';
-import {TEXTURE_BASE, webGlConfig} from './scene.lib';
+import {TEXTURE_BASE} from './scene.lib';
 
 // @ts-ignore
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import classes from "../css/timeCounter.module.scss";
 import PageDone from "../Page/PageDone";
+import WebGLContext from "../WebGLContext";
 
 export interface TypeSceneShapeResult {
     radius: number
@@ -29,17 +30,21 @@ export default function SceneShapeRadius(props: {
 
     const [done, setDone] = useState(false);
 
-    const renderer = useMemo(() => {
-        const renderer = new THREE.WebGLRenderer(webGlConfig);
-        renderer.domElement.addEventListener('wheel', (event) => {
+    const renderer = useContext(WebGLContext);
+
+    useEffect(() => {
+        renderer!.domElement.addEventListener('wheel', (event: WheelEvent) => {
             setRadius(r => {
+                console.log(r)
                 const target = r - event.deltaY / 400;
                 return target > 0 ? target : r;
             })
             setControlTimes(t => t + 1)
         });
-        return renderer
-    }, [])
+        renderer!.domElement.addEventListener('wheel', () => {
+            console.log(112)
+        });
+    }, [renderer]);
 
     const group = useMemo(() => {
         return new THREE.Group();
@@ -72,7 +77,7 @@ export default function SceneShapeRadius(props: {
     }, [camera, group])
 
     useEffect(() => {
-        divRef.current?.append(renderer.domElement)
+        divRef.current?.append(renderer!.domElement)
 
         function animate() {
             requestAnimationFrame(animate);
@@ -86,19 +91,19 @@ export default function SceneShapeRadius(props: {
             }
             group.rotation.y += 0.005;
             group.rotation.x += 0.003;
-            renderer.render(scene, camera);
+            renderer!.render(scene, camera);
         }
 
         animate();
 
         return () => {
-            renderer.domElement.remove();
+            renderer!.domElement.remove();
         }
     }, [camera, group, scene, renderer]);
 
     useEffect(() => {
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer!.setPixelRatio(window.devicePixelRatio);
+        renderer!.setSize(window.innerWidth, window.innerHeight);
 
         let dodecahedronGeometry = new THREE.DodecahedronGeometry(radius, 0);
 
@@ -140,7 +145,7 @@ export default function SceneShapeRadius(props: {
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer!.setSize(window.innerWidth, window.innerHeight);
         }
 
         return () => {

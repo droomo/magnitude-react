@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo} from "react";
 import {API, page_data} from "../const";
-import axios from "axios";
 import Trial, {TrialData} from "./Trial";
+import axios from "axios";
 
 
 export default function Experiment() {
@@ -20,7 +20,8 @@ export default function Experiment() {
         })
     }, [trial_api]);
 
-    return (<Trial trial={trialDataList[currentIndex]} done={() => {
+    return <Trial trial={trialDataList[currentIndex]} done={() => {
         setCurrentIndex(i => i + 1)
-    }}/>)
+    }}/>
+
 }
