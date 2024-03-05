@@ -6,22 +6,27 @@ import {TEXTURE_BASE, webGlConfig} from './scene.lib';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import classes from "../css/timeCounter.module.scss";
+import PageDone from "../Page/PageDone";
 
 export interface TypeSceneShapeResult {
     radius: number
     control_times: number
+    page_start_date: number
+    page_end_date: number
 }
 
 export default function SceneShapeRadius(props: {
     done: (result: TypeSceneShapeResult) => void
 }) {
-
+    const page_start_date = new Date().getTime()
     const [radius, setRadius] = useState(5);
     const [controlTimes, setControlTimes] = useState(0);
 
     const divRef = useRef<HTMLDivElement>(null);
     const rotationYRef = useRef(0);
     const rotationXRef = useRef(0);
+
+    const [done, setDone] = useState(false);
 
     const renderer = useMemo(() => {
         const renderer = new THREE.WebGLRenderer(webGlConfig);
@@ -148,12 +153,15 @@ export default function SceneShapeRadius(props: {
 
     return (
         <>
-            <div ref={divRef}/>
+            {done ? <PageDone/> : <div ref={divRef}/>}
             <button
                 className={classes.shapeButton}
                 onClick={() => {
+                    setDone(true)
                     props.done({
                         radius,
+                        page_start_date,
+                        page_end_date: new Date().getTime(),
                         control_times: controlTimes
                     })
                 }}

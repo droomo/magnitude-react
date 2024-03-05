@@ -58,10 +58,10 @@ export function addLight(scene: THREE.Scene) {
     scene.add(directionalLight);
 }
 
-export function makeCamera(): [THREE.PerspectiveCamera, () => void] {
+export function makeCamera(room: PropRoom): [THREE.PerspectiveCamera, () => void, () => void] {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, doorHeight * 0.6, 10);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, doorHeight * 0.6, room.depth / 2 + 2);
+    camera.lookAt(0, doorHeight * 0.6, 0);
 
     let movingDirection: number = 0;
     const moveSpeed = 0.05;
@@ -110,7 +110,12 @@ export function makeCamera(): [THREE.PerspectiveCamera, () => void] {
         }
     }
 
-    return [camera, moveCamera];
+    const clearKeyAction = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('keyup', onKeyUp);
+    }
+
+    return [camera, moveCamera, clearKeyAction];
 }
 
 export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {

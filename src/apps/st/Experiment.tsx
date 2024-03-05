@@ -33,6 +33,6 @@ export default function Experiment() {
     }, [trial_api]);
 
     return (<Trial trial={trialDataList[currentIndex]} done={() => {
-        setCurrentIndex(currentIndex + 1)
+        setCurrentIndex(i => i + 1)
     }}/>)
 }

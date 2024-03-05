@@ -1,11 +1,11 @@
-import React, {ReactElement, useEffect, useLayoutEffect, useMemo, useState} from "react";
-import {Route, Routes} from "react-router-dom";
-import {API, getCsrfToken, getTimestamp, page_data} from "../const";
-import Scene, {TypeTimeStat} from "./Scene/SceneRoom";
+import React, {useEffect, useState} from "react";
+import {API, getCsrfToken, page_data} from "../const";
+import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
 import SceneShapeRadius, {TypeSceneShapeResult} from "./Scene/SceneShapeRadius";
 import classes from "./css/timeCounter.module.scss";
 import TimeCounter, {TypeTimeCounter} from "./Scene/TimeCounter";
 import axios from "axios";
+import PageIntroduction from "./Page/PageIntroduction";
 
 export interface TrialData {
     reaction_type: string
@@ -23,7 +23,7 @@ function ControlledScene(props: {
     trial: TrialData,
     done: (timeStat: TypeTimeStat) => void
 }) {
-    return <Scene
+    return <SceneRoom
         room={{
             depth: props.trial.room_depth!,
             height: props.trial.room_height!,
@@ -52,6 +52,7 @@ function TrialProcess(props: {
     return sceneStage ? <ControlledScene
         trial={props.trial}
         done={(timeStat: TypeTimeStat) => {
+            setSceneStage(false)
             axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
                 stat_scene: timeStat,
                 id: props.trial.id,
@@ -67,7 +68,6 @@ function TrialProcess(props: {
             }).catch(() => {
                 alert('error happened 22')
             })
-            setSceneStage(false)
         }}
     /> : <Reaction
         trial={props.trial}
@@ -84,50 +84,58 @@ const measureComponentMap = {
     'T': TimeCounter,
 }
 
+enum ReactionStage {
+    preparation = 1,
+    detection = 2,
+}
+
 function Reaction(props: {
     trial: TrialData,
     done: () => void
 }) {
     const name = reactionNameMap[props.trial.reaction_type as keyof typeof reactionNameMap]
     const MeasureComponent = measureComponentMap[props.trial.reaction_type as keyof typeof measureComponentMap]
-    const [onStagePrepared, setOnStagePrepared] = useState(true)
+    const [onStagePrepared, setOnStagePrepared] = useState<ReactionStage>(1)
 
     useEffect(() => {
         setTimeout(() => {
-            setOnStagePrepared(false)
+            setOnStagePrepared(ReactionStage.detection)
         }, 1000)
     }, [onStagePrepared]);
 
-    return (
-        onStagePrepared ? <StageIntroduction name={name}></StageIntroduction> :
-            <MeasureComponent done={(result: TypeSceneShapeResult | TypeTimeCounter) => {
-                axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
-                    stat_reaction: result,
-                    id: props.trial.id,
-                }, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfToken(),
-                    },
-                }).then(response => {
-                    if (response.data.status !== 200) {
-                        alert('error happened 33')
-                    }
-                }).catch(() => {
-                    alert('error happened 44')
-                })
-                props.done()
-            }}/>
-    );
+    return ((() => {
+        switch (onStagePrepared) {
+            case ReactionStage.preparation:
+                return <PageIntroduction name={name}/>
+            case ReactionStage.detection:
+                return <MeasureComponent done={(result: TypeSceneShapeResult | TypeTimeCounter) => {
+                    const doneDate = new Date().getTime();
+                    axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
+                        stat_reaction: result,
+                        id: props.trial.id,
+                        done: true
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfToken(),
+                        },
+                    }).then(response => {
+                        if (response.data.status === 200) {
+                            setTimeout(() => {
+                                props.done()
+                            }, 1000 - new Date().getTime() + doneDate)
+                        } else {
+                            alert('error happened 33')
+                        }
+                    }).catch(() => {
+                        alert('error happened 44')
+                    })
+                }}/>
+
+        }
+    })())
 }
 
-function StageIntroduction(props: {
-    name: string
-}) {
-    return <div className={classes.screen}>
-        <div className={classes.descriptionText}>请估计{props.name}</div>
-    </div>
-}
 
 export default function Trial(props: {
     trial: TrialData,

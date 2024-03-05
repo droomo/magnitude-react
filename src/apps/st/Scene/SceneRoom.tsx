@@ -23,7 +23,7 @@ export interface TypeTimeStat {
     done_from_camera_moved: number
 }
 
-export default function Scene(props: PropScene) {
+export default function SceneRoom(props: PropScene) {
     const room = props.room;
 
     const divRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ export default function Scene(props: PropScene) {
     }).current
 
     useEffect(() => {
-        const [camera,] = makeCamera();
+        const [camera, , clearKeyAction] = makeCamera(room);
 
         function onDoorOpen() {
             doorOpened.current = true;
@@ -93,6 +93,8 @@ export default function Scene(props: PropScene) {
         animate();
 
         return () => {
+            clearKeyAction();
+            window.removeEventListener('resize', onWindowResize);
             renderer.domElement.remove();
         }
     }, [props, room, timeStat])

@@ -27,9 +27,8 @@ export default function Scene(props: PropRoom) {
     // const stats = useRef(new Stats()).current;
 
 
-
     useEffect(() => {
-        const [camera, moveCamera] = makeCamera();
+        const [camera, moveCamera] = makeCamera(props);
 
         function onDoorOpen() {
             doorOpened.current = true;
