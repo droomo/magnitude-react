@@ -16,7 +16,8 @@ export interface TypeSceneShapeResult {
 }
 
 export default function SceneShapeRadius(props: {
-    done: (result: TypeSceneShapeResult) => void
+    done: (result: TypeSceneShapeResult) => void,
+    stagePrepared: boolean
 }) {
     const page_start_date = new Date().getTime()
     const [radius, setRadius] = useState(5);
@@ -154,7 +155,7 @@ export default function SceneShapeRadius(props: {
     return (
         <>
             {done ? <PageDone/> : <div ref={divRef}/>}
-            <button
+            {!props.stagePrepared && !done && <button
                 className={classes.shapeButton}
                 onClick={() => {
                     setDone(true)
@@ -166,7 +167,7 @@ export default function SceneShapeRadius(props: {
                     })
                 }}
             >完成
-            </button>
+            </button>}
         </>
     );
 }

@@ -10,12 +10,12 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 root.render(
-    <BrowserRouter>
-        <Routes>
-            <Route path="/st/test/" element={<SceneShapeRadius done={() => {
-            }}/>}/>
-            <Route path="/st/" element={<Experiment/>}/>
-            <Route path="/st/login" element={<Login/>}/>
-        </Routes>
-    </BrowserRouter>
+    <React.StrictMode>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/st/" element={<Experiment/>}/>
+                <Route path="/st/login" element={<Login/>}/>
+            </Routes>
+        </BrowserRouter>
+    </React.StrictMode>
 );

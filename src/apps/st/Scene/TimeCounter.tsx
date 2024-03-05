@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import classes from '../css/timeCounter.module.scss'
 
 import {getTimestamp} from "../../const";
@@ -52,7 +52,8 @@ function StageDetection(props: {
 }
 
 export default function TimeCounter(props: {
-    done: (timeCounter: TypeTimeCounter) => void
+    done: (timeCounter: TypeTimeCounter) => void,
+    start: boolean
 }) {
     const timeCounter: TypeTimeCounter = useMemo(() => {
         return {
@@ -71,10 +72,12 @@ export default function TimeCounter(props: {
     const [done, setDone] = useState(false);
 
     useEffect(() => {
-        setTimeout(() => {
-            setShowingPreparation(false)
-        }, 1000)
-    }, []);
+        if (props.start) {
+            setTimeout(() => {
+                setShowingPreparation(false)
+            }, 1000)
+        }
+    }, [props.start]);
 
     return done ? <PageDone/> : <div className={classes.timeCounter}>
         {showingPreparation ? <StagePreparation/> : <StageDetection

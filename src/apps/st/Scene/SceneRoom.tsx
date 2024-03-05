@@ -2,6 +2,8 @@ import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
 import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
 import {getTimestamp} from "../../const";
+import PageDone from "../Page/PageDone";
+import classes from "../css/timeCounter.module.scss";
 
 export interface PropRoom {
     width: number;
@@ -33,6 +35,13 @@ export default function SceneRoom(props: PropScene) {
         camera_moved: -1,
         done_from_camera_moved: -1
     }).current
+    const [mask, setMask] = React.useState(true);
+
+    useEffect(() => {
+        setTimeout(() => {
+            setMask(false)
+        }, 500)
+    }, []);
 
     useEffect(() => {
         const [camera, , clearKeyAction] = makeCamera(room);
@@ -100,6 +109,8 @@ export default function SceneRoom(props: PropScene) {
     }, [props, room, timeStat])
 
     return (
-        <div ref={divRef}/>
+        <>{mask && <div className={classes.mask}><PageDone/></div>}
+            <div ref={divRef}/>
+        </>
     );
 }
