@@ -28,8 +28,8 @@ function StageDetection(props: {
     props.timeCounter.stage_start = getTimestamp()
     props.timeCounter.stage_start_date = new Date().getTime()
 
-    const onEnterKeyDown = (e: { key: string; }) => {
-        if (e.key === 'Enter') {
+    const onMousedownDown = (e: MouseEvent) => {
+        if (e.button === 0) {
             props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.stage_start
             props.timeCounter.pressed_date = new Date().getTime()
             setShowingCross(false)
@@ -39,11 +39,11 @@ function StageDetection(props: {
     }
     useLayoutEffect(() => {
         props.timeCounter.stage_occur_fss = getTimestamp() - props.timeCounter.stage_start;
-        window.addEventListener('keydown', onEnterKeyDown)
+        window.addEventListener('mousedown', onMousedownDown)
         return () => {
-            window.removeEventListener('keydown', onEnterKeyDown)
+            window.removeEventListener('mousedown', onMousedownDown)
         }
-    }, [onEnterKeyDown]);
+    }, [onMousedownDown]);
     return <div className={classes.screen}>
         {showingCross ?
             <span className={classes.crossText}>+</span> :
