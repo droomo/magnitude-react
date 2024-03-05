@@ -1,28 +1,24 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import classes from '../css/timeCounter.module.scss'
 
-import {API, getTimestamp} from "../../const";
+import {getTimestamp} from "../../const";
 
-interface TypeTimeCounter {
-    stage_start: number,
-    stage_occur: number,
-    pressed: number,
-    page_started: number,
-    page_ended: number,
+export interface TypeTimeCounter {
+    page_started_date: number
+    stage_start_date: number
+    page_ended_date: number
+    stage_start: number
+    stage_occur_fss: number // from stage start
+    pressed_fss: number
 }
 
 const timeCounter: TypeTimeCounter = {
+    page_started_date: -1,
+    stage_start_date: -1,
+    page_ended_date: -1,
     stage_start: -1,
-    stage_occur: -1,
-    pressed: -1,
-    page_started: -1,
-    page_ended: -1
-}
-
-function StageIntroduction() {
-    return <div className={classes.screen}>
-        <div className={classes.descriptionText}>请复现时长</div>
-    </div>
+    stage_occur_fss: -1,
+    pressed_fss: -1,
 }
 
 function StagePreparation() {
@@ -31,22 +27,25 @@ function StagePreparation() {
     </div>
 }
 
-function StageDetection() {
+function StageDetection(props: {
+    done: (timeCounter: TypeTimeCounter) => void
+}) {
     const [showingCross, setShowingCross] = React.useState(true)
-    useEffect(() => {
-        timeCounter.stage_occur = getTimestamp()
+    timeCounter.stage_start = getTimestamp()
+    timeCounter.stage_start_date = new Date().getTime()
+    useLayoutEffect(() => {
+        timeCounter.stage_occur_fss = getTimestamp() - timeCounter.stage_start;
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                timeCounter.pressed = getTimestamp()
-                timeCounter.page_ended = new Date().getTime()
+                timeCounter.pressed_fss = getTimestamp() - timeCounter.stage_start
                 setShowingCross(false)
-                console.log(timeCounter)
-                timeCounter.pressed = timeCounter.pressed - timeCounter.stage_occur
-                timeCounter.stage_occur = timeCounter.stage_occur - timeCounter.stage_start
                 timeCounter.stage_start = timeCounter.stage_start - timeCounter.stage_start
-                console.log(timeCounter)
+                props.done(timeCounter)
             }
         })
+        return () => {
+            timeCounter.page_ended_date = new Date().getTime()
+        }
     }, []);
     return <div className={classes.screen}>
         {showingCross ?
@@ -55,30 +54,22 @@ function StageDetection() {
     </div>
 }
 
-const stageMap = [StageIntroduction, StagePreparation, StageDetection]
-export default function TimeCounter(props: any) {
+export default function TimeCounter(props: {
+    done: (timeCounter: TypeTimeCounter) => void
+}) {
+    timeCounter.page_started_date = new Date().getTime()
 
-    const [stage, setStage] = React.useState(0)
-
-    if (timeCounter.page_started === -1) {
-        timeCounter.page_started = new Date().getTime()
-    }
+    const [showingPreparation, setShowingPreparation] = React.useState(true)
 
     useEffect(() => {
-        if (stage + 1 < stageMap.length) {
-            setTimeout(() => {
-                setStage(stage + 1)
-                timeCounter.stage_start = getTimestamp()
-            }, 1000 - 1000 / 59)
-        }
-    }, [stage]);
+        setTimeout(() => {
+            setShowingPreparation(false)
+        }, 1000)
+    }, []);
 
     return (
         <div className={classes.timeCounter}>
-            {(() => {
-                const Stage = stageMap[stage]
-                return <Stage/>
-            })()}
+            {showingPreparation ? <StagePreparation/> : <StageDetection done={props.done}/>}
         </div>
     );
 }

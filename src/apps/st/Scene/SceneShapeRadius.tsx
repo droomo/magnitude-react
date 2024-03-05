@@ -5,8 +5,16 @@ import {TEXTURE_BASE, webGlConfig} from './scene.lib';
 // @ts-ignore
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
+import classes from "../css/timeCounter.module.scss";
 
-export default function SceneShapeRadius(props: any) {
+export interface TypeSceneShapeResult {
+    radius: number
+    control_times: number
+}
+
+export default function SceneShapeRadius(props: {
+    done: (result: TypeSceneShapeResult) => void
+}) {
 
     const [radius, setRadius] = useState(5);
     const [controlTimes, setControlTimes] = useState(0);
@@ -139,6 +147,18 @@ export default function SceneShapeRadius(props: any) {
     }, [radius, camera, group, scene, renderer, pointsMaterial])
 
     return (
-        <div ref={divRef}/>
+        <>
+            <div ref={divRef}/>
+            <button
+                className={classes.shapeButton}
+                onClick={() => {
+                    props.done({
+                        radius,
+                        control_times: controlTimes
+                    })
+                }}
+            >完成
+            </button>
+        </>
     );
 }
