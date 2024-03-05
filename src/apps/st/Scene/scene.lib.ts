@@ -1,6 +1,6 @@
 import {RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API} from "../const";
+import {API} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 import {TypeRoomSize} from "./SceneRoom";

@@ -4,7 +4,6 @@ import {Form, Input, Button, Select, InputNumber, message, Row, Col} from 'antd'
 import {UserOutlined, PhoneOutlined} from '@ant-design/icons';
 import {API, getCsrfToken, page_data} from "../const";
 
-console.log(API, page_data)
 
 interface SubjectFormValues {
     name: string;
@@ -20,7 +19,7 @@ const SubjectForm: React.FC = () => {
     const [form] = Form.useForm();
 
     const onFinish = (values: SubjectFormValues) => {
-        axios.post(`${API.base_url}${page_data.api_subject_login}`, values, {
+        axios.post(`${API.base_url}${page_data['api_subject_login']}`, values, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken(),

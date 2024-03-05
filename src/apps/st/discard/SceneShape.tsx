@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {OrbitControls} from 'three-stdlib'
 import * as THREE from 'three';
-import {TEXTURE_BASE, webGlConfig} from './scene.lib';
+import {TEXTURE_BASE, webGlConfig} from '../Scene/scene.lib';
 
 // @ts-ignore
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';

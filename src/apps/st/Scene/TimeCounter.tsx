@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import classes from './css/timeCounter.module.scss'
+import classes from '../css/timeCounter.module.scss'
 
-import {API} from "../const";
+import {API} from "../../const";
 
 interface TypeTimeCounter {
     stage_start: number,

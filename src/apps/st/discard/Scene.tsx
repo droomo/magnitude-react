@@ -13,8 +13,8 @@ import {
     type DirectionalLight,
 } from 'three';
 import * as THREE from 'three';
-import {API} from "../const";
-import StatsComponent from "./StatsComponent";
+import {API} from "../../const";
+import StatsComponent from "../StatsComponent";
 
 const TEXT_BASE = API.texture_base_url
 

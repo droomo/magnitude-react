@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Routes, Route} from "react-router-dom"
-import Scene from "./Scene";
+import Scene from "./discard/Scene";
 import './style.css'
-import SceneShapeRadius from "./SceneShapeRadius";
-import SceneShape from './SceneShape';
-import TimeCounter from "./TimeCounter";
+import SceneShapeRadius from "./Scene/SceneShapeRadius";
+import SceneShape from './discard/SceneShape';
+import TimeCounter from "./Scene/TimeCounter";
 import Experiment from "./Experiment";
 import Login from "./Login";
 
