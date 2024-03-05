@@ -7,6 +7,31 @@ if (window.location.href.indexOf(base_host) === -1) {
 }
 
 export const API = {
-    base_url: `${scheme}://${base_host}:8000/`,
-    texture_base_url: `${scheme}://${base_host}:9000/`,
+    base_url: `${scheme}://${base_host}:7000`,
+    texture_base_url: `${scheme}://${base_host}:9000`,
+}
+
+const page_data_doc = document.getElementById('page_data');
+const page_data_str = page_data_doc?.innerText || '{}';
+export const page_data = JSON.parse(page_data_str);
+
+export function getCsrfToken() {
+    return getCookie('csrftoken')
+}
+
+export function getCookie(name: string) {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        const cookieName = cookie.split('=')[0];
+        const cookieValue = cookie.split('=')[1];
+        if (cookieName === name) {
+            return cookieValue;
+        }
+    }
+    return undefined;
+}
+
+export const getTimestamp = function () {
+    return window.performance.now();
 }

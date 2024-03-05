@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Routes, Route} from "react-router-dom"
-import Scene from "./Scene";
+import SceneShapeRadius from "./Scene/SceneShapeRadius";
+import Experiment from "./Experiment";
+import Login from "./Login";
 import './style.css'
-import SceneProcedure from "./SceneRoom";
-import SceneShape from './SceneShape';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -12,9 +12,10 @@ const root = ReactDOM.createRoot(
 root.render(
     <BrowserRouter>
         <Routes>
-            <Route path="/st/__react" element={<Scene/>}/>
-            <Route path="/st/" element={<SceneProcedure/>}/>
-            <Route path="/st/shape" element={<SceneShape/>}/>
+            <Route path="/st/test/" element={<SceneShapeRadius done={() => {
+            }}/>}/>
+            <Route path="/st/" element={<Experiment/>}/>
+            <Route path="/st/login" element={<Login/>}/>
         </Routes>
     </BrowserRouter>
 );

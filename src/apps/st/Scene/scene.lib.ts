@@ -1,19 +1,11 @@
 import {RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API} from "../const";
+import {API} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
+import {PropRoom, PropScene} from "./SceneRoom";
 
 export const TEXTURE_BASE = API.texture_base_url
-
-// 墙壁
-const wallThickness = 0.12;
-const wallHeight = 10;
-const wallWidth = 13;
-const wallDepth = 12;
-
-const frontWallHeight = wallHeight * 100;
-const frontWallWidth = wallWidth * 100;
 
 // 门
 const doorWidth = 1;
@@ -121,7 +113,9 @@ export function makeCamera(): [THREE.PerspectiveCamera, () => void] {
     return [camera, moveCamera];
 }
 
-export function makeDoor(): [THREE.Group, (clock: THREE.Clock) => void] {
+export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
+    const wallDepth = room.depth;
+
     const textureLoader = new THREE.TextureLoader();
     const doorTextures = [
         textureLoader.load(`${TEXTURE_BASE}/door/door.png`),
@@ -154,10 +148,14 @@ export function makeDoor(): [THREE.Group, (clock: THREE.Clock) => void] {
 
     function updateDoor(clock: THREE.Clock) {
         const delta = clock.getDelta();
-        if (open && doorGroup.rotation.y > targetRotationY) {
-            doorGroup.rotation.y -= delta * 3.2;
-            if (doorGroup.rotation.y < targetRotationY) {
-                doorGroup.rotation.y = targetRotationY;
+        if (open) {
+            if (doorGroup.rotation.y > targetRotationY) {
+                doorGroup.rotation.y -= delta * 3.2;
+                if (doorGroup.rotation.y < targetRotationY) {
+                    doorGroup.rotation.y = targetRotationY;
+                }
+            } else {
+                doorOpenedAction()
             }
         } else if (!open && doorGroup.rotation.y < 0) {
             doorGroup.rotation.y += delta * 3.2;
@@ -196,7 +194,13 @@ function loadTextures(texturePaths: string[], onLoad: (textures: THREE.Texture[]
     });
 }
 
-export function addWalls(scene: THREE.Scene) {
+export function addWalls(scene: THREE.Scene, room: PropRoom) {
+    // 墙壁
+    const wallThickness = 0.12;
+    const wallHeight = room.height;
+    const wallWidth = room.width;
+    const wallDepth = room.depth;
+
     const wallRoughness = 0.8;
     const wallMetalness = 0.1;
     const halfWallWidth = (wallWidth - doorWidth) * 0.5;
