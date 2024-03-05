@@ -27,3 +27,7 @@ export function getCsrfToken() {
     }
     return undefined;
 }
+
+export const getTimestamp = function () {
+    return window.performance.now();
+}

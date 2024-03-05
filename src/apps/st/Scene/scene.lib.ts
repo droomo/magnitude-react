@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {API} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
-import {TypeRoomSize} from "./SceneRoom";
+import {PropRoom} from "./SceneRoom";
 
 export const TEXTURE_BASE = API.texture_base_url
 
@@ -113,8 +113,8 @@ export function makeCamera(): [THREE.PerspectiveCamera, () => void] {
     return [camera, moveCamera];
 }
 
-export function makeDoor(size: TypeRoomSize): [THREE.Group, (clock: THREE.Clock) => void] {
-    const wallDepth = size.depth;
+export function makeDoor(room: PropRoom): [THREE.Group, (clock: THREE.Clock) => void] {
+    const wallDepth = room.depth;
 
     const textureLoader = new THREE.TextureLoader();
     const doorTextures = [
@@ -190,12 +190,12 @@ function loadTextures(texturePaths: string[], onLoad: (textures: THREE.Texture[]
     });
 }
 
-export function addWalls(scene: THREE.Scene, size: TypeRoomSize) {
+export function addWalls(scene: THREE.Scene, room: PropRoom) {
     // 墙壁
     const wallThickness = 0.12;
-    const wallHeight = size.height;
-    const wallWidth = size.width;
-    const wallDepth = size.depth;
+    const wallHeight = room.height;
+    const wallWidth = room.width;
+    const wallDepth = room.depth;
 
     const wallRoughness = 0.8;
     const wallMetalness = 0.1;

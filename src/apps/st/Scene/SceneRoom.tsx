@@ -4,17 +4,16 @@ import * as THREE from 'three';
 import Stats from 'stats.js';
 import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
 
-export interface TypeRoomSize {
+export interface PropRoom {
     width: number;
     height: number;
     depth: number;
+    wall: number;
+    ground: number;
+    duration: number;
 }
 
-interface SceneProps {
-    size: TypeRoomSize
-}
-
-export default function Scene(props: SceneProps) {
+export default function Scene(props: PropRoom) {
 
     const divRef = useRef<HTMLDivElement>(null);
     const stats = useRef(new Stats()).current;
@@ -25,7 +24,7 @@ export default function Scene(props: SceneProps) {
         const renderer = new THREE.WebGLRenderer(webGlConfig)
         const scene = new THREE.Scene();
         const [camera, moveCamera] = makeCamera();
-        const [door, handleDoor] = makeDoor(props.size);
+        const [door, handleDoor] = makeDoor(props);
         const orbitControls = new OrbitControls(camera, renderer.domElement);
 
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -35,7 +34,7 @@ export default function Scene(props: SceneProps) {
 
         addGround(scene);
         addLight(scene);
-        addWalls(scene, props.size);
+        addWalls(scene, props);
         scene.add(door)
         addSky(scene, renderer, camera);
 

@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import classes from '../css/timeCounter.module.scss'
 
-import {API} from "../../const";
+import {API, getTimestamp} from "../../const";
 
 interface TypeTimeCounter {
     stage_start: number,
@@ -17,10 +17,6 @@ const timeCounter: TypeTimeCounter = {
     pressed: -1,
     page_started: -1,
     page_ended: -1
-}
-
-const getTimestamp = function () {
-    return window.performance.now();
 }
 
 function StageIntroduction() {
