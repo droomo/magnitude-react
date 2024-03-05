@@ -2,10 +2,10 @@ import React, {useEffect, useLayoutEffect, useState} from "react";
 import {API, getCsrfToken, page_data} from "../const";
 import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import classes from "./css/timeCounter.module.scss";
-import TimeCounter from "./Scene/TimeCounter";
-import axios from "axios";
 import PageIntroduction from "./Page/PageIntroduction";
+import TimeCounter from "./Scene/TimeCounter";
+import classes from "./css/timeCounter.module.scss";
+import axios from "axios";
 
 export interface TrialData {
     reaction_type: string

@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import classes from '../css/timeCounter.module.scss'
 
 import {getTimestamp} from "../../const";
@@ -25,8 +25,6 @@ function StageDetection(props: {
     timeCounter: TypeTimeCounter
 }) {
     const [showingCross, setShowingCross] = React.useState(true)
-    props.timeCounter.stage_start = getTimestamp()
-    props.timeCounter.stage_start_date = new Date().getTime()
 
     const onMousedownDown = (e: MouseEvent) => {
         if (e.button === 0) {
@@ -37,13 +35,15 @@ function StageDetection(props: {
             props.done(props.timeCounter)
         }
     }
-    useLayoutEffect(() => {
+    props.timeCounter.stage_start = getTimestamp()
+    props.timeCounter.stage_start_date = new Date().getTime()
+    useEffect(() => {
         props.timeCounter.stage_occur_fss = getTimestamp() - props.timeCounter.stage_start;
         window.addEventListener('mousedown', onMousedownDown)
         return () => {
             window.removeEventListener('mousedown', onMousedownDown)
         }
-    }, [onMousedownDown]);
+    }, [onMousedownDown, props.timeCounter]);
     return <div className={classes.screen}>
         {showingCross ?
             <span className={classes.crossText}>+</span> :
