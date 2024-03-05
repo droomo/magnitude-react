@@ -1,19 +1,7 @@
 import React, {useEffect, useMemo} from "react";
 import {API, page_data} from "../const";
 import axios from "axios";
-import {Route, Routes, useNavigate} from "react-router-dom";
-import Scene from "./discard/Scene";
-import Login from "./Login";
-import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import TimeCounter from "./Scene/TimeCounter";
 import Trial, {TrialData} from "./Trial";
-
-enum TrialType {
-    start = '0',
-    pause = 'P',
-    space = 'S',
-    time = 'T',
-}
 
 
 export default function Experiment() {
