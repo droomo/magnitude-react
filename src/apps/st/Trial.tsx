@@ -9,7 +9,7 @@ import {
 } from "../const";
 import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import TimeCounter from "./Scene/TimeCounter";
+import PageTimeCounter from "./Scene/PageTimeCounter";
 import classes from "./css/exp.module.scss";
 import axios from "axios";
 import PageMask from "./Page/PageMask";
@@ -125,7 +125,7 @@ function Reaction(props: {
     return <>{isStagePrepared && <div className={classes.mask}><PageMask text={`请估计${name}`}/></div>}
         {props.trial.reaction_type === 'S' ?
             <SceneShapeRadius done={doneAction} isStagePrepared={isStagePrepared}/> :
-            <TimeCounter start={!isStagePrepared} done={doneAction}/>}
+            <PageTimeCounter shouldStart={!isStagePrepared} done={doneAction}/>}
     </>
 }
 

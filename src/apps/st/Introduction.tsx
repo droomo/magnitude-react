@@ -1,18 +1,19 @@
-import {Route, Routes, useNavigate} from "react-router-dom";
+import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
 import {API} from "../const";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
+import SceneRoomPractice from "./Scene/SceneRoomPractice";
+import PageTimeCounter from "./Scene/PageTimeCounter";
 
 function Description() {
     const navigate = useNavigate();
     return <PageMask
         text={<div style={{cursor: 'default'}}>
-            <h1 style={{fontSize: '5rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索游戏</h1>
-            <p style={{margin: '5px 0', fontSize: '3rem'}}>接下来的实验将分组进行，每组实验都多次重复进行实验任务</p>
+            <h1 style={{fontSize: '5rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索实验</h1>
+            <p style={{margin: '5px 0', fontSize: '3rem'}}>接下来的实验将分组进行，每组都有多次实验任务</p>
             <p style={{margin: '5px 0', fontSize: '3rem'}}>实验任务包含<strong
                 style={{color: 'red'}}>体验</strong>和<strong style={{color: 'red'}}>再现</strong>两个环节</p>
             <Row>
@@ -29,14 +30,14 @@ function Description() {
                                     margin: '5px 0',
                                     fontSize: '1.8rem',
                                     marginTop: '20px'
-                                }}>1. 按键盘E键手动开门进入房间</p>
+                                }}>1.按键盘E键手动开门进入房间</p>
                             </Col>
                             <Col span={12}>
                                 <p style={{
                                     margin: '5px 0',
                                     fontSize: '1.8rem',
                                     marginTop: '20px'
-                                }}>2. 请想象自己处在看到的虚拟房间中</p>
+                                }}>2.想象自己处在看到的虚拟房间中</p>
                             </Col>
                         </Row>
                         <Row>
@@ -115,35 +116,160 @@ function Description() {
                 onClick={() => {
                     navigate('/st/intro/scene/')
                 }}
-                style={{fontSize: '2rem', marginTop: '2rem', cursor: 'pointer'}}
+                style={{marginTop: '2rem'}}
+                className={classes.fakeButton}
             >我已理解，进行下一步</span>
         </div>}
     />
 }
 
-//
-// <SceneShapeRadius done={() => {
-//     navigate('/st/')
-// }} isStagePrepared={false}/>
+function SceneIntro() {
+    const navigate = useNavigate();
+
+    const [stage, setStage] = React.useState(1);
+    return <>
+        <div style={{
+            position: 'absolute', fontSize: '2rem', color: 'white',
+            top: '2rem', left: '2rem'
+        }}>
+            {stage === 1 && <>
+                <p>游戏的操作同多数电脑游戏一致</p>
+                <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向“上左后右”，按<strong
+                    style={{color: 'red'}}>“E”</strong>键开门</p>
+                <p>请想象你正以第一人称处于游戏环境中</p>
+            </>}
+            {stage === 2 && <>
+                <p>开门后游戏自动带你进入房间，此时不能再移动</p>
+                <p>请想象你正以第一人称处于游戏环境中</p>
+                <p>尽可能身临其境地体验<strong style={{color: 'red', fontSize: '2.2rem'}}>房间的大小</strong>和<strong
+                    style={{color: 'red', fontSize: '2.2rem'}}>在房间内的时长</strong></p>
+                <p>一段时间后，页面会自动切换，你需要完成时间或空间再现任务</p>
+            </>}
+        </div>
+        {stage !== 3 && <SceneRoomPractice
+            done={() => {
+                navigate('/st/intro/control/')
+            }}
+            onDoorOpen={() => {
+                setStage(2)
+            }}
+            room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
+        />}
+    </>
+}
+
+function LeaningControl() {
+    const navigate = useNavigate();
+
+    return <div className={classes.screen} style={{cursor: 'default'}}>
+        <div className={classes.content}>
+            <p className={classes.descriptionText}>请复现空间/时距</p>
+            <p style={{
+                lineHeight: '2',
+                fontSize: '2rem'
+            }}>请注意，现在为学习阶段。<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
+            <div>
+                    <span
+                        style={{
+                            border: "1px solid #ccc",
+                            marginRight: '2rem'
+                        }}
+                        onClick={() => {
+                            navigate('/st/intro/shape/')
+                        }}
+                        className={classes.fakeButton}
+                    >复现空间</span>
+                <span
+                    style={{
+                        border: "1px solid #ccc",
+                        marginLeft: '2rem'
+                    }}
+                    onClick={() => {
+                        navigate('/st/intro/time/')
+                    }}
+                    className={classes.fakeButton}
+                >复现时距</span>
+            </div>
+            <div style={{
+                marginTop: '4rem'
+            }}>
+                    <span
+                        onClick={() => {
+                            navigate('/st/intro/scene/', {state: {stageState: 1}})
+                        }}
+                        className={classes.fakeButton}
+                    >重新进入体验阶段</span>
+            </div>
+            <div style={{
+                marginTop: '2rem'
+            }}>
+                    <span
+                        onClick={() => {
+                            navigate('/st/', {state: {stageState: 1}})
+                        }}
+                        className={classes.fakeButton}
+                    >已经学会操作了，进入实验练习</span>
+            </div>
+        </div>
+    </div>
+}
 
 function ShapeIntro() {
     const navigate = useNavigate();
-    return <SceneRoom
-        room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
-        done={function (timeStat: TypeTimeStat): void {
+    return <>
+        <div style={{
+            position: 'absolute', fontSize: '2rem', color: 'white',
+            top: '2rem', left: '2rem'
+        }}>
+            <p>请复现空间</p>
+            <p>请使用鼠标滚轮控制多面体的体积</p>
+            <p>尽可能反应你在体验阶段感受到的房间体积</p>
+            <p>不要求精确还原</p>
+            <p>反应你的主观体验即可</p>
+            <br/>
+            <p>完成后，点击下方的“完成”按钮</p>
+        </div>
+        <SceneShapeRadius
+            isStagePrepared={false}
+            done={() => {
+                navigate('/st/intro/control/')
+            }}
+        />
+    </>
+}
 
-        }}
-        startedIndex={0}
-    />
+function TimeIntro() {
+    const navigate = useNavigate();
+    return <>
+        <div style={{
+            position: 'absolute', fontSize: '2rem', color: 'white',
+            top: '2rem', left: '2rem'
+        }}>
+            <p>请复现时距</p>
+            <p>尽可能反应你在体验阶段感受到的房间时长</p>
+            <p>不要求精确还原</p>
+            <p>反应你的主观体验即可</p>
+            <p>显示准备后请做好准备</p>
+            <p>屏幕中间出现<strong style={{fontSize: '5rem'}}>+</strong>时开始计时</p>
+            <p>当达到在体验阶段相同的时距后点击鼠标左键</p>
+        </div>
+        <PageTimeCounter
+            done={() => {
+                navigate('/st/intro/control/')
+            }}
+            shouldStart={true}
+        />
+    </>
 }
 
 function Introduction() {
     return (
         <Routes>
             <Route path="/" element={<Description/>}/>
-            <Route path="/scene/" element={<ShapeIntro/>}/>
-            <Route path="/shape/" element={<Description/>}/>
-            <Route path="/time/" element={<Description/>}/>
+            <Route path="/control/" element={<LeaningControl/>}/>
+            <Route path="/scene/" element={<SceneIntro/>}/>
+            <Route path="/shape/" element={<ShapeIntro/>}/>
+            <Route path="/time/" element={<TimeIntro/>}/>
         </Routes>
     );
 }

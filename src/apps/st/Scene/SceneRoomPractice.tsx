@@ -1,48 +1,106 @@
 import React, {useEffect, useRef} from 'react';
-import {OrbitControls} from 'three-stdlib'
 import * as THREE from 'three';
 import Stats from 'stats.js';
-import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
-import {getTimestamp} from "../../const";
+import {addGround, addLight, addSky, addWalls, doorHeight, makeDoor, webGlConfig} from './scene.lib';
+import {PropRoom} from "./SceneRoom";
 
-export interface PropRoom {
-    width: number;
-    height: number;
-    depth: number;
-    wall: number;
-    ground: number;
-    duration: number;
+function makeCamera(): [THREE.PerspectiveCamera, () => void, () => void] {
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+
+    let movingDirection: number = 0;
+    const moveSpeed = 0.08;
+    const onKeyDown = (event: { key: any; }) => {
+        switch (event.key) {
+            case 'w':
+                movingDirection = 1;
+                break;
+            case 's':
+                movingDirection = 2;
+                break;
+            case 'a':
+                movingDirection = 3;
+                break;
+            case 'd':
+                movingDirection = 4;
+                break;
+            default:
+                break;
+        }
+    };
+
+    const onKeyUp = () => {
+        movingDirection = 0;
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
+    const moveCamera = function () {
+        camera.lookAt(0, doorHeight * 0.8, 0);
+        switch (movingDirection) {
+            case 1:
+                camera.translateZ(-moveSpeed);
+                break;
+            case 2:
+                camera.translateZ(moveSpeed);
+                break;
+            case 3:
+                camera.translateX(-moveSpeed);
+                break;
+            case 4:
+                camera.translateX(moveSpeed);
+                break;
+            default:
+                break;
+        }
+    }
+
+    const clearKeyAction = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('keyup', onKeyUp);
+    }
+    return [camera, moveCamera, clearKeyAction];
 }
 
-export default function Scene(props: PropRoom) {
+export default function Scene(props: {
+    room: PropRoom,
+    done: () => void,
+    onDoorOpen: () => void,
+}) {
+
+    const room = props.room;
 
     const divRef = useRef<HTMLDivElement>(null);
     const doorOpened = useRef(false);
 
-    const timeStat = useRef({
-        doorOpened: -1,
-        cameraMoved: -1,
-    }).current
+    const lastAnimationID = useRef(0);
 
-    // const stats = useRef(new Stats()).current;
-
+    const stats = useRef(new Stats()).current;
 
     useEffect(() => {
-        const [camera, moveCamera] = makeCamera(props);
+        const [camera, moveCamera, clearKeyAction] = makeCamera();
+
+        camera.position.set(0, doorHeight * 0.8, room.depth);
+        camera.lookAt(0, doorHeight * 0.8, 0);
 
         function onDoorOpen() {
             doorOpened.current = true;
-            timeStat.doorOpened = getTimestamp();
-            camera.position.set(0, props.height / 2, props.depth / 2);
-            camera.lookAt(0, props.height / 2, 0);
-            timeStat.cameraMoved = getTimestamp();
+            camera.position.set(0, room.height / 2, room.depth / 2 + 1);
+            camera.lookAt(0, room.height / 2, 0);
+            cancelAnimationFrame(lastAnimationID.current);
+            props.onDoorOpen();
+
+            stats.dom.remove();
+
+            setTimeout(() => {
+                props.done();
+            }, props.room.duration)
         }
 
         const clock = new THREE.Clock();
         const renderer = new THREE.WebGLRenderer(webGlConfig)
         const scene = new THREE.Scene();
-        const [door, handleDoor] = makeDoor(props, onDoorOpen);
-        // const _ = new OrbitControls(camera, renderer.domElement);
+        const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -51,7 +109,7 @@ export default function Scene(props: PropRoom) {
 
         addGround(scene);
         addLight(scene);
-        addWalls(scene, props);
+        addWalls(scene, room);
         scene.add(door)
         addSky(scene, renderer, camera);
 
@@ -67,29 +125,30 @@ export default function Scene(props: PropRoom) {
         }
 
         function animate() {
-            requestAnimationFrame(animate);
+            lastAnimationID.current = requestAnimationFrame(animate);
 
             moveCamera();
             if (!doorOpened.current) handleDoor(clock);
-            // stats.begin();
-            // stats.end();
-
-            render()
+            stats.begin();
+            stats.end();
+            render();
         }
 
         window.addEventListener('resize', onWindowResize);
 
-        // stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 
-        // divRef.current?.appendChild(stats.dom);
+        divRef.current?.appendChild(stats.dom);
         divRef.current?.appendChild(renderer.domElement);
         animate();
 
         return () => {
+            clearKeyAction();
+            window.removeEventListener('resize', onWindowResize);
+            renderer.forceContextLoss();
             renderer.domElement.remove();
-            // stats.dom.remove();
         }
-    }, [props]) // stats
+    }, [])
 
     return (
         <div ref={divRef}/>

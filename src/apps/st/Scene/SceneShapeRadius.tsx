@@ -157,8 +157,8 @@ export default function SceneShapeRadius(props: {
     return (
         <>
             {done ? <PageMask/> : <div ref={divRef}/>}
-            {!props.isStagePrepared && !done && <button
-                className={classes.shapeButton}
+            {!props.isStagePrepared && !done && <span
+                className={[classes.shapeButton, classes.fakeButton].join(' ')}
                 onClick={() => {
                     setDone(true)
                     props.done({
@@ -168,8 +168,7 @@ export default function SceneShapeRadius(props: {
                         control_times: controlTimes
                     })
                 }}
-            >完成
-            </button>}
+            >完&nbsp;成</span>}
         </>
     );
 }

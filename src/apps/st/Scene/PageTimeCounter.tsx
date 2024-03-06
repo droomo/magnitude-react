@@ -46,9 +46,9 @@ function StageDetection(props: {
     return <PageMask text={showingCross ? <span className={classes.crossText}>+</span> : '完成'}/>
 }
 
-export default function TimeCounter(props: {
+export default function PageTimeCounter(props: {
     done: (timeCounter: TypeTimeCounter) => void,
-    start: boolean
+    shouldStart: boolean
 }) {
     const timeCounter: TypeTimeCounter = useMemo(() => {
         return {
@@ -67,12 +67,12 @@ export default function TimeCounter(props: {
     const [done, setDone] = useState(false);
 
     useEffect(() => {
-        if (props.start) {
+        if (props.shouldStart) {
             setTimeout(() => {
                 setShowingPreparation(false)
             }, 1000)
         }
-    }, [props.start]);
+    }, [props.shouldStart]);
 
     return done ? <PageMask/> : <div className={classes.timeCounter}>
         {showingPreparation ? <StagePreparation/> : <StageDetection

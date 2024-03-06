@@ -17,6 +17,7 @@
   .content {
     width: 100%;
     text-align: center;
+
     .warningText {
       font-size: 5rem;
       font-weight: bold;
@@ -35,10 +36,19 @@
   }
 }
 
+.fakeButton {
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  font-size: 1.4rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #ccc;
+}
+
 .shapeButton {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 30%;
+  bottom: 40px;
 }
 
 .mask {

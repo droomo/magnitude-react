@@ -9,7 +9,9 @@ export const TEXTURE_BASE = API.texture_base_url
 
 // 门
 const doorWidth = 1;
-const doorHeight = 2 * doorWidth;
+export const doorHeight = 2 * doorWidth;
+
+export const wallThickness = 0.12;
 
 // 贴图重复
 const repeat = new Vector2(17, 14);
@@ -56,66 +58,6 @@ export function addLight(scene: THREE.Scene) {
     directionalLight.position.set(0, 10, 0);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
-}
-
-export function makeCamera(room: PropRoom): [THREE.PerspectiveCamera, () => void, () => void] {
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, doorHeight * 0.6, room.depth / 2 + 2);
-    camera.lookAt(0, doorHeight * 0.6, 0);
-
-    let movingDirection: number = 0;
-    const moveSpeed = 0.05;
-    const onKeyDown = (event: { key: any; }) => {
-        switch (event.key) {
-            case 'w':
-                movingDirection = 1;
-                break;
-            case 's':
-                movingDirection = 2;
-                break;
-            case 'a':
-                movingDirection = 3;
-                break;
-            case 'd':
-                movingDirection = 4;
-                break;
-            default:
-                break;
-        }
-    };
-
-    const onKeyUp = () => {
-        movingDirection = 0;
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
-
-    const moveCamera = function () {
-        switch (movingDirection) {
-            case 1:
-                camera.translateZ(-moveSpeed);
-                break;
-            case 2:
-                camera.translateZ(moveSpeed);
-                break;
-            case 3:
-                camera.translateX(-moveSpeed);
-                break;
-            case 4:
-                camera.translateX(moveSpeed);
-                break;
-            default:
-                break;
-        }
-    }
-
-    const clearKeyAction = () => {
-        window.removeEventListener('keydown', onKeyDown);
-        window.removeEventListener('keyup', onKeyUp);
-    }
-
-    return [camera, moveCamera, clearKeyAction];
 }
 
 export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
@@ -201,7 +143,6 @@ function loadTextures(texturePaths: string[], onLoad: (textures: THREE.Texture[]
 
 export function addWalls(scene: THREE.Scene, room: PropRoom) {
     // 墙壁
-    const wallThickness = 0.12;
     const wallHeight = room.height;
     const wallWidth = room.width;
     const wallDepth = room.depth;
