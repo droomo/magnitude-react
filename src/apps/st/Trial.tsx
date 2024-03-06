@@ -28,7 +28,8 @@ export interface TrialData {
 
 function ControlledScene(props: {
     trial: TrialData,
-    done: (timeStat: TypeTimeStat) => void
+    done: (timeStat: TypeTimeStat) => void,
+    startedIndex: number
 }) {
     return <SceneRoom
         room={{
@@ -42,12 +43,14 @@ function ControlledScene(props: {
         done={(timeStat: TypeTimeStat) => {
             props.done(timeStat)
         }}
+        startedIndex={props.startedIndex}
     />
 }
 
 function TrialProcess(props: {
     trial: TrialData,
-    done: () => void
+    done: () => void,
+    startedIndex: number
 }) {
     const [sceneStage, setSceneStage] = useState<boolean>(true);
 
@@ -74,7 +77,7 @@ function TrialProcess(props: {
         })
     }
     return sceneStage ?
-        <ControlledScene trial={props.trial} done={sceneDoneAction}/> :
+        <ControlledScene trial={props.trial} done={sceneDoneAction} startedIndex={props.startedIndex}/> :
         <Reaction trial={props.trial} done={props.done}/>
 }
 
@@ -129,13 +132,14 @@ function Reaction(props: {
 
 export default function Trial(props: {
     trial: TrialData,
-    done: () => void
+    done: () => void,
+    startedIndex: number
 }) {
     return (() => {
         switch (props.trial.reaction_type) {
             case 'T':
             case 'S':
-                return <TrialProcess trial={props.trial} done={props.done}/>
+                return <TrialProcess {...props}/>
             case 'P':
                 return <div>Pause</div>
             case '0':

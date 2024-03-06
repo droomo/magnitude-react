@@ -11,6 +11,7 @@ export default function Experiment() {
     }]);
 
     const [currentIndex, setCurrentIndex] = React.useState(0);
+    const [startedIndex, setStartedIndex] = React.useState(0);
 
     useEffect(() => {
         axios.get(trial_api).then(response => {
@@ -20,8 +21,12 @@ export default function Experiment() {
         })
     }, [trial_api]);
 
-    return <Trial trial={trialDataList[currentIndex]} done={() => {
-        setCurrentIndex(i => i + 1)
-    }}/>
+    return <Trial
+        trial={trialDataList[currentIndex]}
+        done={() => {
+            setCurrentIndex(i => i + 1)
+        }}
+        startedIndex={startedIndex}
+    />
 
 }

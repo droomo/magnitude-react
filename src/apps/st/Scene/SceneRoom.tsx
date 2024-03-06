@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useRef} from 'react';
 import * as THREE from 'three';
 import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
-import PageDone from "../Page/PageDone";
+import PageMask from "../Page/PageMask";
 import classes from "../css/timeCounter.module.scss";
 import WebGLContext from "../WebGLContext";
 
@@ -17,7 +17,8 @@ export interface PropRoom {
 
 export interface PropScene {
     room: PropRoom,
-    done: (timeStat: TypeTimeStat) => void
+    done: (timeStat: TypeTimeStat) => void,
+    startedIndex: number
 }
 
 export interface TypeTimeStat {
@@ -112,7 +113,10 @@ export default function SceneRoom(props: PropScene) {
     }, [props, renderer, room, timeStat])
 
     return (
-        <>{mask && <div className={classes.mask}><PageDone/></div>}
+        <>{
+            mask && <div className={classes.mask}>
+                <PageMask text={props.startedIndex === 0 ? null : '已完成'}/>
+            </div>}
             <div ref={divRef}/>
         </>
     );

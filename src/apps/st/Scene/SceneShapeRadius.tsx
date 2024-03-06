@@ -6,7 +6,7 @@ import {TEXTURE_BASE} from './scene.lib';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import classes from "../css/timeCounter.module.scss";
-import PageDone from "../Page/PageDone";
+import PageMask from "../Page/PageMask";
 import WebGLContext from "../WebGLContext";
 
 export interface TypeSceneShapeResult {
@@ -159,7 +159,7 @@ export default function SceneShapeRadius(props: {
 
     return (
         <>
-            {done ? <PageDone/> : <div ref={divRef}/>}
+            {done ? <PageMask/> : <div ref={divRef}/>}
             {!props.stagePrepared && !done && <button
                 className={classes.shapeButton}
                 onClick={() => {

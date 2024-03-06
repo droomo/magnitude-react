@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import classes from '../css/timeCounter.module.scss'
 
 import {getTimestamp} from "../../const";
-import PageDone from "../Page/PageDone";
+import PageMask from "../Page/PageMask";
 
 export interface TypeTimeCounter {
     page_started_date: number
@@ -79,7 +79,7 @@ export default function TimeCounter(props: {
         }
     }, [props.start]);
 
-    return done ? <PageDone/> : <div className={classes.timeCounter}>
+    return done ? <PageMask/> : <div className={classes.timeCounter}>
         {showingPreparation ? <StagePreparation/> : <StageDetection
             done={() => {
                 setDone(true)
