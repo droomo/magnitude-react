@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {API} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
-import {PropRoom, PropScene} from "./SceneRoom";
+import {PropRoom} from "./SceneRoom";
 
 export const TEXTURE_BASE = API.texture_base_url
 

@@ -1,6 +1,6 @@
-import React, {useContext, useEffect, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor} from './scene.lib';
+import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
 import {getTimestamp} from "../../const";
 import PageDone from "../Page/PageDone";
 import classes from "../css/timeCounter.module.scss";
@@ -40,9 +40,10 @@ export default function SceneRoom(props: PropScene) {
     const renderer = useContext(WebGLContext);
 
     useEffect(() => {
+        setMask(false)
         setTimeout(() => {
             setMask(false)
-        }, 500)
+        }, 200)
     }, []);
 
     useEffect(() => {
@@ -53,6 +54,8 @@ export default function SceneRoom(props: PropScene) {
             timeStat.door_opened = getTimestamp();
             camera.position.set(0, room.height / 2, room.depth / 2);
             camera.lookAt(0, room.height / 2, 0);
+
+            console.log(camera)
             timeStat.camera_moved = getTimestamp();
         }
 

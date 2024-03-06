@@ -10,12 +10,10 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 root.render(
-    <React.StrictMode>
-        <BrowserRouter>
-            <Routes>
-                <Route path="/st/" element={<WebGLProvider><Experiment/></WebGLProvider>}/>
-                <Route path="/st/login" element={<Login/>}/>
-            </Routes>
-        </BrowserRouter>
-    </React.StrictMode>
+    <BrowserRouter>
+        <Routes>
+            <Route path="/st/" element={<WebGLProvider><Experiment/></WebGLProvider>}/>
+            <Route path="/st/login" element={<Login/>}/>
+        </Routes>
+    </BrowserRouter>
 );
