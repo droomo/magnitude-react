@@ -35,14 +35,10 @@ export default function SceneShapeRadius(props: {
     useEffect(() => {
         renderer!.domElement.addEventListener('wheel', (event: WheelEvent) => {
             setRadius(r => {
-                console.log(r)
                 const target = r - event.deltaY / 400;
                 return target > 0 ? target : r;
             })
             setControlTimes(t => t + 1)
-        });
-        renderer!.domElement.addEventListener('wheel', () => {
-            console.log(112)
         });
     }, [renderer]);
 
