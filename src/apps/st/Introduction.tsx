@@ -167,7 +167,7 @@ function LeaningControl() {
             <p style={{
                 lineHeight: '2',
                 fontSize: '2rem'
-            }}>请注意，现在为学习阶段。<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
+            }}>现在正处在学习阶段<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
             <div>
                     <span
                         style={{
@@ -208,7 +208,7 @@ function LeaningControl() {
                             navigate('/st/', {state: {stageState: 1}})
                         }}
                         className={classes.fakeButton}
-                    >已经学会操作了，进入实验练习</span>
+                    >已经学会操作了，进入练习</span>
             </div>
         </div>
     </div>

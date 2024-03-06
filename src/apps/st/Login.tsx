@@ -26,8 +26,7 @@ const SubjectForm: React.FC = () => {
             },
         })
             .then(() => {
-                message.success('Submitted successfully');
-                // form.resetFields();
+                window.location.href = '/st/intro/';
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);
