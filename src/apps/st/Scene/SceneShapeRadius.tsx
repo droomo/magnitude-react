@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
 import * as THREE from 'three';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {TEXTURE_BASE, webGlConfig} from './scene.lib';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import classes from "../css/exp.module.scss";
@@ -19,7 +19,7 @@ export default function SceneShapeRadius(props: {
     isStagePrepared: boolean
 }) {
     const page_start_date = new Date().getTime()
-    const [radius, setRadius] = useState(5);
+    const [radius, setRadius] = useState(6);
     const [controlTimes, setControlTimes] = useState(0);
 
     const divRef = useRef<HTMLDivElement>(null);

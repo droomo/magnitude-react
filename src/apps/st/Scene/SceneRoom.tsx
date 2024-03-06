@@ -123,10 +123,10 @@ export default function SceneRoom(props: PropScene) {
 
     return (
         <>{
-            mask && <div className={classes.mask}>
+            mask && <div style={{cursor: 'none'}} className={classes.mask}>
                 <PageMask text={props.startedIndex === 0 ? null : '已完成'}/>
             </div>}
-            <div ref={divRef}/>
+            <div style={{cursor: 'none'}} ref={divRef}/>
         </>
     );
 }
