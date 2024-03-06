@@ -1,14 +1,16 @@
-import {Route, Routes} from "react-router-dom";
+import {Route, Routes, useNavigate} from "react-router-dom";
 import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
 import {API} from "../const";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
+import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
 
 function Description() {
+    const navigate = useNavigate();
     return <PageMask
-        text={<>
+        text={<div style={{cursor: 'default'}}>
             <h1 style={{fontSize: '5rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索游戏</h1>
             <p style={{margin: '5px 0', fontSize: '3rem'}}>接下来的实验将分组进行，每组实验都多次重复进行实验任务</p>
             <p style={{margin: '5px 0', fontSize: '3rem'}}>实验任务包含<strong
@@ -109,19 +111,41 @@ function Description() {
                     </div>
                 </Col>
             </Row>
-        </>}
+            <span
+                onClick={() => {
+                    navigate('/st/intro/scene/')
+                }}
+                style={{fontSize: '2rem', marginTop: '2rem', cursor: 'pointer'}}
+            >我已理解，进行下一步</span>
+        </div>}
     />
 }
 
-function Intro() {
+//
+// <SceneShapeRadius done={() => {
+//     navigate('/st/')
+// }} isStagePrepared={false}/>
+
+function ShapeIntro() {
+    const navigate = useNavigate();
+    return <SceneRoom
+        room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
+        done={function (timeStat: TypeTimeStat): void {
+
+        }}
+        startedIndex={0}
+    />
+}
+
+function Introduction() {
     return (
         <Routes>
             <Route path="/" element={<Description/>}/>
-            <Route path="/scene/" element={<Description/>}/>
+            <Route path="/scene/" element={<ShapeIntro/>}/>
             <Route path="/shape/" element={<Description/>}/>
             <Route path="/time/" element={<Description/>}/>
         </Routes>
     );
 }
 
-export default Intro;
+export default Introduction;

@@ -4,8 +4,7 @@ import {BrowserRouter, Routes, Route} from "react-router-dom"
 import Experiment from "./Experiment";
 import Login from "./Login";
 import './css/style.css'
-import WebGLProvider from "./WebGLProvider";
-import Intro from "./Intro";
+import Introduction from "./Introduction";
 
 
 const root = ReactDOM.createRoot(
@@ -13,12 +12,10 @@ const root = ReactDOM.createRoot(
 );
 root.render(
     <BrowserRouter>
-        <WebGLProvider>
             <Routes>
                 <Route path="/st/" element={<Experiment/>}/>
-                <Route path="/st/intro/*" element={<Intro/>}/>
+                <Route path="/st/intro/*" element={<Introduction/>}/>
                 <Route path="/st/login/" element={<Login/>}/>
             </Routes>
-        </WebGLProvider>
     </BrowserRouter>
 );

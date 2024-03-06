@@ -1,10 +1,9 @@
-import React, {useContext, useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor} from './scene.lib';
+import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
 import classes from "../css/exp.module.scss";
-import WebGLContext from "../WebGLContext";
 
 export interface PropRoom {
     width: number;
@@ -38,7 +37,9 @@ export default function SceneRoom(props: PropScene) {
         done_from_camera_moved: -1
     }).current
     const [mask, setMask] = React.useState(true);
-    const renderer = useContext(WebGLContext);
+    const renderer = useMemo(() => {
+        return new THREE.WebGLRenderer(webGlConfig);
+    }, [])
 
     useEffect(() => {
         setTimeout(() => {
@@ -55,7 +56,6 @@ export default function SceneRoom(props: PropScene) {
             camera.position.set(0, room.height / 2, room.depth / 2);
             camera.lookAt(0, room.height / 2, 0);
 
-            console.log(camera)
             timeStat.camera_moved = getTimestamp();
         }
 
@@ -63,26 +63,26 @@ export default function SceneRoom(props: PropScene) {
         const scene = new THREE.Scene();
         const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
-        renderer!.setPixelRatio(window.devicePixelRatio);
-        renderer!.setSize(window.innerWidth, window.innerHeight);
-        renderer!.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer!.toneMappingExposure = 0.5;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.5;
 
         addGround(scene);
         addLight(scene);
         addWalls(scene, room);
         scene.add(door)
-        addSky(scene, renderer!, camera);
+        addSky(scene, renderer, camera);
 
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer!.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
             render();
         }
 
         function render() {
-            renderer!.render(scene, camera);
+            renderer.render(scene, camera);
         }
 
         function animate() {
@@ -102,13 +102,14 @@ export default function SceneRoom(props: PropScene) {
 
         window.addEventListener('resize', onWindowResize);
 
-        divRef.current?.appendChild(renderer!.domElement);
+        divRef.current?.appendChild(renderer.domElement);
         animate();
 
         return () => {
             clearKeyAction();
             window.removeEventListener('resize', onWindowResize);
-            renderer!.domElement.remove();
+            renderer.forceContextLoss();
+            renderer.domElement.remove();
         }
     }, [props, renderer, room, timeStat])
 
