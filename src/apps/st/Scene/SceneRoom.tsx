@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
+import {addGround, addLight, addSky, addWalls, doorHeight, makeDoor, webGlConfig} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
 import classes from "../css/exp.module.scss";
@@ -37,6 +37,9 @@ export default function SceneRoom(props: PropScene) {
         done_from_camera_moved: -1
     }).current
     const [mask, setMask] = React.useState(true);
+
+    const lastAnimationID = useRef(0);
+
     const renderer = useMemo(() => {
         return new THREE.WebGLRenderer(webGlConfig);
     }, [])
@@ -48,7 +51,9 @@ export default function SceneRoom(props: PropScene) {
     }, []);
 
     useEffect(() => {
-        const [camera, , clearKeyAction] = makeCamera(room);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 2);
+        camera.lookAt(0, doorHeight * 0.6, 0);
 
         function onDoorOpen() {
             doorOpened.current = true;
@@ -57,6 +62,18 @@ export default function SceneRoom(props: PropScene) {
             camera.lookAt(0, room.height / 2, 0);
 
             timeStat.camera_moved = getTimestamp();
+            cancelAnimationFrame(lastAnimationID.current);
+            setTimeout(() => {
+                while (true) {
+                    if (room.duration + timeStat.camera_moved < getTimestamp()) {
+                        timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
+                        timeStat.camera_moved -= timeStat.door_opened
+                        timeStat.door_opened -= timeStat.door_opened
+                        props.done(timeStat)
+                        break;
+                    }
+                }
+            }, 0)
         }
 
         const clock = new THREE.Clock();
@@ -86,18 +103,10 @@ export default function SceneRoom(props: PropScene) {
         }
 
         function animate() {
-            if (timeStat.camera_moved > -1) {
-                if (room.duration + timeStat.camera_moved < getTimestamp()) {
-                    timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
-                    timeStat.camera_moved -= timeStat.door_opened
-                    timeStat.door_opened -= timeStat.door_opened
-                    props.done(timeStat)
-                    return
-                }
-            }
-            requestAnimationFrame(animate);
-            if (!doorOpened.current) handleDoor(clock);
-            render()
+            console.log('aniing')
+            lastAnimationID.current = requestAnimationFrame(animate);
+            handleDoor(clock);
+            render();
         }
 
         window.addEventListener('resize', onWindowResize);
@@ -106,7 +115,6 @@ export default function SceneRoom(props: PropScene) {
         animate();
 
         return () => {
-            clearKeyAction();
             window.removeEventListener('resize', onWindowResize);
             renderer.forceContextLoss();
             renderer.domElement.remove();

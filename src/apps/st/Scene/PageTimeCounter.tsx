@@ -1,16 +1,15 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import classes from '../css/exp.module.scss'
 
 import {getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
 
 export interface TypeTimeCounter {
-    page_started_date: number
-    stage_start_date: number
-    page_ended_date: number
+    prep_disappear_date: number
+    cross_stage_start_date: number
     pressed_date: number
-    stage_start: number
-    stage_occur_fss: number // from stage start
+    cross_stage_start: number
+    cross_appear_fss: number // from stage start
     pressed_fss: number
 }
 
@@ -24,20 +23,20 @@ function StageDetection(props: {
 }) {
     const [showingCross, setShowingCross] = React.useState(true)
 
-    props.timeCounter.stage_start = getTimestamp()
-    props.timeCounter.stage_start_date = new Date().getTime()
-    useEffect(() => {
+    props.timeCounter.cross_stage_start = getTimestamp()
+    props.timeCounter.cross_stage_start_date = new Date().getTime()
+    useLayoutEffect(() => {
         const onMousedownDown = (e: MouseEvent) => {
             if (e.button === 0) {
-                props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.stage_start
+                props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.cross_stage_start
                 props.timeCounter.pressed_date = new Date().getTime()
                 setShowingCross(false)
-                props.timeCounter.stage_start = props.timeCounter.stage_start - props.timeCounter.stage_start
+                props.timeCounter.cross_stage_start = props.timeCounter.cross_stage_start - props.timeCounter.cross_stage_start
                 props.done(props.timeCounter)
             }
         }
 
-        props.timeCounter.stage_occur_fss = getTimestamp() - props.timeCounter.stage_start;
+        props.timeCounter.cross_appear_fss = getTimestamp() - props.timeCounter.cross_stage_start;
         window.addEventListener('mousedown', onMousedownDown)
         return () => {
             window.removeEventListener('mousedown', onMousedownDown)
@@ -50,25 +49,22 @@ export default function PageTimeCounter(props: {
     done: (timeCounter: TypeTimeCounter) => void,
     shouldStart: boolean
 }) {
-    const timeCounter: TypeTimeCounter = useMemo(() => {
-        return {
-            page_started_date: -1,
-            stage_start_date: -1,
-            page_ended_date: -1,
-            pressed_date: -1,
-            stage_start: -1,
-            stage_occur_fss: -1,
-            pressed_fss: -1,
-        }
-    }, [])
-    timeCounter.page_started_date = new Date().getTime()
+    const timeCounter = useRef<TypeTimeCounter>({
+        prep_disappear_date: -1,
+        cross_stage_start_date: -1,
+        pressed_date: -1,
+        cross_stage_start: -1,
+        cross_appear_fss: -1,
+        pressed_fss: -1,
+    }).current
 
     const [showingPreparation, setShowingPreparation] = React.useState(true)
     const [done, setDone] = useState(false);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (props.shouldStart) {
             setTimeout(() => {
+                timeCounter.prep_disappear_date = new Date().getTime()
                 setShowingPreparation(false)
             }, 1000)
         }
@@ -78,7 +74,6 @@ export default function PageTimeCounter(props: {
         {showingPreparation ? <StagePreparation/> : <StageDetection
             done={() => {
                 setDone(true)
-                timeCounter.page_ended_date = new Date().getTime()
                 props.done(timeCounter)
             }}
             timeCounter={timeCounter}
