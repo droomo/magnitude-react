@@ -1,3 +1,6 @@
+import * as THREE from "three";
+import {webGlConfig} from "./st/Scene/scene.lib";
+
 let base_host = 'dev1.droomo.com'
 let scheme = 'https'
 
@@ -39,3 +42,9 @@ export const getTimestamp = function () {
 export const DELAY_TRIAL_START_MASK = 300; // ms
 export const DELAY_INFORM_REACTION_TYPE = 1000; // ms
 export const DELAY_TRIAL_DONE = 1000; // ms
+
+declare global {
+    interface Window {
+        renderer: THREE.WebGLRenderer;
+    }
+}

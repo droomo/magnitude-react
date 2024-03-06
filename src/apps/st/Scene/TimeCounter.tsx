@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import classes from '../css/timeCounter.module.scss'
+import classes from '../css/exp.module.scss'
 
 import {getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
@@ -15,9 +15,7 @@ export interface TypeTimeCounter {
 }
 
 function StagePreparation() {
-    return <div className={classes.screen}>
-        <span className={classes.warningText}>准备</span>
-    </div>
+    return <PageMask text={<span className={classes.warningText}>准备</span>}/>
 }
 
 function StageDetection(props: {
@@ -26,29 +24,26 @@ function StageDetection(props: {
 }) {
     const [showingCross, setShowingCross] = React.useState(true)
 
-    const onMousedownDown = (e: MouseEvent) => {
-        if (e.button === 0) {
-            props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.stage_start
-            props.timeCounter.pressed_date = new Date().getTime()
-            setShowingCross(false)
-            props.timeCounter.stage_start = props.timeCounter.stage_start - props.timeCounter.stage_start
-            props.done(props.timeCounter)
-        }
-    }
     props.timeCounter.stage_start = getTimestamp()
     props.timeCounter.stage_start_date = new Date().getTime()
     useEffect(() => {
+        const onMousedownDown = (e: MouseEvent) => {
+            if (e.button === 0) {
+                props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.stage_start
+                props.timeCounter.pressed_date = new Date().getTime()
+                setShowingCross(false)
+                props.timeCounter.stage_start = props.timeCounter.stage_start - props.timeCounter.stage_start
+                props.done(props.timeCounter)
+            }
+        }
+
         props.timeCounter.stage_occur_fss = getTimestamp() - props.timeCounter.stage_start;
         window.addEventListener('mousedown', onMousedownDown)
         return () => {
             window.removeEventListener('mousedown', onMousedownDown)
         }
-    }, [onMousedownDown, props.timeCounter]);
-    return <div className={classes.screen}>
-        {showingCross ?
-            <span className={classes.crossText}>+</span> :
-            <span className={classes.warningText}>完成</span>}
-    </div>
+    }, [props]);
+    return <PageMask text={showingCross ? <span className={classes.crossText}>+</span> : '完成'}/>
 }
 
 export default function TimeCounter(props: {

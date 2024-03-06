@@ -25,6 +25,7 @@ export default function Experiment() {
         trial={trialDataList[currentIndex]}
         done={() => {
             setCurrentIndex(i => i + 1)
+            setStartedIndex(i => i + 1)
         }}
         startedIndex={startedIndex}
     />

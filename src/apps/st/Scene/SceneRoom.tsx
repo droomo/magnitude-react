@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
-import classes from "../css/timeCounter.module.scss";
+import classes from "../css/exp.module.scss";
 import WebGLContext from "../WebGLContext";
 
 export interface PropRoom {

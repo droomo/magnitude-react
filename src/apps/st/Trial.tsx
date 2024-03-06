@@ -9,10 +9,10 @@ import {
 } from "../const";
 import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import PageIntroduction from "./Page/PageIntroduction";
 import TimeCounter from "./Scene/TimeCounter";
-import classes from "./css/timeCounter.module.scss";
+import classes from "./css/exp.module.scss";
 import axios from "axios";
+import PageMask from "./Page/PageMask";
 
 export interface TrialData {
     reaction_type: string
@@ -91,11 +91,11 @@ function Reaction(props: {
     done: () => void
 }) {
     const name = reactionNameMap[props.trial.reaction_type as keyof typeof reactionNameMap]
-    const [stagePrepared, setStagePrepared] = useState<boolean>(true)
+    const [isStagePrepared, setIsStagePrepared] = useState<boolean>(true)
 
     useEffect(() => {
         setTimeout(() => {
-            setStagePrepared(false)
+            setIsStagePrepared(false)
         }, DELAY_INFORM_REACTION_TYPE)
     }, []);
 
@@ -122,10 +122,10 @@ function Reaction(props: {
             alert('error happened 44')
         })
     }
-    return <>{stagePrepared && <div className={classes.mask}><PageIntroduction name={name}/></div>}
+    return <>{isStagePrepared && <div className={classes.mask}><PageMask text={`请估计${name}`}/></div>}
         {props.trial.reaction_type === 'S' ?
-            <SceneShapeRadius done={doneAction} stagePrepared={stagePrepared}/> :
-            <TimeCounter start={!stagePrepared} done={doneAction}/>}
+            <SceneShapeRadius done={doneAction} isStagePrepared={isStagePrepared}/> :
+            <TimeCounter start={!isStagePrepared} done={doneAction}/>}
     </>
 }
 
