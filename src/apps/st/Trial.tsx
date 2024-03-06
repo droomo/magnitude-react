@@ -1,11 +1,17 @@
 import React, {useEffect, useLayoutEffect, useState} from "react";
-import {API, getCsrfToken, page_data} from "../const";
+import {
+    API,
+    DELAY_INFORM_REACTION_TYPE,
+    DELAY_TRIAL_DONE,
+    DELAY_TRIAL_START_MASK,
+    getCsrfToken,
+    page_data,
+} from "../const";
 import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import PageIntroduction from "./Page/PageIntroduction";
 import TimeCounter from "./Scene/TimeCounter";
 import classes from "./css/timeCounter.module.scss";
-import WebGLProvider from "./WebGLProvider";
 import axios from "axios";
 
 export interface TrialData {
@@ -87,7 +93,7 @@ function Reaction(props: {
     useEffect(() => {
         setTimeout(() => {
             setStagePrepared(false)
-        }, 1000)
+        }, DELAY_INFORM_REACTION_TYPE)
     }, []);
 
     const doneAction = (result: any) => {
@@ -105,7 +111,7 @@ function Reaction(props: {
             if (response.data.status === 200) {
                 setTimeout(() => {
                     props.done()
-                }, 1000 - new Date().getTime() + doneDate)
+                }, DELAY_TRIAL_DONE - new Date().getTime() + doneDate - DELAY_TRIAL_START_MASK)
             } else {
                 alert('error happened 33')
             }

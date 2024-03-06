@@ -1,7 +1,7 @@
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
-import {getTimestamp} from "../../const";
+import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor} from './scene.lib';
+import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
 import PageDone from "../Page/PageDone";
 import classes from "../css/timeCounter.module.scss";
 import WebGLContext from "../WebGLContext";
@@ -40,10 +40,9 @@ export default function SceneRoom(props: PropScene) {
     const renderer = useContext(WebGLContext);
 
     useEffect(() => {
-        setMask(false)
         setTimeout(() => {
             setMask(false)
-        }, 200)
+        }, DELAY_TRIAL_START_MASK)
     }, []);
 
     useEffect(() => {
