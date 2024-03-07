@@ -258,6 +258,7 @@ export function makeScene(
                         createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
                         createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
                         createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
+                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
                     },
                     exr_loader
                 );
@@ -267,7 +268,7 @@ export function makeScene(
                         map = map as Texture;
                         normal = normal as Texture;
                         const material = makeMaterial(prepareTextures([map, normal], repeat), wallMetalness, wallRoughness);
-                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
+                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
                     },
                     exr_loader
                 );
