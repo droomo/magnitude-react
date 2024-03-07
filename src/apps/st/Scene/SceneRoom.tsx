@@ -99,7 +99,7 @@ export default function SceneRoom(props: PropScene) {
         }
 
         function animate() {
-            console.log('aniing')
+            // console.log('aniing')
             lastAnimationID.current = requestAnimationFrame(animate);
             handleDoor(clock);
             render();

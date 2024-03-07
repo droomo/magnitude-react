@@ -37,11 +37,11 @@ function loadThings(
 
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
-    const pointLight = new THREE.PointLight(0xffffff, 1, 15, 0.1);
+    const pointLight = new THREE.PointLight(0xffffff, 3, 15, 0.1);
     pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
     scene.add(pointLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2);
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -167,6 +167,7 @@ const makeMaterial = ([map, normalMap]: Texture[], metalness: number, roughness:
         metalness,
         roughness,
         normalScale: new Vector2(2, 2),
+        emissive: new THREE.Color(0x333333)
     });
 }
 
@@ -179,7 +180,7 @@ export function makeScene(
 
     // 墙壁
     const wallHeight = room.height;
-    const wallWidth = room.width;
+    const wallWidth = isFormalTrial ? room.width : 10.3;
     const wallDepth = room.depth;
 
     const repeat = new Vector2(10, 10);
@@ -203,7 +204,7 @@ export function makeScene(
                     const material = new THREE.MeshStandardMaterial({
                         map: map as Texture,
                         normalMap: normalMap as Texture,
-                        normalScale: new Vector2(2, 3),
+                        normalScale: new Vector2(2, 2),
                     });
 
                     dado.scale.set(.03, .01, .03);
@@ -261,9 +262,18 @@ export function makeScene(
             const halfWallBRTextures = prepareTextures([map, normal], halfRepeat, new Vector2((doorWidth * repeat.x - wallWidthF) / (2 * wallWidthF), doorHeight / wallHeightF));
             const halfWallTTextures = prepareTextures([map, normal], new Vector2(repeat.x, (wallHeightF - doorHeight) / wallHeightF * repeat.y));
 
-            createWall(scene, halfWallWidthF, doorHeight, wallThickness, new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5), makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness));
-            createWall(scene, halfWallWidthF, doorHeight, wallThickness, new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5), makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness));
-            createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness, new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5), makeMaterial(halfWallTTextures, wallMetalness, wallRoughness));
+            createWall(scene, halfWallWidthF, doorHeight, wallThickness,
+                new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
+                makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness)
+            );
+            createWall(scene, halfWallWidthF, doorHeight, wallThickness,
+                new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
+                makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness)
+            );
+            createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness,
+                new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5),
+                makeMaterial(halfWallTTextures, wallMetalness, wallRoughness)
+            );
         },
         new EXRLoader()
     )
