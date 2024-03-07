@@ -47,7 +47,7 @@ function ControlledScene(props: {
     />
 }
 
-function TrialProcess(props: {
+export function TrialProcess(props: {
     trial: TrialData,
     done: () => void,
     startedIndex: number
@@ -142,8 +142,6 @@ export default function Trial(props: {
                 return <TrialProcess {...props}/>
             case 'P':
                 return <div>Pause</div>
-            case '0':
-                return <div>Start</div>
             default:
                 return <div>404</div>
         }
