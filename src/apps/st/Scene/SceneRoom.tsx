@@ -17,7 +17,7 @@ export interface PropRoom {
 export interface PropScene {
     room: PropRoom,
     done: (timeStat: TypeTimeStat) => void,
-    startedIndex: number
+    startedIndex: number,
 }
 
 export interface TypeTimeStat {
@@ -116,15 +116,16 @@ export default function SceneRoom(props: PropScene) {
 
         return () => {
             window.removeEventListener('resize', onWindowResize);
+            console.log('Requested force context loss');
             renderer.forceContextLoss();
             renderer.domElement.remove();
         }
-    }, [props, renderer, room, timeStat])
+    }, [])
 
     return (
         <>{
             mask && <div style={{cursor: 'none'}} className={classes.mask}>
-                <PageMask text={props.startedIndex === 0 ? null : '已完成'}/>
+                <PageMask text={props.startedIndex === 0 ? 'Loading...' : '已完成'}/>
             </div>}
             <div style={{cursor: 'none'}} ref={divRef}/>
         </>

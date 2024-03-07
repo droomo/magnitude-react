@@ -62,7 +62,7 @@ function makeCamera(): [THREE.PerspectiveCamera, () => void, () => void] {
     return [camera, moveCamera, clearKeyAction];
 }
 
-export default function Scene(props: {
+export default function SceneRoomPractice(props: {
     room: PropRoom,
     done: () => void,
     onDoorOpen: () => void,
@@ -146,6 +146,7 @@ export default function Scene(props: {
             clearKeyAction();
             window.removeEventListener('resize', onWindowResize);
             renderer.forceContextLoss();
+            console.log('Requested force context loss')
             renderer.domElement.remove();
         }
     }, [])

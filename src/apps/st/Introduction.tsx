@@ -7,6 +7,7 @@ import {API} from "../const";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import SceneRoomPractice from "./Scene/SceneRoomPractice";
 import PageTimeCounter from "./Scene/PageTimeCounter";
+import {HelperText} from "./Page/HelperText";
 
 function Description() {
     const navigate = useNavigate();
@@ -141,10 +142,7 @@ function SceneIntro() {
 
     const [stage, setStage] = React.useState(1);
     return <>
-        <div style={{
-            position: 'absolute', fontSize: '2rem', color: 'white',
-            top: '2rem', left: '2rem'
-        }}>
+        <HelperText>
             {stage === 1 && <>
                 <p>游戏的操作同多数电脑游戏一致</p>
                 <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向“上左后右”，按<strong
@@ -158,7 +156,7 @@ function SceneIntro() {
                     style={{color: 'red', fontSize: '2.2rem'}}>在房间内的时长</strong></p>
                 <p>一段时间后，页面会自动切换，你需要完成时间或空间再现任务</p>
             </>}
-        </div>
+        </HelperText>
         {stage !== 3 && <SceneRoomPractice
             done={() => {
                 navigate('/st/intro/control/')
@@ -230,10 +228,7 @@ function LeaningControl() {
 function ShapeIntro() {
     const navigate = useNavigate();
     return <>
-        <div style={{
-            position: 'absolute', fontSize: '2rem', color: 'white',
-            top: '2rem', left: '2rem'
-        }}>
+        <HelperText>
             <p>请复现空间</p>
             <p>请使用鼠标滚轮控制多面体的体积</p>
             <p>尽可能反应你在体验阶段感受到的房间体积</p>
@@ -241,7 +236,7 @@ function ShapeIntro() {
             <p>反应你的主观体验即可</p>
             <br/>
             <p>完成后，点击下方的“完成”按钮</p>
-        </div>
+        </HelperText>
         <SceneShapeRadius
             isStagePrepared={false}
             done={() => {
@@ -254,10 +249,7 @@ function ShapeIntro() {
 function TimeIntro() {
     const navigate = useNavigate();
     return <>
-        <div style={{
-            position: 'absolute', fontSize: '2rem', color: 'white',
-            top: '2rem', left: '2rem'
-        }}>
+        <HelperText>
             <p>请复现时距</p>
             <p>尽可能反应你在体验阶段感受到的房间时长</p>
             <p>不要求精确还原</p>
@@ -265,7 +257,7 @@ function TimeIntro() {
             <p>显示准备后请做好准备</p>
             <p>屏幕中间出现<strong style={{fontSize: '5rem'}}>+</strong>时开始计时</p>
             <p>当达到在体验阶段相同的时距后点击鼠标左键</p>
-        </div>
+        </HelperText>
         <PageTimeCounter
             done={() => {
                 navigate('/st/intro/control/')

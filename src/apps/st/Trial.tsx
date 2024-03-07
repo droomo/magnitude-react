@@ -29,7 +29,7 @@ export interface TrialData {
 function ControlledScene(props: {
     trial: TrialData,
     done: (timeStat: TypeTimeStat) => void,
-    startedIndex: number
+    startedIndex: number,
 }) {
     return <SceneRoom
         room={{

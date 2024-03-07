@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from "react";
-import {API, getCsrfToken, page_data} from "../const";
+import {API, DELAY_TRIAL_START_MASK, getCsrfToken, page_data} from "../const";
 import {TrialData, TrialProcess} from "./Trial";
 import axios from "axios";
 import PageMask from "./Page/PageMask";
 import classes from "./css/exp.module.scss";
 import {useNavigate} from "react-router-dom";
+import {HelperText} from "./Page/HelperText";
 
 
 export default function ExperimentTest() {
@@ -12,6 +13,8 @@ export default function ExperimentTest() {
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [startedIndex, setStartedIndex] = useState(0);
+
+    const [showAlert, setShowAlert] = useState(false);
 
     const navigate = useNavigate();
 
@@ -21,24 +24,39 @@ export default function ExperimentTest() {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken(),
             },
-
         }).then(response => {
             const data = response.data.data
             setTrialDataList(data.trials);
         })
     }
 
-    return trialDataList.length > 0 ? <TrialProcess
-            trial={trialDataList[currentIndex]}
-            done={() => {
-                if (currentIndex + 1 === trialDataList.length) {
-                    setTrialDataList([])
-                }
-                setCurrentIndex(i => i + 1)
-                setStartedIndex(i => i + 1)
-            }}
-            startedIndex={startedIndex}
-        /> :
+    useEffect(() => {
+        if (trialDataList.length > 0) {
+            setTimeout(() => {
+                setShowAlert(currentIndex < 3);
+                setTimeout(() => {
+                    setShowAlert(false);
+                }, 3000);
+            }, DELAY_TRIAL_START_MASK);
+        }
+    }, [currentIndex, trialDataList.length]);
+
+    return trialDataList.length > 0 ? <>
+            <TrialProcess
+                trial={trialDataList[currentIndex]}
+                done={() => {
+                    if (currentIndex + 1 === trialDataList.length) {
+                        setTrialDataList([])
+                    }
+                    setCurrentIndex(i => i + 1)
+                    setStartedIndex(i => i + 1)
+                }}
+                startedIndex={startedIndex}
+            />
+            {showAlert && <HelperText>
+                <span className={classes.blinkText}>请直接按E键开门</span>
+            </HelperText>}
+        </> :
         <PageMask text={<div style={{
             cursor: 'default'
         }}>
