@@ -14,7 +14,7 @@ export const TEXTURE_BASE = API.texture_base_url
 export const doorWidth = 1;
 export const doorHeight = 2 * doorWidth;
 
-export const wallThickness = 0.12;
+export const wallThickness = 0.06;
 
 
 function loadThings(
@@ -132,8 +132,8 @@ function addGroundEXR(scene: THREE.Scene, isFormalTrial: boolean) {
             const material = new THREE.MeshStandardMaterial({
                 map: map as Texture,
                 normalMap: normal as Texture,
-                metalness: 0.2,
-                roughness: 0.6,
+                metalness: 0.05,
+                roughness: 0.8,
                 normalScale: new THREE.Vector2(2, 2),
             });
             const planeGeometry = new THREE.PlaneGeometry(...size);
@@ -151,9 +151,14 @@ const createWall = (scene: THREE.Scene, width: number, height: number, depth: nu
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(position.x, position.y, position.z);
     scene.add(mesh);
+    return mesh;
 };
 
-const prepareTextures = ([map, normal]: Texture[], repeat: Vector2, offset = new THREE.Vector2(0, 0)) => {
+const prepareTextures = (
+    [map, normal]: Texture[],
+    repeat: Vector2,
+    offset = new THREE.Vector2(0, 0)
+) => {
     return [map, normal].map(texture => {
         const clonedTexture = texture.clone() as Texture;
         clonedTexture.wrapS = RepeatWrapping;
@@ -188,12 +193,17 @@ export function makeScene(
     const wallWidth = isFormalTrial ? room.width : 10.3;
     const wallDepth = room.depth;
 
-    const repeat = new Vector2(10, 10);
+    // const repeat = new Vector2(10, 10);
+    const repeatLR = new Vector2(wallDepth * 0.5, wallHeight * 0.5);
+    const repeatBack = new Vector2(wallWidth * 0.5, wallHeight * 0.5);
+    const repeatFloor = new Vector2(wallWidth * 0.5, wallDepth * 0.5);
 
     // 前墙壁
     const wallHeightF = isFormalTrial ? 10 : wallHeight;
     const wallWidthF = isFormalTrial ? 20 : wallWidth;
     const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
+
+    const repeatF = new Vector2(wallWidthF, wallHeightF);
 
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
@@ -225,7 +235,7 @@ export function makeScene(
                     const width = bbox.max.x - bbox.min.x;
 
                     dado.rotateX(-Math.PI / 2);
-                    dado.position.z = room.depth / 2 + wallThickness - 0.05;
+                    dado.position.z = room.depth / 2 + wallThickness;
                     dado.position.x = width / 2 + doorWidth / 2;
                     scene.add(dado);
 
@@ -246,9 +256,9 @@ export function makeScene(
 
     loadThings(
         texturePaths,
-        ([map, normal]) => {
-            map = map as Texture;
-            normal = normal as Texture;
+        ([mapWE, normalWE]) => {
+            mapWE = mapWE as Texture;
+            normalWE = normalWE as Texture;
 
             if (isFormalTrial) {
                 const exr_loader = new EXRLoader();
@@ -257,12 +267,23 @@ export function makeScene(
                     ([map, normal]) => {
                         map = map as Texture;
                         normal = normal as Texture;
-                        const mainTextures = prepareTextures([map, normal], repeat);
-                        const material = makeMaterial(mainTextures, wallMetalness, wallRoughness)
-                        createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
-                        createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
-                        createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
-                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
+
+                        console.log(map);
+
+                        const textureLR = prepareTextures([map, normal], repeatLR);
+                        const textureBack = prepareTextures([map, normal], repeatBack);
+                        const textureFloor = prepareTextures([map, normal], repeatFloor);
+
+                        const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
+                        const materialBack = makeMaterial(textureBack, wallMetalness, wallRoughness);
+                        const materialFloor = makeMaterial(textureFloor, wallMetalness, wallRoughness);
+
+                        createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
+                        createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
+
+                        createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
+
+                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialFloor);
                     },
                     exr_loader
                 );
@@ -271,14 +292,13 @@ export function makeScene(
                     ([map, normal]) => {
                         map = map as Texture;
                         normal = normal as Texture;
-                        const material = makeMaterial(prepareTextures([map, normal], repeat), wallMetalness, wallRoughness);
+                        const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
                         createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
                     },
                     exr_loader
                 );
-
             } else {
-                const mainTextures = prepareTextures([map, normal], repeat);
+                const mainTextures = prepareTextures([mapWE, normalWE], repeatFloor);
                 const material = makeMaterial(mainTextures, wallMetalness, wallRoughness)
                 createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
                 createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
@@ -287,12 +307,12 @@ export function makeScene(
             }
 
             const halfRepeat = new Vector2(
-                (wallWidthF - doorWidth) / 2 / wallWidthF * repeat.x,
-                doorHeight / wallHeightF * repeat.y
+                (wallWidthF - doorWidth) / 2 / wallWidthF * repeatF.x,
+                doorHeight / wallHeightF * repeatF.y
             );
-            const halfWallBLTextures = prepareTextures([map, normal], halfRepeat, new Vector2(0, doorHeight / wallHeightF));
-            const halfWallBRTextures = prepareTextures([map, normal], halfRepeat, new Vector2((doorWidth * repeat.x - wallWidthF) / (2 * wallWidthF), doorHeight / wallHeightF));
-            const halfWallTTextures = prepareTextures([map, normal], new Vector2(repeat.x, (wallHeightF - doorHeight) / wallHeightF * repeat.y));
+            const halfWallBLTextures = prepareTextures([mapWE, normalWE], halfRepeat, new Vector2(0, doorHeight / wallHeightF));
+            const halfWallBRTextures = prepareTextures([mapWE, normalWE], halfRepeat, new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), doorHeight / wallHeightF));
+            const halfWallTTextures = prepareTextures([mapWE, normalWE], new Vector2(repeatF.x, (wallHeightF - doorHeight) / wallHeightF * repeatF.y));
 
             createWall(scene, halfWallWidthF, doorHeight, wallThickness,
                 new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),

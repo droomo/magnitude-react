@@ -20,7 +20,7 @@ root.render(
             <Route path="/st/intro/*" element={<Introduction/>}/>
             <Route path="/st/login/" element={<Login/>}/>
             <Route path="/st/dev/" element={<SceneRoomDev room={{
-                width: 5,
+                width: 8,
                 height: 3,
                 depth: 5,
                 wall: 0,

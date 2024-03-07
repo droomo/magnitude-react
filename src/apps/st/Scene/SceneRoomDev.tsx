@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
     makeScene,
     doorHeight,
@@ -86,6 +86,8 @@ export default function SceneRoomDev(props: PropScene) {
         scene.add(door);
 
         function onWindowResize() {
+            camera.position.set(0, room.height / 2, room.depth / 2);
+            camera.lookAt(0, room.height / 2, 0);
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
