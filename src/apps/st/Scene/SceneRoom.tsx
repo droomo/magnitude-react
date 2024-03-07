@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
 import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig} from './scene.lib';
-import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
+import {DELAY_TRIAL_START_MASK, floorNameList, getRandomElement, getTimestamp, wallNameList} from "../../const";
 import PageMask from "../Page/PageMask";
 import classes from "../css/exp.module.scss";
 
@@ -16,14 +16,16 @@ export interface PropRoom {
 
 export interface PropScene {
     room: PropRoom,
-    done: (timeStat: TypeTimeStat) => void,
+    done: (timeStat: TypeRoomStat) => void,
     startedIndex: number,
 }
 
-export interface TypeTimeStat {
+export interface TypeRoomStat {
     door_opened: number,
     camera_moved: number,
-    done_from_camera_moved: number
+    done_from_camera_moved: number,
+    floor: string,
+    wall: string
 }
 
 export default function SceneRoom(props: PropScene) {
@@ -31,10 +33,12 @@ export default function SceneRoom(props: PropScene) {
 
     const divRef = useRef<HTMLDivElement>(null);
     const doorOpened = useRef(false);
-    const timeStat = useRef<TypeTimeStat>({
+    const roomStat = useRef<TypeRoomStat>({
         door_opened: -1,
         camera_moved: -1,
-        done_from_camera_moved: -1
+        done_from_camera_moved: -1,
+        floor: "",
+        wall: ""
     }).current
     const [mask, setMask] = React.useState(true);
 
@@ -57,19 +61,19 @@ export default function SceneRoom(props: PropScene) {
 
         function onDoorOpen() {
             doorOpened.current = true;
-            timeStat.door_opened = getTimestamp();
+            roomStat.door_opened = getTimestamp();
             camera.position.set(0, room.height / 2, room.depth / 2);
             camera.lookAt(0, room.height / 2, 0);
 
-            timeStat.camera_moved = getTimestamp();
+            roomStat.camera_moved = getTimestamp();
             cancelAnimationFrame(lastAnimationID.current);
             setTimeout(() => {
                 while (true) {
-                    if (room.duration + timeStat.camera_moved < getTimestamp()) {
-                        timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
-                        timeStat.camera_moved -= timeStat.door_opened
-                        timeStat.door_opened -= timeStat.door_opened
-                        props.done(timeStat)
+                    if (room.duration + roomStat.camera_moved < getTimestamp()) {
+                        roomStat.done_from_camera_moved = getTimestamp() - roomStat.camera_moved
+                        roomStat.camera_moved -= roomStat.door_opened
+                        roomStat.door_opened -= roomStat.door_opened
+                        props.done(roomStat)
                         break;
                     }
                 }
@@ -84,7 +88,10 @@ export default function SceneRoom(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        const scene = makeScene(room, renderer, camera, true);
+        roomStat.floor = getRandomElement(floorNameList);
+        roomStat.wall = getRandomElement(wallNameList);
+
+        const scene = makeScene(room, roomStat.wall, roomStat.floor, renderer, camera, true);
         scene.add(door);
 
         function onWindowResize() {

@@ -7,7 +7,7 @@ import {
     getCsrfToken,
     page_data,
 } from "../const";
-import SceneRoom, {TypeTimeStat} from "./Scene/SceneRoom";
+import SceneRoom, {TypeRoomStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import PageTimeCounter from "./Scene/PageTimeCounter";
 import classes from "./css/exp.module.scss";
@@ -28,7 +28,7 @@ export interface TrialData {
 
 function ControlledScene(props: {
     trial: TrialData,
-    done: (timeStat: TypeTimeStat) => void,
+    done: (timeStat: TypeRoomStat) => void,
     startedIndex: number,
 }) {
     return <SceneRoom
@@ -40,7 +40,7 @@ function ControlledScene(props: {
             wall: props.trial.room_wall!,
             duration: props.trial.room_duration!,
         }}
-        done={(timeStat: TypeTimeStat) => {
+        done={(timeStat: TypeRoomStat) => {
             props.done(timeStat)
         }}
         startedIndex={props.startedIndex}
@@ -58,7 +58,7 @@ export function TrialProcess(props: {
         setSceneStage(true)
     }, [props.trial.id]);
 
-    const sceneDoneAction = (timeStat: TypeTimeStat) => {
+    const sceneDoneAction = (timeStat: TypeRoomStat) => {
         setSceneStage(false)
         axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
             stat_scene: timeStat,

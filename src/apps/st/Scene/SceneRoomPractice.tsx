@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import Stats from 'stats.js';
 import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig} from './scene.lib';
 import {PropRoom} from "./SceneRoom";
+import {floorNameList, getRandomElement, wallNameList} from "../../const";
 
 function makeCamera(): [THREE.PerspectiveCamera, () => void, () => void] {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
@@ -106,8 +107,8 @@ export default function SceneRoomPractice(props: {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        const scene = makeScene(room, renderer, camera, true);
-        scene.add(door)
+        const scene = makeScene(room, getRandomElement(wallNameList), getRandomElement(floorNameList), renderer, camera, true);
+        scene.add(door);
 
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;

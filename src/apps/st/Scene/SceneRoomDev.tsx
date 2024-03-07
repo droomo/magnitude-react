@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
     makeScene,
     doorHeight,
@@ -6,9 +6,10 @@ import {
     webGlConfig
 } from './scene.lib';
 
-import {getTimestamp} from "../../const";
+import {floorNameList, getTimestamp, wallNameList} from "../../const";
 import {OrbitControls} from "three-stdlib";
 import * as THREE from 'three';
+import {Select} from "antd";
 
 export interface PropRoom {
     width: number;
@@ -42,12 +43,12 @@ export default function SceneRoomDev(props: PropScene) {
 
     const lastAnimationID = useRef(0);
 
-    const renderer = useMemo(() => {
-        return new THREE.WebGLRenderer(webGlConfig);
-    }, [])
-
+    const [wallName, setWallName] = useState<string>('');
+    const [floorName, setFloorName] = useState<string>('');
 
     useEffect(() => {
+        const renderer = new THREE.WebGLRenderer(webGlConfig);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 2);
         camera.lookAt(0, doorHeight * 0.6, 0);
@@ -65,7 +66,7 @@ export default function SceneRoomDev(props: PropScene) {
             timeStat.camera_moved = getTimestamp();
             cancelAnimationFrame(lastAnimationID.current);
             setTimeout(() => {
-                setTimeout(()=>{
+                setTimeout(() => {
                     timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
                     timeStat.camera_moved -= timeStat.door_opened
                     timeStat.door_opened -= timeStat.door_opened
@@ -81,7 +82,7 @@ export default function SceneRoomDev(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        const scene = makeScene(room, renderer, camera, true);
+        const scene = makeScene(room, wallName, floorName, renderer, camera, true);
         scene.add(door);
 
         function onWindowResize() {
@@ -113,7 +114,35 @@ export default function SceneRoomDev(props: PropScene) {
             renderer.forceContextLoss();
             renderer.domElement.remove();
         }
-    })
+    }, [wallName, floorName]);
 
-    return (<div style={{cursor: 'default'}} ref={divRef}/>);
+    return (
+        <>
+            <div style={{position: 'absolute', top: '2rem', right: '1rem'}}>
+                <Select
+                    style={{width: '20rem'}}
+                    onChange={(value) => {
+                        setWallName(value)
+                    }}
+                >
+                    {wallNameList.map((name, index) => {
+                        return <Select.Option key={index} value={name}>{name}</Select.Option>
+                    })}
+                </Select>
+            </div>
+            <div style={{position: 'absolute', top: '6rem', right: '1rem'}}>
+                <Select
+                    style={{width: '20rem'}}
+                    onChange={(value) => {
+                        setFloorName(value);
+                    }}
+                >
+                    {floorNameList.map((name, index) => {
+                        return <Select.Option key={index} value={name}>{name}</Select.Option>
+                    })}
+                </Select>
+            </div>
+            <div style={{cursor: 'default'}} ref={divRef}/>
+        </>
+    );
 }

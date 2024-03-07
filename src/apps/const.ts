@@ -63,48 +63,48 @@ export const material_map = {
 }
 
 export const floorNameList = [
-    "T_Stained_Patterned_Floor_xephfh3_1K_",
-    "T_Painted_Cast_In_Situ_Concrete_ve4gdealw_1K_",
-    "T_Decorative_Stone_Wall_xblncfx_1K_",
-    "T_Concrete_Pavement_xeohbekga_1K_",
-    "T_Stucco_Facade_vftlabg_1K_",
-    "T_Stucco_Facade_wbzlche_1K_",
-    "T_Concrete_Floor_wjvnbhe_1K_",
-    "T_Wooden_Floor_wdipfjw_1K_",
-    "T_Plywood_vf1oairg_1K_",
-    "T_Stucco_Facade_vlsmbe1_1K_",
-    "T_Grassy_Soil_xbreair_1K_",
-    "T_Weathered_Concrete_Wall_vi4idbm_1K_",
-    "T_Slate_Floor_Tiles_wfribhq_1K_",
-    "T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K_",
-    "T_Slate_Flooring_wfqhbdh_1K_",
-    "T_Stucco_Facade_vhhleat_1K_",
-    "T_Stucco_Facade_wb0ieba_1K_",
-    "T_Damaged_Concrete_Floor_vizbefe_1K_",
-    "T_Worn_Wooden_Planks_whnfbg3_1K_",
-    "T_Construction_Rubble_xephfcjs_1K_",
-    "T_Stucco_Facade_vjptaaf_1K_",
-    "T_Stucco_Facade_vftkefk_1K_",
-    "T_Wooden_Planks_wcboeghs_1K_"
+    "T_Stained_Patterned_Floor_xephfh3_1K",
+    "T_Painted_Cast_In_Situ_Concrete_ve4gdealw_1K",
+    "T_Decorative_Stone_Wall_xblncfx_1K",
+    "T_Concrete_Pavement_xeohbekga_1K",
+    "T_Stucco_Facade_vftlabg_1K",
+    "T_Stucco_Facade_wbzlche_1K",
+    "T_Concrete_Floor_wjvnbhe_1K",
+    "T_Wooden_Floor_wdipfjw_1K",
+    "T_Plywood_vf1oairg_1K",
+    "T_Stucco_Facade_vlsmbe1_1K",
+    "T_Grassy_Soil_xbreair_1K",
+    "T_Weathered_Concrete_Wall_vi4idbm_1K",
+    "T_Slate_Floor_Tiles_wfribhq_1K",
+    "T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K",
+    "T_Slate_Flooring_wfqhbdh_1K",
+    "T_Stucco_Facade_vhhleat_1K",
+    "T_Stucco_Facade_wb0ieba_1K",
+    "T_Damaged_Concrete_Floor_vizbefe_1K",
+    "T_Worn_Wooden_Planks_whnfbg3_1K",
+    "T_Construction_Rubble_xephfcjs_1K",
+    "T_Stucco_Facade_vjptaaf_1K",
+    "T_Stucco_Facade_vftkefk_1K",
+    "T_Wooden_Planks_wcboeghs_1K"
 ]
 
 export const wallNameList = [
-    "T_Painted_Wall_Plaster_xevifcds_1K_",
-    "T_Stucco_Wall_ve4meimcw_1K_",
-    "T_Worn_Paint_Wall_vjyifds_1K_",
-    "T_Stucco_Wall_vigrejf_1K_",
-    "T_Brick_Wall_xbjeffk_1K_",
-    "T_Decorative_Wall_Tiles_vlqvfdj_1K_",
-    "T_Flagstone_Wall_vkmfaek_1K_",
-    "T_Plaster_Wall_xepmej1ga_1K_",
-    "T_Brick_Wall_xertbj1_1K_",
-    "T_Brick_Wall_vhhkfjp_1K_",
-    "T_Stone_Wall_xblhejj_1K_",
-    "T_Painted_Wall_Plaster_xepkaecs_1K_",
-    "T_Concrete_Wall_vjyifdc_1K_",
-    "T_Cob_Wall_vkodejq_1K_",
-    "T_Flaked_Paint_Wall_vhqkdfx_1K_",
-    "T_Stone_Wall_xboicaz_1K_"
+    "T_Painted_Wall_Plaster_xevifcds_1K",
+    "T_Stucco_Wall_ve4meimcw_1K",
+    "T_Worn_Paint_Wall_vjyifds_1K",
+    "T_Stucco_Wall_vigrejf_1K",
+    "T_Brick_Wall_xbjeffk_1K",
+    "T_Decorative_Wall_Tiles_vlqvfdj_1K",
+    "T_Flagstone_Wall_vkmfaek_1K",
+    "T_Plaster_Wall_xepmej1ga_1K",
+    "T_Brick_Wall_xertbj1_1K",
+    "T_Brick_Wall_vhhkfjp_1K",
+    "T_Stone_Wall_xblhejj_1K",
+    "T_Painted_Wall_Plaster_xepkaecs_1K",
+    "T_Concrete_Wall_vjyifdc_1K",
+    "T_Cob_Wall_vkodejq_1K",
+    "T_Flaked_Paint_Wall_vhqkdfx_1K",
+    "T_Stone_Wall_xboicaz_1K"
 ]
 
 const exr_loader = new EXRLoader();
@@ -120,26 +120,37 @@ function loader_selector(file_name: string) {
     return texture_loader;
 }
 
-setTimeout(() => {
-    for (const material_name of Object.values(material_map)) {
-        loader_selector(material_name).load(material_name, function (texture) {
-            console.log(`{${texture.uuid}} ${material_name} loaded`);
-        });
-    }
-    for (const name of wallNameList) {
-        const texture_name = `${TEXTURE_BASE}/wall/internal/${name}`
-        for (const type of ['N', 'D']) {
-            exr_loader.load(`${texture_name}${type}.EXR`, function (texture) {
-                console.log(`{${texture.uuid}} ${texture_name} loaded`);
-            });
-        }
-    }
-    for (const name of floorNameList) {
-        const texture_name = `${TEXTURE_BASE}/floor/${name}`
-        for (const type of ['N', 'D']) {
-            exr_loader.load(`${texture_name}${type}.EXR`, function (texture) {
-                console.log(`{${texture.uuid}} ${texture_name} loaded`);
-            });
-        }
-    }
-})
+export function getFloorUrl(name: string, type: string) {
+    return `${TEXTURE_BASE}/floor/${name}_${type}.EXR`
+}
+
+export function getWallUrl(name: string, type: string) {
+    return `${TEXTURE_BASE}/wall/internal/${name}_${type}.EXR`
+}
+
+const floor_url_list = [
+    ...floorNameList.map(name => getFloorUrl(name, 'D')),
+    ...floorNameList.map(name => getFloorUrl(name, 'N'))
+]
+
+const wall_url_list = [
+    ...wallNameList.map(name => getWallUrl(name, 'D')),
+    ...wallNameList.map(name => getWallUrl(name, 'N'))
+]
+
+for (const material_name of Object.values(material_map)) {
+    loader_selector(material_name).load(material_name, function (texture) {
+        console.log(`{${texture.uuid}} ${material_name} loaded`);
+    });
+}
+
+for (const url of [...floor_url_list, ...wall_url_list]) {
+    exr_loader.load(url, function (texture) {
+        console.log(`{${texture.uuid}} ${url} loaded`);
+    });
+}
+
+export function getRandomElement(arr: string[]) {
+    const randomIndex = Math.floor(Math.random() * arr.length);
+    return arr[randomIndex];
+}
