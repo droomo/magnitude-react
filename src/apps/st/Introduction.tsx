@@ -119,6 +119,19 @@ function Description() {
                 style={{marginTop: '2rem'}}
                 className={classes.fakeButton}
             >我已理解，进行下一步</span>
+            <span
+                style={{
+                    position: 'absolute',
+                    right: '2rem',
+                    bottom: '2rem',
+                    fontSize: '1rem',
+                    color: '#101010',
+                    cursor: 'pointer'
+                }}
+                onClick={() => {
+                    navigate('/st/')
+                }}
+            >直接开始实验</span>
         </div>}
     />
 }
@@ -167,7 +180,7 @@ function LeaningControl() {
             <p style={{
                 lineHeight: '2',
                 fontSize: '2rem'
-            }}>现在正处在学习阶段<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
+            }}>现在正处在游戏指引阶段<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
             <div>
                     <span
                         style={{
