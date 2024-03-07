@@ -1,9 +1,17 @@
 import React, {useEffect, useMemo, useRef} from 'react';
+import {
+    addGround,
+    addLight,
+    addSky,
+    addWalls,
+    doorHeight,
+    makeDoor,
+    webGlConfig
+} from './scene.lib';
+
+import {getTimestamp} from "../../const";
+import {OrbitControls} from "three-stdlib";
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, doorHeight, makeDoor, webGlConfig} from './scene.lib';
-import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
-import PageMask from "../Page/PageMask";
-import classes from "../css/exp.module.scss";
 
 export interface PropRoom {
     width: number;
@@ -16,8 +24,6 @@ export interface PropRoom {
 
 export interface PropScene {
     room: PropRoom,
-    done: (timeStat: TypeTimeStat) => void,
-    startedIndex: number,
 }
 
 export interface TypeTimeStat {
@@ -26,7 +32,7 @@ export interface TypeTimeStat {
     done_from_camera_moved: number
 }
 
-export default function SceneRoom(props: PropScene) {
+export default function SceneRoomDev(props: PropScene) {
     const room = props.room;
 
     const divRef = useRef<HTMLDivElement>(null);
@@ -36,7 +42,6 @@ export default function SceneRoom(props: PropScene) {
         camera_moved: -1,
         done_from_camera_moved: -1
     }).current
-    const [mask, setMask] = React.useState(true);
 
     const lastAnimationID = useRef(0);
 
@@ -44,16 +49,15 @@ export default function SceneRoom(props: PropScene) {
         return new THREE.WebGLRenderer(webGlConfig);
     }, [])
 
-    useEffect(() => {
-        setTimeout(() => {
-            setMask(false)
-        }, DELAY_TRIAL_START_MASK)
-    }, []);
 
     useEffect(() => {
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 2);
         camera.lookAt(0, doorHeight * 0.6, 0);
+
+        // 添加OrbitControls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
 
         function onDoorOpen() {
             doorOpened.current = true;
@@ -64,15 +68,11 @@ export default function SceneRoom(props: PropScene) {
             timeStat.camera_moved = getTimestamp();
             cancelAnimationFrame(lastAnimationID.current);
             setTimeout(() => {
-                while (true) {
-                    if (room.duration + timeStat.camera_moved < getTimestamp()) {
-                        timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
-                        timeStat.camera_moved -= timeStat.door_opened
-                        timeStat.door_opened -= timeStat.door_opened
-                        props.done(timeStat)
-                        break;
-                    }
-                }
+                setTimeout(()=>{
+                    timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
+                    timeStat.camera_moved -= timeStat.door_opened
+                    timeStat.door_opened -= timeStat.door_opened
+                }, room.duration + timeStat.camera_moved)
             }, 0)
         }
 
@@ -103,7 +103,7 @@ export default function SceneRoom(props: PropScene) {
         }
 
         function animate() {
-            console.log('aniing')
+            console.log('aniing');
             lastAnimationID.current = requestAnimationFrame(animate);
             handleDoor(clock);
             render();
@@ -122,12 +122,5 @@ export default function SceneRoom(props: PropScene) {
         }
     }, [])
 
-    return (
-        <>{
-            mask && <div style={{cursor: 'none'}} className={classes.mask}>
-                <PageMask text={props.startedIndex === 0 ? 'Loading...' : '已完成'}/>
-            </div>}
-            <div style={{cursor: 'none'}} ref={divRef}/>
-        </>
-    );
+    return (<div style={{cursor: 'default'}} ref={divRef}/>);
 }

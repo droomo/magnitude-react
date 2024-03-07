@@ -108,7 +108,7 @@ export default function SceneRoomPractice(props: {
         renderer.toneMappingExposure = 0.5;
 
         addGround(scene);
-        addLight(scene);
+        addLight(scene, room);
         addWalls(scene, room);
         scene.add(door)
         addSky(scene, renderer, camera);
