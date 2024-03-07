@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
 import Stats from 'stats.js';
-import {addGround, addLight, addSky, addWalls, doorHeight, makeDoor, webGlConfig} from './scene.lib';
+import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig} from './scene.lib';
 import {PropRoom} from "./SceneRoom";
 
 function makeCamera(): [THREE.PerspectiveCamera, () => void, () => void] {
@@ -99,7 +99,6 @@ export default function SceneRoomPractice(props: {
 
         const clock = new THREE.Clock();
         const renderer = new THREE.WebGLRenderer(webGlConfig)
-        const scene = new THREE.Scene();
         const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -107,11 +106,8 @@ export default function SceneRoomPractice(props: {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        addGround(scene);
-        addLight(scene, room);
-        addWalls(scene, room);
+        const scene = makeScene(room, renderer, camera, true);
         scene.add(door)
-        addSky(scene, renderer, camera);
 
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;

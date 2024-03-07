@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, doorHeight, makeDoor, webGlConfig} from './scene.lib';
+import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
 import classes from "../css/exp.module.scss";
@@ -52,7 +52,7 @@ export default function SceneRoom(props: PropScene) {
 
     useEffect(() => {
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 2);
+        camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 4);
         camera.lookAt(0, doorHeight * 0.6, 0);
 
         function onDoorOpen() {
@@ -77,7 +77,6 @@ export default function SceneRoom(props: PropScene) {
         }
 
         const clock = new THREE.Clock();
-        const scene = new THREE.Scene();
         const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -85,11 +84,8 @@ export default function SceneRoom(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        addGround(scene);
-        addLight(scene, room);
-        addWalls(scene, room);
-        scene.add(door)
-        addSky(scene, renderer, camera);
+        const scene = makeScene(room, renderer, camera, true);
+        scene.add(door);
 
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;

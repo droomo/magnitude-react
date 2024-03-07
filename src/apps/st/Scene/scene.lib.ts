@@ -1,10 +1,10 @@
 import {Group, RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API} from "../../const";
+import {API, material_map} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 import {PropRoom} from "./SceneRoom";
-import {useLoader} from "@react-three/fiber";
+import {TextureLoader, Texture} from 'three';
 import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
 import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 
@@ -16,47 +16,32 @@ export const doorHeight = 2 * doorWidth;
 
 export const wallThickness = 0.12;
 
-// 贴图重复
-const repeat = new Vector2(17, 14);
 
-
-export function addGround(scene: THREE.Scene) {
-    const loader = new THREE.TextureLoader();
-
-    const baseColorTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`);
-    const metalnessTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`);
-    const normalTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`);
-    const aoTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`);
-
-    [baseColorTexture, metalnessTexture, normalTexture, aoTexture].forEach(texture => {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(repeat.x, repeat.y);
+function loadThings(
+    texturePaths: string[],
+    onLoad: (objs: Texture[] | Group<THREE.Object3DEventMap>[]) => void,
+    loader: TextureLoader | EXRLoader | FBXLoader = new TextureLoader()
+) {
+    const objs: Texture[] | Group<THREE.Object3DEventMap>[] = [];
+    let loaded = 0;
+    texturePaths.forEach((path, index) => {
+        loader.load(path, (texture) => {
+            objs[index] = texture;
+            loaded++;
+            if (loaded === texturePaths.length) {
+                onLoad(objs);
+            }
+        });
     });
-
-    const material = new THREE.MeshStandardMaterial({
-        map: baseColorTexture,
-        metalnessMap: metalnessTexture,
-        normalMap: normalTexture,
-        aoMap: aoTexture,
-        metalness: 0.4,
-        roughness: 0.5,
-        normalScale: new THREE.Vector2(2, 2),
-    });
-    const planeGeometry = new THREE.PlaneGeometry(6e2, 2e2);
-    const plane = new THREE.Mesh(planeGeometry, material);
-    plane.rotation.x = -Math.PI / 2;
-    plane.receiveShadow = true;
-    scene.add(plane);
 }
 
 
-export function addLight(scene: THREE.Scene, room: PropRoom) {
-    const pointLight = new THREE.PointLight(0xffffff, 0.8, 15, 0.1);
+function addLight(scene: THREE.Scene, room: PropRoom) {
+    const pointLight = new THREE.PointLight(0xffffff, 1, 15, 0.1);
     pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
     scene.add(pointLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -65,38 +50,46 @@ export function addLight(scene: THREE.Scene, room: PropRoom) {
     scene.add(directionalLight);
 }
 
-export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
+
+export function makeDoorEXR(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
     const wallDepth = room.depth;
 
-    const textureLoader = new THREE.TextureLoader();
-    const doorTextures = [
-        textureLoader.load(`${TEXTURE_BASE}/door/door.png`),
-        textureLoader.load(`${TEXTURE_BASE}/door/doorM.png`),
-        textureLoader.load(`${TEXTURE_BASE}/door/doorN.png`),
-    ];
-
-    doorTextures.forEach(texture => {
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    });
-
-    const doorMaterial = new THREE.MeshStandardMaterial({
-        map: doorTextures[0],
-        metalnessMap: doorTextures[1],
-        normalMap: doorTextures[2],
-        metalness: 0.4,
-        roughness: 0.8
-    });
-
-    const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.1);
-    doorGeometry.translate(doorWidth * 0.5, 0, 0);
-
-    const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
     const doorGroup = new THREE.Group();
-    doorGroup.position.set(-doorWidth * 0.5, doorHeight * 0.5, wallDepth / 2);
-    doorGroup.add(doorMesh);
 
     let open = false;
     let targetRotationY = 0;
+
+    loadThings(
+        [material_map.doorD, material_map.doorN,],
+        ([map, normalMap]) => {
+            const doorMaterial = new THREE.MeshStandardMaterial({
+                map: map as Texture,
+                normalMap: normalMap as Texture,
+                metalness: 0.2,
+                roughness: 0.8,
+                emissive: new THREE.Color(0x333333)
+            });
+
+            const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.1);
+            doorGeometry.translate(doorWidth * 0.5, 0, 0);
+
+            const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+
+            doorGroup.position.set(-doorWidth * 0.5, doorHeight * 0.5, wallDepth / 2);
+            doorGroup.add(doorMesh);
+
+            const onKeyDown = (event: { key: any; }) => {
+                switch (event.key) {
+                    case 'e':
+                        open = !open;
+                        targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
+                }
+            };
+
+            window.addEventListener('keydown', onKeyDown);
+        },
+        new EXRLoader()
+    )
 
     function updateDoor(clock: THREE.Clock) {
         const delta = clock.getDelta();
@@ -117,154 +110,170 @@ export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.G
         }
     }
 
-    const onKeyDown = (event: { key: any; }) => {
-        switch (event.key) {
-            case 'e':
-                open = !open;
-                targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
-        }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-
     return [doorGroup, updateDoor];
 }
 
-function loadThings(
-    texturePaths: string[],
-    onLoad: (objs: THREE.Texture[] | Group<THREE.Object3DEventMap>[]) => void,
-    loader: THREE.TextureLoader | EXRLoader | FBXLoader = new THREE.TextureLoader()
-) {
-    const objs: THREE.Texture[] | Group<THREE.Object3DEventMap>[] = [];
-    let loaded = 0;
-    texturePaths.forEach((path, index) => {
-        loader.load(path, (texture) => {
-            objs[index] = texture;
-            loaded++;
-            if (loaded === texturePaths.length) {
-                onLoad(objs);
-            }
-        });
+function addGroundEXR(scene: THREE.Scene, isFormalTrial: boolean) {
+    const repeat: [number, number] = isFormalTrial ? [20, 10] : [300, 100];
+    const size: [number, number] = repeat.map(x => x * 2) as [number, number];
+    loadThings(
+        [material_map.groundD, material_map.groundN,],
+        ([map, normal]) => {
+            [map, normal].forEach(texture => {
+                texture = texture as Texture
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(...repeat);
+            });
+            const material = new THREE.MeshStandardMaterial({
+                map: map as Texture,
+                normalMap: normal as Texture,
+                metalness: 0.2,
+                roughness: 0.6,
+                normalScale: new THREE.Vector2(2, 2),
+            });
+            const planeGeometry = new THREE.PlaneGeometry(...size);
+            const plane = new THREE.Mesh(planeGeometry, material);
+            plane.rotation.x = -Math.PI / 2;
+            plane.receiveShadow = true;
+            scene.add(plane);
+        },
+        new EXRLoader()
+    )
+}
+
+const createWall = (scene: THREE.Scene, width: number, height: number, depth: number, position: THREE.Vector3, material: THREE.Material) => {
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(position.x, position.y, position.z);
+    scene.add(mesh);
+};
+
+const prepareTextures = ([map, normal]: Texture[], repeat: Vector2, offset = new THREE.Vector2(0, 0)) => {
+    return [map, normal].map(texture => {
+        const clonedTexture = texture.clone() as Texture;
+        clonedTexture.wrapS = RepeatWrapping;
+        clonedTexture.wrapT = RepeatWrapping;
+        clonedTexture.repeat.set(repeat.x, repeat.y);
+        clonedTexture.offset.set(offset.x, offset.y);
+        return clonedTexture;
+    });
+};
+
+const makeMaterial = ([map, normalMap]: Texture[], metalness: number, roughness: number) => {
+    return new THREE.MeshStandardMaterial({
+        map,
+        normalMap,
+        metalness,
+        roughness,
+        normalScale: new Vector2(2, 2),
     });
 }
 
-export function addWalls(scene: THREE.Scene, room: PropRoom) {
+export function makeScene(
+    room: PropRoom, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera,
+    isFormalTrial: boolean
+) {
+    const scene = new THREE.Scene();
+    addGroundEXR(scene, isFormalTrial);
+
     // 墙壁
     const wallHeight = room.height;
     const wallWidth = room.width;
     const wallDepth = room.depth;
 
+    const repeat = new Vector2(10, 10);
+
     // 前墙壁
-    const wallHeightF = 10;
-    const wallWidthF = 20;
+    const wallHeightF = isFormalTrial ? 10 : wallHeight;
+    const wallWidthF = isFormalTrial ? 20 : wallWidth;
     const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
 
-    const wallRoughness = 0.8;
     const wallMetalness = 0.1;
+    const wallRoughness = 0.8;
 
-    const exr_paths = [
-        `${API.texture_base_url}/wall/external/fbx/model_D.EXR`,
-        `${API.texture_base_url}/wall/external/fbx/model_DpR.EXR`,
-        `${API.texture_base_url}/wall/external/fbx/model_N.EXR`,
-    ]
+    loadThings(
+        [material_map.dadoModel],
+        ([dado]) => {
+            loadThings(
+                [material_map.dadoD, material_map.dadoN,],
+                ([map, normalMap]) => {
+                    dado = dado as Group<THREE.Object3DEventMap>;
 
-    loadThings([`${API.texture_base_url}/wall/external/fbx/model.FBX`], ([object]) => {
-        loadThings(exr_paths, ([map, roughnessMap, normalMap]) => {
-            object = object as Group<THREE.Object3DEventMap>;
+                    const material = new THREE.MeshStandardMaterial({
+                        map: map as Texture,
+                        normalMap: normalMap as Texture,
+                        normalScale: new Vector2(2, 3),
+                    });
 
-            const material = new THREE.MeshStandardMaterial({
-                map: map as THREE.Texture,
-                roughnessMap: roughnessMap as THREE.Texture,
-                normalMap: normalMap as THREE.Texture,
-                normalScale: new Vector2(2, 2),
-            });
+                    dado.scale.set(.03, .01, .03);
 
-            object.scale.set(.03, .01, .03);
+                    dado.traverse((child) => {
+                        if ((child as THREE.Mesh).isMesh) {
+                            (child as THREE.Mesh).material = material;
+                            (child as THREE.Mesh).geometry.computeBoundingBox();
+                        }
+                    });
 
-            object.traverse((child) => {
-                if ((child as THREE.Mesh).isMesh) {
-                    (child as THREE.Mesh).material = material;
-                    (child as THREE.Mesh).geometry.computeBoundingBox();
-                }
-            });
+                    const bbox = new THREE.Box3().setFromObject(dado);
+                    const width = bbox.max.x - bbox.min.x;
 
-            const bbox = new THREE.Box3().setFromObject(object);
-            const width = bbox.max.x - bbox.min.x;
+                    dado.rotateX(-Math.PI / 2);
+                    dado.position.z = room.depth / 2 + wallThickness - 0.05;
+                    dado.position.x = width / 2 + doorWidth / 2;
+                    scene.add(dado);
 
-            object.rotateX(-Math.PI / 2);
-            object.position.z = room.depth / 2 + wallThickness - 0.07;
-            object.position.x = width / 2 + doorWidth / 2;
-            scene.add(object);
-
-            const object2 = object.clone();
-            object.position.x = -width / 2 - doorWidth / 2;
-
-            scene.add(object2);
-        }, new EXRLoader())
-    }, new FBXLoader());
+                    const dado_left = dado.clone();
+                    dado_left.position.x = -width / 2 - doorWidth / 2;
+                    scene.add(dado_left);
+                },
+                new EXRLoader()
+            )
+        },
+        new FBXLoader()
+    );
 
     const texturePaths = [
-        `${TEXTURE_BASE}/wall/1/wall_BaseColor.png`,
-        `${TEXTURE_BASE}/wall/1/wall_MetallicRoughness.png`,
-        `${TEXTURE_BASE}/wall/1/wall_Normal.png`,
-        `${TEXTURE_BASE}/wall/1/wall_Occlusion.png`,
+        material_map.wallExternalD,
+        material_map.wallExternalN,
     ];
 
-    loadThings(texturePaths, (originalTextures) => {
+    loadThings(
+        texturePaths,
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
 
-        const prepareTextures = (repeat: Vector2, offset = new THREE.Vector2(0, 0)) => {
-            return originalTextures.map(texture => {
-                const clonedTexture = texture.clone() as THREE.Texture;
-                clonedTexture.wrapS = RepeatWrapping;
-                clonedTexture.wrapT = RepeatWrapping;
-                clonedTexture.repeat.set(repeat.x, repeat.y);
-                clonedTexture.offset.set(offset.x, offset.y);
-                return clonedTexture;
-            });
-        };
+            if (!isFormalTrial) {
+                const mainTextures = prepareTextures([map, normal], repeat);
+                const material = makeMaterial(mainTextures, wallMetalness, wallRoughness)
+                createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
+                createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
+                createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
+                createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
+            }
 
-        const makeMaterial = (textureArray: THREE.Texture[]) => {
-            return new THREE.MeshStandardMaterial({
-                map: textureArray[0],
-                metalnessMap: textureArray[1],
-                normalMap: textureArray[2],
-                aoMap: textureArray[3],
-                metalness: wallMetalness,
-                roughness: wallRoughness,
-                normalScale: new Vector2(2, 2),
-            });
-        }
+            const halfRepeat = new Vector2(
+                (wallWidthF - doorWidth) / 2 / wallWidthF * repeat.x,
+                doorHeight / wallHeightF * repeat.y
+            );
+            const halfWallBLTextures = prepareTextures([map, normal], halfRepeat, new Vector2(0, doorHeight / wallHeightF));
+            const halfWallBRTextures = prepareTextures([map, normal], halfRepeat, new Vector2((doorWidth * repeat.x - wallWidthF) / (2 * wallWidthF), doorHeight / wallHeightF));
+            const halfWallTTextures = prepareTextures([map, normal], new Vector2(repeat.x, (wallHeightF - doorHeight) / wallHeightF * repeat.y));
 
-        const mainTextures = prepareTextures(repeat);
+            createWall(scene, halfWallWidthF, doorHeight, wallThickness, new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5), makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness));
+            createWall(scene, halfWallWidthF, doorHeight, wallThickness, new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5), makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness));
+            createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness, new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5), makeMaterial(halfWallTTextures, wallMetalness, wallRoughness));
+        },
+        new EXRLoader()
+    )
+    addLight(scene, room);
+    addSky(scene, renderer, camera);
 
-        const halfRepeat = new Vector2(
-            (wallWidthF - doorWidth) / 2 / wallWidthF * repeat.x,
-            doorHeight / wallHeightF * repeat.y
-        );
-        const halfWallBLTextures = prepareTextures(halfRepeat, new Vector2(0, doorHeight / wallHeightF));
-        const halfWallBRTextures = prepareTextures(halfRepeat, new Vector2((doorWidth * repeat.x - wallWidthF) / (2 * wallWidthF), doorHeight / wallHeightF));
-        const halfWallTTextures = prepareTextures(new Vector2(repeat.x, (wallHeightF - doorHeight) / wallHeightF * repeat.y));
-
-
-        const createWall = (width: number, height: number, depth: number, position: THREE.Vector3, material: THREE.Material) => {
-            const geometry = new THREE.BoxGeometry(width, height, depth);
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(position.x, position.y, position.z);
-            scene.add(mesh);
-        };
-        const material = makeMaterial(mainTextures)
-        createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
-        createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
-        createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
-        createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
-
-        createWall(halfWallWidthF, doorHeight, wallThickness, new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5), makeMaterial(halfWallBLTextures));
-        createWall(halfWallWidthF, doorHeight, wallThickness, new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5), makeMaterial(halfWallBRTextures));
-        createWall(wallWidthF, wallHeightF - doorHeight, wallThickness, new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5), makeMaterial(halfWallTTextures));
-    })
+    return scene;
 }
 
-export function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
+function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
     // See: https://threejs.org/examples/webgl_shaders_sky.html
 
     const sky = new Sky();

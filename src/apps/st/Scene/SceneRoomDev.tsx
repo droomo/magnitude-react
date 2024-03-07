@@ -1,11 +1,8 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import {
-    addGround,
-    addLight,
-    addSky,
-    addWalls,
+    makeScene,
     doorHeight,
-    makeDoor,
+    makeDoorEXR as makeDoor,
     webGlConfig
 } from './scene.lib';
 
@@ -77,7 +74,6 @@ export default function SceneRoomDev(props: PropScene) {
         }
 
         const clock = new THREE.Clock();
-        const scene = new THREE.Scene();
         const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -85,11 +81,8 @@ export default function SceneRoomDev(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        addGround(scene);
-        addLight(scene, room);
-        addWalls(scene, room);
-        scene.add(door)
-        addSky(scene, renderer, camera);
+        const scene = makeScene(room, renderer, camera, true);
+        scene.add(door);
 
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;

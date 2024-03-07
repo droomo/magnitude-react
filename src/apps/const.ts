@@ -1,4 +1,5 @@
 import * as THREE from "three";
+
 THREE.Cache.enabled = true;
 
 let base_host = 'dev1.droomo.com'
@@ -13,6 +14,8 @@ export const API = {
     base_url: `${scheme}://${base_host}:7000`,
     texture_base_url: `${scheme}://${base_host}:9000`,
 }
+
+const TEXTURE_BASE = API.texture_base_url;
 
 const page_data_doc = document.getElementById('page_data');
 const page_data_str = page_data_doc?.innerText || '{}';
@@ -42,3 +45,16 @@ export const getTimestamp = function () {
 export const DELAY_TRIAL_START_MASK = 300; // ms
 export const DELAY_INFORM_REACTION_TYPE = 1000; // ms
 export const DELAY_TRIAL_DONE = 1000; // ms
+
+
+export const material_map = {
+    groundD: `${TEXTURE_BASE}/ground/outdoor/ground_D.EXR`,
+    groundN: `${TEXTURE_BASE}/ground/outdoor/ground_N.EXR`,
+    doorD: `${TEXTURE_BASE}/door/door_D.EXR`,
+    doorN: `${TEXTURE_BASE}/door/door_N.EXR`,
+    dadoModel: `${TEXTURE_BASE}/wall/external/dado/model.FBX`,
+    dadoD: `${TEXTURE_BASE}/wall/external/dado/model_D.EXR`,
+    dadoN: `${TEXTURE_BASE}/wall/external/dado/model_N.EXR`,
+    wallExternalD: `${TEXTURE_BASE}/wall/external/Stucco/T_Decorative_Wall_Tiles_vlqvfdj_1K_D.EXR`,
+    wallExternalN: `${TEXTURE_BASE}/wall/external/Stucco/T_Decorative_Wall_Tiles_vlqvfdj_1K_N.EXR`,
+}
