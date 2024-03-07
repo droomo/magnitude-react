@@ -41,6 +41,10 @@ function addLight(scene: THREE.Scene, room: PropRoom) {
     pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
     scene.add(pointLight);
 
+    const roomLight = new THREE.PointLight(0xffffff, 2, 15, 0.1);
+    roomLight.position.set(0, doorHeight * 0.8, 0);
+    scene.add(roomLight);
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
     scene.add(ambientLight);
 
