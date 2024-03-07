@@ -27,6 +27,7 @@ const SubjectForm: React.FC = () => {
             },
         })
             .then(() => {
+                localStorage.setItem('username', values.name);
                 window.location.href = '/st/intro/';
             })
             .catch(error => {

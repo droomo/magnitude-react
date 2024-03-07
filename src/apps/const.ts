@@ -45,6 +45,6 @@ export const DELAY_TRIAL_DONE = 1000; // ms
 
 declare global {
     interface Window {
-        renderer: THREE.WebGLRenderer;
+        username: string;
     }
 }

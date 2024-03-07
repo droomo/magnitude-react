@@ -218,7 +218,7 @@ function LeaningControl() {
             }}>
                     <span
                         onClick={() => {
-                            navigate('/st/', {state: {stageState: 1}})
+                            navigate('/st/test/', {state: {stageState: 1}})
                         }}
                         className={classes.fakeButton}
                     >已经学会操作了，进入练习</span>
