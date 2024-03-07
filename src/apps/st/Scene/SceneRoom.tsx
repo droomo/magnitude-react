@@ -116,7 +116,7 @@ export default function SceneRoom(props: PropScene) {
             renderer.forceContextLoss();
             renderer.domElement.remove();
         }
-    }, [])
+    })
 
     return (
         <>{

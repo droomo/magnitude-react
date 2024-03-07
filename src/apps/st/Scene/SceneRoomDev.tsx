@@ -113,7 +113,7 @@ export default function SceneRoomDev(props: PropScene) {
             renderer.forceContextLoss();
             renderer.domElement.remove();
         }
-    }, [])
+    })
 
     return (<div style={{cursor: 'default'}} ref={divRef}/>);
 }

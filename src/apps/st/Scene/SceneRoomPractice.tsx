@@ -145,7 +145,7 @@ export default function SceneRoomPractice(props: {
             console.log('Requested force context loss')
             renderer.domElement.remove();
         }
-    }, [])
+    })
 
     return (
         <div ref={divRef}/>
