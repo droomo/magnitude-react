@@ -1,7 +1,9 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {addGround, addLight, addSky, addWalls, makeCamera, makeDoor, webGlConfig} from './scene.lib';
-import {getTimestamp} from "../../const";
+import {addGround, addLight, addSky, addWalls, doorHeight, makeDoor, webGlConfig} from './scene.lib';
+import {DELAY_TRIAL_START_MASK, getTimestamp} from "../../const";
+import PageMask from "../Page/PageMask";
+import classes from "../css/exp.module.scss";
 
 export interface PropRoom {
     width: number;
@@ -14,7 +16,8 @@ export interface PropRoom {
 
 export interface PropScene {
     room: PropRoom,
-    done: (timeStat: TypeTimeStat) => void
+    done: (timeStat: TypeTimeStat) => void,
+    startedIndex: number,
 }
 
 export interface TypeTimeStat {
@@ -23,7 +26,7 @@ export interface TypeTimeStat {
     done_from_camera_moved: number
 }
 
-export default function Scene(props: PropScene) {
+export default function SceneRoom(props: PropScene) {
     const room = props.room;
 
     const divRef = useRef<HTMLDivElement>(null);
@@ -33,20 +36,47 @@ export default function Scene(props: PropScene) {
         camera_moved: -1,
         done_from_camera_moved: -1
     }).current
+    const [mask, setMask] = React.useState(true);
+
+    const lastAnimationID = useRef(0);
+
+    const renderer = useMemo(() => {
+        return new THREE.WebGLRenderer(webGlConfig);
+    }, [])
 
     useEffect(() => {
-        const [camera,] = makeCamera();
+        setTimeout(() => {
+            setMask(false)
+        }, DELAY_TRIAL_START_MASK)
+    }, []);
+
+    useEffect(() => {
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 2);
+        camera.lookAt(0, doorHeight * 0.6, 0);
 
         function onDoorOpen() {
             doorOpened.current = true;
             timeStat.door_opened = getTimestamp();
             camera.position.set(0, room.height / 2, room.depth / 2);
             camera.lookAt(0, room.height / 2, 0);
+
             timeStat.camera_moved = getTimestamp();
+            cancelAnimationFrame(lastAnimationID.current);
+            setTimeout(() => {
+                while (true) {
+                    if (room.duration + timeStat.camera_moved < getTimestamp()) {
+                        timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
+                        timeStat.camera_moved -= timeStat.door_opened
+                        timeStat.door_opened -= timeStat.door_opened
+                        props.done(timeStat)
+                        break;
+                    }
+                }
+            }, 0)
         }
 
         const clock = new THREE.Clock();
-        const renderer = new THREE.WebGLRenderer(webGlConfig)
         const scene = new THREE.Scene();
         const [door, handleDoor] = makeDoor(room, onDoorOpen);
 
@@ -73,18 +103,10 @@ export default function Scene(props: PropScene) {
         }
 
         function animate() {
-            if (timeStat.camera_moved > -1) {
-                if (room.duration + timeStat.camera_moved < getTimestamp()) {
-                    timeStat.done_from_camera_moved = getTimestamp() - timeStat.camera_moved
-                    timeStat.camera_moved -= timeStat.door_opened
-                    timeStat.door_opened -= timeStat.door_opened
-                    props.done(timeStat)
-                    return
-                }
-            }
-            requestAnimationFrame(animate);
-            if (!doorOpened.current) handleDoor(clock);
-            render()
+            console.log('aniing')
+            lastAnimationID.current = requestAnimationFrame(animate);
+            handleDoor(clock);
+            render();
         }
 
         window.addEventListener('resize', onWindowResize);
@@ -93,11 +115,19 @@ export default function Scene(props: PropScene) {
         animate();
 
         return () => {
+            window.removeEventListener('resize', onWindowResize);
+            console.log('Requested force context loss');
+            renderer.forceContextLoss();
             renderer.domElement.remove();
         }
-    }, [props, room, timeStat])
+    }, [])
 
     return (
-        <div ref={divRef}/>
+        <>{
+            mask && <div style={{cursor: 'none'}} className={classes.mask}>
+                <PageMask text={props.startedIndex === 0 ? 'Loading...' : '已完成'}/>
+            </div>}
+            <div style={{cursor: 'none'}} ref={divRef}/>
+        </>
     );
 }

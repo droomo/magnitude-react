@@ -17,22 +17,35 @@ interface SubjectFormValues {
 
 const SubjectForm: React.FC = () => {
     const [form] = Form.useForm();
+    const api_subject = `${API.base_url}${page_data['api_subject']}`
 
     const onFinish = (values: SubjectFormValues) => {
-        axios.post(`${API.base_url}${page_data['api_subject_login']}`, values, {
+        axios.post(api_subject, values, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken(),
             },
         })
             .then(() => {
-                message.success('Submitted successfully');
-                // form.resetFields();
+                localStorage.setItem('username', values.name);
+                window.location.href = '/st/intro/';
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);
             });
     };
+
+    const onCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value.toUpperCase();
+        form.setFieldsValue({code: newValue});
+        axios.get(`${api_subject}?code=${newValue}`).then(response => {
+            if (response.data.subject) {
+                form.setFieldsValue(response.data.subject);
+            } else {
+                form.resetFields(Object.keys(form.getFieldsValue()).filter(key => key !== 'code'));
+            }
+        });
+    }
 
     return (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
@@ -48,7 +61,10 @@ const SubjectForm: React.FC = () => {
                             label="学号或证件号"
                             rules={[{required: true, message: 'Please input the code!'}]}
                         >
-                            <Input placeholder="Student code or your ID"/>
+                            <Input
+                                placeholder="Student code or your ID"
+                                onChange={onCodeChange}
+                            />
                         </Form.Item>
 
                         <Form.Item

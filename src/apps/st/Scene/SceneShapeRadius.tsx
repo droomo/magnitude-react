@@ -1,39 +1,46 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
 import * as THREE from 'three';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {TEXTURE_BASE, webGlConfig} from './scene.lib';
-
+import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
+import classes from "../css/exp.module.scss";
+import PageMask from "../Page/PageMask";
 // @ts-ignore
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
-import classes from "../css/timeCounter.module.scss";
 
 export interface TypeSceneShapeResult {
     radius: number
     control_times: number
+    page_start_date: number
+    page_end_date: number
 }
 
 export default function SceneShapeRadius(props: {
-    done: (result: TypeSceneShapeResult) => void
+    done: (result: TypeSceneShapeResult) => void,
+    isStagePrepared: boolean
 }) {
-
-    const [radius, setRadius] = useState(5);
+    const page_start_date = new Date().getTime()
+    const [radius, setRadius] = useState(6);
     const [controlTimes, setControlTimes] = useState(0);
 
     const divRef = useRef<HTMLDivElement>(null);
     const rotationYRef = useRef(0);
     const rotationXRef = useRef(0);
 
+    const [done, setDone] = useState(false);
+
     const renderer = useMemo(() => {
-        const renderer = new THREE.WebGLRenderer(webGlConfig);
-        renderer.domElement.addEventListener('wheel', (event) => {
+        return new THREE.WebGLRenderer(webGlConfig);
+    }, [])
+
+    useEffect(() => {
+        renderer.domElement.addEventListener('wheel', (event: WheelEvent) => {
             setRadius(r => {
                 const target = r - event.deltaY / 400;
                 return target > 0 ? target : r;
             })
             setControlTimes(t => t + 1)
         });
-        return renderer
-    }, [])
+    }, [renderer]);
 
     const group = useMemo(() => {
         return new THREE.Group();
@@ -86,6 +93,7 @@ export default function SceneShapeRadius(props: {
         animate();
 
         return () => {
+            renderer.forceContextLoss();
             renderer.domElement.remove();
         }
     }, [camera, group, scene, renderer]);
@@ -148,17 +156,19 @@ export default function SceneShapeRadius(props: {
 
     return (
         <>
-            <div ref={divRef}/>
-            <button
-                className={classes.shapeButton}
+            {done ? <PageMask/> : <div ref={divRef}/>}
+            {!props.isStagePrepared && !done && <span
+                className={[classes.shapeButton, classes.fakeButton].join(' ')}
                 onClick={() => {
+                    setDone(true)
                     props.done({
                         radius,
+                        page_start_date,
+                        page_end_date: new Date().getTime(),
                         control_times: controlTimes
                     })
                 }}
-            >完成
-            </button>
+            >完&nbsp;成</span>}
         </>
     );
 }
