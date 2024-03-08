@@ -1,6 +1,6 @@
 import {Group, RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API, getFloorUrl, getWallUrl, material_map} from "../../const";
+import {API, getFloorUrl, getWallUrl, material_map, wallNameList} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 import {PropRoom} from "./SceneRoom";
@@ -37,9 +37,9 @@ function loadThings(
 
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
-    const pointLight = new THREE.PointLight(0xffffff, 3, 15, 0.1);
-    pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
-    scene.add(pointLight);
+    // const pointLight = new THREE.PointLight(0xffffff, 3, 15, 0.1);
+    // pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
+    // scene.add(pointLight);
 
     const roomLight = new THREE.PointLight(0xffffff, 2, 15, 0.1);
     roomLight.position.set(0, doorHeight * 0.8, 0);
@@ -132,8 +132,8 @@ function addGroundEXR(scene: THREE.Scene, isFormalTrial: boolean) {
             const material = new THREE.MeshStandardMaterial({
                 map: map as Texture,
                 normalMap: normal as Texture,
-                metalness: 0.05,
-                roughness: 0.8,
+                metalness: 0.02,
+                roughness: 0.85,
                 normalScale: new THREE.Vector2(2, 2),
             });
             const planeGeometry = new THREE.PlaneGeometry(...size);
@@ -203,7 +203,7 @@ export function makeScene(
     const wallWidthF = isFormalTrial ? 20 : wallWidth;
     const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
 
-    const repeatF = new Vector2(wallWidthF, wallHeightF);
+    const repeatF = new Vector2(wallWidthF * .5, wallHeightF * .5);
 
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
@@ -249,13 +249,15 @@ export function makeScene(
         new FBXLoader()
     );
 
-    const texturePaths = [
-        material_map.wallExternalD,
-        material_map.wallExternalN,
-    ];
-
     loadThings(
-        texturePaths,
+        // [
+        //     material_map.wallExternalD,
+        //     material_map.wallExternalN,
+        // ],
+        [
+            getWallUrl(wallNameList[9], 'D'),
+            getWallUrl(wallNameList[9], 'N'),
+        ],
         ([mapWE, normalWE]) => {
             mapWE = mapWE as Texture;
             normalWE = normalWE as Texture;

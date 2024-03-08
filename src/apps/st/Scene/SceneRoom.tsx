@@ -52,9 +52,7 @@ export default function SceneRoom(props: PropScene) {
         setTimeout(() => {
             setMask(false)
         }, DELAY_TRIAL_START_MASK)
-    }, []);
 
-    useEffect(() => {
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 4);
         camera.lookAt(0, doorHeight * 0.6, 0);
@@ -125,7 +123,7 @@ export default function SceneRoom(props: PropScene) {
             renderer.forceContextLoss();
             renderer.domElement.remove();
         }
-    })
+    }, [])
 
     return (
         <>{
