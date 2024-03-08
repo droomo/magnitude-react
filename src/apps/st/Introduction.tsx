@@ -1,4 +1,4 @@
-import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
+import {Route, Routes, useNavigate} from "react-router-dom";
 import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
@@ -12,7 +12,7 @@ import {HelperText} from "./Page/HelperText";
 function Description() {
     const navigate = useNavigate();
     return <PageMask
-        text={<div style={{cursor: 'default'}}>
+        text={<div style={{cursor: 'default', padding: '8rem 0'}}>
             <h1 style={{fontSize: '5rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索实验</h1>
             <p style={{margin: '5px 0', fontSize: '3rem'}}>接下来的实验将分组进行，每组都有多次实验任务</p>
             <p style={{margin: '5px 0', fontSize: '3rem'}}>实验任务包含<strong
@@ -140,33 +140,12 @@ function Description() {
 function SceneIntro() {
     const navigate = useNavigate();
 
-    const [stage, setStage] = React.useState(1);
-    return <>
-        <HelperText>
-            {stage === 1 && <>
-                <p>游戏的操作同多数电脑游戏一致</p>
-                <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向“上左后右”，按<strong
-                    style={{color: 'red'}}>“E”</strong>键开门</p>
-                <p>请想象你正以第一人称处于游戏环境中</p>
-            </>}
-            {stage === 2 && <>
-                <p>开门后游戏自动带你进入房间，此时不能再移动</p>
-                <p>请想象你正以第一人称处于游戏环境中</p>
-                <p>尽可能身临其境地体验<strong style={{color: 'red', fontSize: '2.2rem'}}>房间的大小</strong>和<strong
-                    style={{color: 'red', fontSize: '2.2rem'}}>在房间内的时长</strong></p>
-                <p>一段时间后，页面会自动切换，你需要完成时间或空间再现任务</p>
-            </>}
-        </HelperText>
-        {stage !== 3 && <SceneRoomPractice
-            done={() => {
-                navigate('/st/intro/control/')
-            }}
-            onDoorOpen={() => {
-                setStage(2)
-            }}
-            room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
-        />}
-    </>
+    return <SceneRoomPractice
+        done={() => {
+            navigate('/st/intro/control/');
+        }}
+        room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
+    />
 }
 
 function LeaningControl() {
