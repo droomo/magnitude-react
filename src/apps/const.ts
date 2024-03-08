@@ -144,11 +144,11 @@ for (const material_name of Object.values(material_map)) {
     });
 }
 
-for (const url of [...floor_url_list, ...wall_url_list]) {
-    exr_loader.load(url, function (texture) {
-        console.log(`{${texture.uuid}} ${url} loaded`);
-    });
-}
+// for (const url of [...floor_url_list, ...wall_url_list]) {
+//     exr_loader.load(url, function (texture) {
+//         console.log(`{${texture.uuid}} ${url} loaded`);
+//     });
+// }
 
 export function getRandomElement(arr: string[]) {
     const randomIndex = Math.floor(Math.random() * arr.length);
