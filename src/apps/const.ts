@@ -128,15 +128,15 @@ export function getWallUrl(name: string, type: string) {
     return `${TEXTURE_BASE}/wall/internal/${name}_${type}.EXR`
 }
 
-// const floor_url_list = [
-//     ...floorNameList.map(name => getFloorUrl(name, 'D')),
-//     ...floorNameList.map(name => getFloorUrl(name, 'N'))
-// ]
-//
-// const wall_url_list = [
-//     ...wallNameList.map(name => getWallUrl(name, 'D')),
-//     ...wallNameList.map(name => getWallUrl(name, 'N'))
-// ]
+const floor_url_list = [
+    ...floorNameList.map(name => getFloorUrl(name, 'D')),
+    ...floorNameList.map(name => getFloorUrl(name, 'N'))
+]
+
+const wall_url_list = [
+    ...wallNameList.map(name => getWallUrl(name, 'D')),
+    ...wallNameList.map(name => getWallUrl(name, 'N'))
+]
 
 for (const material_name of Object.values(material_map)) {
     loader_selector(material_name).load(material_name, function (texture) {
@@ -144,11 +144,11 @@ for (const material_name of Object.values(material_map)) {
     });
 }
 
-// for (const url of [...floor_url_list, ...wall_url_list]) {
-//     exr_loader.load(url, function (texture) {
-//         console.log(`{${texture.uuid}} ${url} loaded`);
-//     });
-// }
+for (const url of [...floor_url_list, ...wall_url_list]) {
+    exr_loader.load(url, function (texture) {
+        console.log(`{${texture.uuid}} ${url} loaded`);
+    });
+}
 
 export function getRandomElement(arr: string[]) {
     const randomIndex = Math.floor(Math.random() * arr.length);

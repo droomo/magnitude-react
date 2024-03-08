@@ -193,7 +193,7 @@ export function makeScene(
     const wallWidth = isFormalTrial ? room.width : 10.3;
     const wallDepth = room.depth;
 
-    const repeatTimes = 1;
+    const repeatTimes = 5;
     const repeatBack = new Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
     const repeatLR = new Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
     const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
@@ -251,13 +251,9 @@ export function makeScene(
 
     loadThings(
         [
-            getWallUrl(wallNameList[0], 'D'),
-            getWallUrl(wallNameList[0], 'N'),
+            material_map.wallExternalD,
+            material_map.wallExternalN,
         ],
-        // [
-        //     material_map.wallExternalD,
-        //     material_map.wallExternalN,
-        // ],
         ([mapWE, normalWE]) => {
             mapWE = mapWE as Texture;
             normalWE = normalWE as Texture;
