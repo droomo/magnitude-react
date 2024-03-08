@@ -89,6 +89,7 @@ export const floorNameList = [
 ]
 
 export const wallNameList = [
+    "T_Brick_Wall_vhhkfjp_1K",
     "T_Painted_Wall_Plaster_xevifcds_1K",
     "T_Stucco_Wall_ve4meimcw_1K",
     "T_Worn_Paint_Wall_vjyifds_1K",
@@ -98,7 +99,6 @@ export const wallNameList = [
     "T_Flagstone_Wall_vkmfaek_1K",
     "T_Plaster_Wall_xepmej1ga_1K",
     "T_Brick_Wall_xertbj1_1K",
-    "T_Brick_Wall_vhhkfjp_1K",
     "T_Stone_Wall_xblhejj_1K",
     "T_Painted_Wall_Plaster_xepkaecs_1K",
     "T_Concrete_Wall_vjyifdc_1K",

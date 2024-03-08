@@ -193,17 +193,17 @@ export function makeScene(
     const wallWidth = isFormalTrial ? room.width : 10.3;
     const wallDepth = room.depth;
 
-    // const repeat = new Vector2(10, 10);
-    const repeatLR = new Vector2(wallDepth * 0.5, wallHeight * 0.5);
-    const repeatBack = new Vector2(wallWidth * 0.5, wallHeight * 0.5);
-    const repeatFloor = new Vector2(wallWidth * 0.5, wallDepth * 0.5);
+    const repeatTimes = 1;
+    const repeatBack = new Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
+    const repeatLR = new Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
+    const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
 
     // 前墙壁
     const wallHeightF = isFormalTrial ? 10 : wallHeight;
     const wallWidthF = isFormalTrial ? 20 : wallWidth;
     const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
 
-    const repeatF = new Vector2(wallWidthF * .1, wallHeightF * .1);
+    const repeatF = new Vector2(repeatTimes * wallWidthF / wallWidth, (repeatTimes / wallWidth * wallHeight) * wallHeightF / wallHeight);
 
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
@@ -251,9 +251,13 @@ export function makeScene(
 
     loadThings(
         [
-            material_map.wallExternalD,
-            material_map.wallExternalN,
+            getWallUrl(wallNameList[0], 'D'),
+            getWallUrl(wallNameList[0], 'N'),
         ],
+        // [
+        //     material_map.wallExternalD,
+        //     material_map.wallExternalN,
+        // ],
         ([mapWE, normalWE]) => {
             mapWE = mapWE as Texture;
             normalWE = normalWE as Texture;
@@ -308,19 +312,20 @@ export function makeScene(
                 (wallWidthF - doorWidth) / 2 / wallWidthF * repeatF.x,
                 doorHeight / wallHeightF * repeatF.y
             );
+            const bottomOffsetY = -doorHeight / wallHeightF * repeatF.y;
             const halfWallBLTextures = prepareTextures(
                 [mapWE, normalWE],
                 halfRepeat,
+                new Vector2(0, bottomOffsetY)
             );
             const halfWallBRTextures = prepareTextures(
                 [mapWE, normalWE],
                 halfRepeat,
-                new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), 0)
+                new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), bottomOffsetY)
             );
             const halfWallTTextures = prepareTextures(
                 [mapWE, normalWE],
                 new Vector2(repeatF.x, (wallHeightF - doorHeight) / wallHeightF * repeatF.y),
-                new Vector2(0, doorHeight / wallHeightF)
             );
 
             // External wall lower part, left(view of +z to -z).
