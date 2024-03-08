@@ -13,7 +13,10 @@ if (window.location.href.indexOf(base_host) === -1) {
     base_host = window.location.hostname
 }
 
-export const API = {
+export const API: {
+    base_url: string,
+    texture_base_url: string,
+} = {
     base_url: `${scheme}://${base_host}:7000`,
     texture_base_url: `${scheme}://${base_host}:9000`,
 }
@@ -60,6 +63,9 @@ export const material_map = {
     wallExternalD: `${TEXTURE_BASE}/wall/external/Decorative/T_Decorative_Wall_Tiles_vlqvfdj_1K_D.EXR`,
     wallExternalN: `${TEXTURE_BASE}/wall/external/Decorative/T_Decorative_Wall_Tiles_vlqvfdj_1K_N.EXR`,
     dadoModel: `${TEXTURE_BASE}/wall/external/dado/model.FBX`,
+    bookModel: `${TEXTURE_BASE}/book/book.FBX`,
+    bookN: `${TEXTURE_BASE}/book/bookN.EXR`,
+    bookD: `${TEXTURE_BASE}/book/bookD.EXR`,
 }
 
 export const floorNameList = [
@@ -128,27 +134,25 @@ export function getWallUrl(name: string, type: string) {
     return `${TEXTURE_BASE}/wall/internal/${name}_${type}.EXR`
 }
 
-const floor_url_list = [
-    ...floorNameList.map(name => getFloorUrl(name, 'D')),
-    ...floorNameList.map(name => getFloorUrl(name, 'N'))
-]
-
-const wall_url_list = [
-    ...wallNameList.map(name => getWallUrl(name, 'D')),
-    ...wallNameList.map(name => getWallUrl(name, 'N'))
-]
-
 for (const material_name of Object.values(material_map)) {
     loader_selector(material_name).load(material_name, function (texture) {
         console.log(`{${texture.uuid}} ${material_name} loaded`);
     });
 }
 
-for (const url of [...floor_url_list, ...wall_url_list]) {
-    exr_loader.load(url, function (texture) {
-        console.log(`{${texture.uuid}} ${url} loaded`);
-    });
-}
+// const floor_url_list = [
+//     ...floorNameList.map(name => getFloorUrl(name, 'D')),
+//     ...floorNameList.map(name => getFloorUrl(name, 'N'))
+// ]
+// const wall_url_list = [
+//     ...wallNameList.map(name => getWallUrl(name, 'D')),
+//     ...wallNameList.map(name => getWallUrl(name, 'N'))
+// ]
+// for (const url of [...floor_url_list, ...wall_url_list]) {
+//     exr_loader.load(url, function (texture) {
+//         console.log(`{${texture.uuid}} ${url} loaded`);
+//     });
+// }
 
 export function getRandomElement(arr: string[]) {
     const randomIndex = Math.floor(Math.random() * arr.length);

@@ -3,7 +3,7 @@ import {
     makeScene,
     doorHeight,
     makeDoorEXR as makeDoor,
-    webGlConfig
+    webGlConfig, eyeHeight
 } from './scene.lib';
 
 import {floorNameList, getTimestamp, wallNameList} from "../../const";
@@ -50,8 +50,8 @@ export default function SceneRoomDev(props: PropScene) {
         const renderer = new THREE.WebGLRenderer(webGlConfig);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 2);
-        camera.lookAt(0, doorHeight * 0.6, 0);
+        camera.position.set(0, eyeHeight, props.room.depth / 2 + 2);
+        camera.lookAt(0, eyeHeight, 0);
 
         // 添加OrbitControls
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -82,7 +82,7 @@ export default function SceneRoomDev(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        const scene = makeScene(room, wallName, floorName, renderer, camera, true);
+        const [scene,] = makeScene(room, wallName, floorName, renderer, camera, true);
         scene.add(door);
 
         function onWindowResize() {

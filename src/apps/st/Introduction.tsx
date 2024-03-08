@@ -3,11 +3,12 @@ import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
-import {API} from "../const";
+import {API, getCsrfToken, page_data} from "../const";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import SceneRoomPractice from "./Scene/SceneRoomPractice";
+import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
 import PageTimeCounter from "./Scene/PageTimeCounter";
 import {HelperText} from "./Page/HelperText";
+import axios from "axios";
 
 function Description() {
     const navigate = useNavigate();
@@ -137,12 +138,29 @@ function Description() {
     />
 }
 
-function SceneIntro() {
+function SceneIntro(props: {
+    blockType: string
+}) {
     const navigate = useNavigate();
 
     return <SceneRoomPractice
-        done={() => {
-            navigate('/st/intro/control/');
+        done={(record: TypeExploringRecord) => {
+            axios.post(`${API.base_url}${page_data['api_exploring_stat']}`, record, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                }
+            }).then(response => {
+                if (response.data.status === 200) {
+                    if (props.blockType === 'time') {
+                        navigate('/st/intro/time/')
+                    } else if (props.blockType === 'space') {
+                        navigate('/st/intro/shape/')
+                    }
+                } else {
+                    alert('error')
+                }
+            })
         }}
         room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
     />
@@ -159,16 +177,16 @@ function LeaningControl() {
                 fontSize: '2rem'
             }}>现在正处在游戏指引阶段<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
             <div>
-                    <span
-                        style={{
-                            border: "1px solid #ccc",
-                            marginRight: '2rem'
-                        }}
-                        onClick={() => {
-                            navigate('/st/intro/shape/')
-                        }}
-                        className={classes.fakeButton}
-                    >复现空间</span>
+                <span
+                    style={{
+                        border: "1px solid #ccc",
+                        marginRight: '2rem'
+                    }}
+                    onClick={() => {
+                        navigate('/st/intro/shape/')
+                    }}
+                    className={classes.fakeButton}
+                >复现空间</span>
                 <span
                     style={{
                         border: "1px solid #ccc",
@@ -251,7 +269,8 @@ function Introduction() {
         <Routes>
             <Route path="/" element={<Description/>}/>
             <Route path="/control/" element={<LeaningControl/>}/>
-            <Route path="/scene/" element={<SceneIntro/>}/>
+            <Route path="/scene/shape/" element={<SceneIntro blockType={'shape'}/>}/>
+            <Route path="/scene/time/" element={<SceneIntro blockType={'time'}/>}/>
             <Route path="/shape/" element={<ShapeIntro/>}/>
             <Route path="/time/" element={<TimeIntro/>}/>
         </Routes>

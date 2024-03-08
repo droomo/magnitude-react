@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig} from './scene.lib';
+import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig, eyeHeight} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, floorNameList, getRandomElement, getTimestamp, wallNameList} from "../../const";
 import PageMask from "../Page/PageMask";
 import classes from "../css/exp.module.scss";
@@ -54,8 +54,8 @@ export default function SceneRoom(props: PropScene) {
         }, DELAY_TRIAL_START_MASK)
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        camera.position.set(0, doorHeight * 0.6, props.room.depth / 2 + 4);
-        camera.lookAt(0, doorHeight * 0.6, 0);
+        camera.position.set(0, eyeHeight, props.room.depth / 2 + 4);
+        camera.lookAt(0, eyeHeight, 0);
 
         function onDoorOpen() {
             doorOpened.current = true;
@@ -89,7 +89,7 @@ export default function SceneRoom(props: PropScene) {
         roomStat.floor = getRandomElement(floorNameList);
         roomStat.wall = getRandomElement(wallNameList);
 
-        const scene = makeScene(room, roomStat.wall, roomStat.floor, renderer, camera, true);
+        const [scene,] = makeScene(room, roomStat.wall, roomStat.floor, renderer, camera, true);
         scene.add(door);
 
         function onWindowResize() {

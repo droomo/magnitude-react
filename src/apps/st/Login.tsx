@@ -3,6 +3,7 @@ import axios from 'axios';
 import {Form, Input, Button, Select, InputNumber, message, Row, Col} from 'antd';
 import {UserOutlined, PhoneOutlined} from '@ant-design/icons';
 import {API, getCsrfToken, page_data} from "../const";
+import {useNavigate} from "react-router-dom";
 
 
 interface SubjectFormValues {
@@ -19,6 +20,8 @@ const SubjectForm: React.FC = () => {
     const [form] = Form.useForm();
     const api_subject = `${API.base_url}${page_data['api_subject']}`
 
+    const navigate = useNavigate();
+
     const onFinish = (values: SubjectFormValues) => {
         axios.post(api_subject, values, {
             headers: {
@@ -28,7 +31,7 @@ const SubjectForm: React.FC = () => {
         })
             .then(() => {
                 localStorage.setItem('username', values.name);
-                window.location.href = '/st/intro/';
+                navigate('/st/intro/');
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);

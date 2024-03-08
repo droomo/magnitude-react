@@ -1,23 +1,26 @@
-import {Group, RepeatWrapping, Vector2} from 'three';
+import {Group, MeshStandardMaterial, Object3DEventMap, RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API, getFloorUrl, getWallUrl, material_map, wallNameList} from "../../const";
+import {API, getFloorUrl, getWallUrl, material_map} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 import {PropRoom} from "./SceneRoom";
 import {TextureLoader, Texture} from 'three';
 import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
 import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
+import {Vector3} from "three/src/math/Vector3";
 
-export const TEXTURE_BASE = API.texture_base_url
+export const TEXTURE_BASE = API.texture_base_url;
 
 // 门
 export const doorWidth = 1;
 export const doorHeight = 2 * doorWidth;
 
+export const eyeHeight = doorHeight * 0.65;
+
 export const wallThickness = 0.06;
 
 
-function loadThings(
+export function loadThings(
     texturePaths: string[],
     onLoad: (objs: Texture[] | Group<THREE.Object3DEventMap>[]) => void,
     loader: TextureLoader | EXRLoader | FBXLoader = new TextureLoader()
@@ -55,7 +58,11 @@ function addLight(scene: THREE.Scene, room: PropRoom) {
 }
 
 
-export function makeDoorEXR(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
+export function makeDoorEXR(room: PropRoom, doorOpenedAction: () => void): [
+    THREE.Group,
+    (clock: THREE.Clock) => void,
+    () => void
+] {
     const wallDepth = room.depth;
 
     const doorGroup = new THREE.Group();
@@ -81,19 +88,14 @@ export function makeDoorEXR(room: PropRoom, doorOpenedAction: () => void): [THRE
 
             doorGroup.position.set(-doorWidth * 0.5, doorHeight * 0.5, wallDepth / 2);
             doorGroup.add(doorMesh);
-
-            const onKeyDown = (event: { key: any; }) => {
-                switch (event.key) {
-                    case 'e':
-                        open = !open;
-                        targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
-                }
-            };
-
-            window.addEventListener('keydown', onKeyDown);
         },
         new EXRLoader()
     )
+
+    const changeDoorState = () => {
+        open = !open;
+        targetRotationY = open ? -Math.PI / 1.3 : 0;
+    }
 
     function updateDoor(clock: THREE.Clock) {
         const delta = clock.getDelta();
@@ -114,7 +116,7 @@ export function makeDoorEXR(room: PropRoom, doorOpenedAction: () => void): [THRE
         }
     }
 
-    return [doorGroup, updateDoor];
+    return [doorGroup, updateDoor, changeDoorState];
 }
 
 function addGroundEXR(scene: THREE.Scene, isFormalTrial: boolean) {
@@ -180,13 +182,49 @@ const makeMaterial = ([map, normalMap]: Texture[], metalness: number, roughness:
     });
 }
 
+
+export function checkCollisionAndMove(raycaster: THREE.Raycaster, direction: Vector3, distance: number, camera: THREE.Camera, walls: THREE.Object3D[]) {
+    raycaster.set(camera.position, direction);
+
+    const intersections = raycaster.intersectObjects(walls);
+
+    if (intersections.length > 0 && intersections[0].distance < distance + wallThickness * 19) {
+        // console.log("Collision detected, can't move");
+    } else {
+        const newPosition = direction.clone().multiplyScalar(distance).add(camera.position);
+        camera.position.copy(newPosition);
+    }
+}
+
+export function loadFBXModel(pathModel: string, pathD: string, pathN: string, onLoad: (model: Group<Object3DEventMap>, material: MeshStandardMaterial) => void) {
+    loadThings(
+        [pathD, pathN,],
+        ([d, n]) => {
+            loadThings(
+                [pathModel,],
+                ([model]) => {
+                    onLoad(model as Group<THREE.Object3DEventMap>, new THREE.MeshStandardMaterial({
+                        map: d as Texture,
+                        normalMap: n as Texture,
+                        normalScale: new Vector2(2, 2),
+                    }));
+                },
+                new FBXLoader()
+            )
+        },
+        new EXRLoader()
+    )
+}
+
 export function makeScene(
     room: PropRoom, wallName: string, floorName: string,
     renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera,
     isFormalTrial: boolean
-) {
+): [THREE.Scene, THREE.Object3D[]] {
     const scene = new THREE.Scene();
     addGroundEXR(scene, isFormalTrial);
+
+    const walls: THREE.Object3D[] = [];
 
     // 墙壁
     const wallHeight = room.height;
@@ -208,46 +246,28 @@ export function makeScene(
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
 
-    loadThings(
-        [material_map.dadoModel],
-        ([dado]) => {
-            loadThings(
-                [material_map.dadoD, material_map.dadoN,],
-                ([map, normalMap]) => {
-                    dado = dado as Group<THREE.Object3DEventMap>;
+    loadFBXModel(material_map.dadoModel, material_map.dadoD, material_map.dadoN, (dado, material) => {
+        dado.scale.set(.03, .01, .03);
 
-                    const material = new THREE.MeshStandardMaterial({
-                        map: map as Texture,
-                        normalMap: normalMap as Texture,
-                        normalScale: new Vector2(2, 2),
-                    });
+        dado.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+                (child as THREE.Mesh).material = material;
+                (child as THREE.Mesh).geometry.computeBoundingBox();
+            }
+        });
 
-                    dado.scale.set(.03, .01, .03);
+        const bbox = new THREE.Box3().setFromObject(dado);
+        const width = bbox.max.x - bbox.min.x;
 
-                    dado.traverse((child) => {
-                        if ((child as THREE.Mesh).isMesh) {
-                            (child as THREE.Mesh).material = material;
-                            (child as THREE.Mesh).geometry.computeBoundingBox();
-                        }
-                    });
+        dado.rotateX(-Math.PI / 2);
+        dado.position.z = room.depth / 2 + wallThickness;
+        dado.position.x = width / 2 + doorWidth / 2;
+        scene.add(dado);
 
-                    const bbox = new THREE.Box3().setFromObject(dado);
-                    const width = bbox.max.x - bbox.min.x;
-
-                    dado.rotateX(-Math.PI / 2);
-                    dado.position.z = room.depth / 2 + wallThickness;
-                    dado.position.x = width / 2 + doorWidth / 2;
-                    scene.add(dado);
-
-                    const dado_left = dado.clone();
-                    dado_left.position.x = -width / 2 - doorWidth / 2;
-                    scene.add(dado_left);
-                },
-                new EXRLoader()
-            )
-        },
-        new FBXLoader()
-    );
+        const dado_left = dado.clone();
+        dado_left.position.x = -width / 2 - doorWidth / 2;
+        scene.add(dado_left);
+    });
 
     loadThings(
         [
@@ -276,12 +296,11 @@ export function makeScene(
                         const materialBack = makeMaterial(textureBack, wallMetalness, wallRoughness);
                         const materialFloor = makeMaterial(textureFloor, wallMetalness, wallRoughness);
 
-                        createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
-                        createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
-
-                        createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
-
-                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialFloor);
+                        const wall1 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
+                        const wall2 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
+                        const wall3 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
+                        const wall4 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialFloor);
+                        walls.push(wall1, wall2, wall3, wall4);
                     },
                     exr_loader
                 );
@@ -291,17 +310,19 @@ export function makeScene(
                         map = map as Texture;
                         normal = normal as Texture;
                         const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
-                        createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+                        const wall5 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+                        walls.push(wall5);
                     },
                     exr_loader
                 );
             } else {
                 const mainTextures = prepareTextures([mapWE, normalWE], repeatFloor);
                 const material = makeMaterial(mainTextures, wallMetalness, wallRoughness)
-                createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
-                createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
-                createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
-                createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
+                const wall6 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
+                const wall7 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), material);
+                const wall8 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
+                const wall9 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
+                walls.push(wall6, wall7, wall8, wall9);
             }
 
             const halfRepeat = new Vector2(
@@ -325,27 +346,28 @@ export function makeScene(
             );
 
             // External wall lower part, left(view of +z to -z).
-            createWall(scene, halfWallWidthF, doorHeight, wallThickness,
+            const walla1 = createWall(scene, halfWallWidthF, doorHeight, wallThickness,
                 new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
                 makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness)
             );
             // External wall lower part, right(view of +z to -z).
-            createWall(scene, halfWallWidthF, doorHeight, wallThickness,
+            const walla2 = createWall(scene, halfWallWidthF, doorHeight, wallThickness,
                 new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
                 makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness)
             );
             // External wall upper half.
-            createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness,
+            const walla3 = createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness,
                 new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5),
                 makeMaterial(halfWallTTextures, wallMetalness, wallRoughness)
             );
+            walls.push(walla1, walla2, walla3);
         },
         new EXRLoader()
     )
     addLight(scene, room);
     addSky(scene, renderer, camera);
 
-    return scene;
+    return [scene, walls];
 }
 
 function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
