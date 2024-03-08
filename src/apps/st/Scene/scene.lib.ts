@@ -157,7 +157,7 @@ const createWall = (scene: THREE.Scene, width: number, height: number, depth: nu
 const prepareTextures = (
     [map, normal]: Texture[],
     repeat: Vector2,
-    offset = new THREE.Vector2(0, 0)
+    offset: Vector2 = new THREE.Vector2(0, 0)
 ) => {
     return [map, normal].map(texture => {
         const clonedTexture = texture.clone() as Texture;
@@ -203,7 +203,7 @@ export function makeScene(
     const wallWidthF = isFormalTrial ? 20 : wallWidth;
     const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
 
-    const repeatF = new Vector2(wallWidthF * .5, wallHeightF * .5);
+    const repeatF = new Vector2(wallWidthF * .1, wallHeightF * .1);
 
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
@@ -250,13 +250,9 @@ export function makeScene(
     );
 
     loadThings(
-        // [
-        //     material_map.wallExternalD,
-        //     material_map.wallExternalN,
-        // ],
         [
-            getWallUrl(wallNameList[9], 'D'),
-            getWallUrl(wallNameList[9], 'N'),
+            material_map.wallExternalD,
+            material_map.wallExternalN,
         ],
         ([mapWE, normalWE]) => {
             mapWE = mapWE as Texture;
@@ -312,18 +308,32 @@ export function makeScene(
                 (wallWidthF - doorWidth) / 2 / wallWidthF * repeatF.x,
                 doorHeight / wallHeightF * repeatF.y
             );
-            const halfWallBLTextures = prepareTextures([mapWE, normalWE], halfRepeat, new Vector2(0, doorHeight / wallHeightF));
-            const halfWallBRTextures = prepareTextures([mapWE, normalWE], halfRepeat, new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), doorHeight / wallHeightF));
-            const halfWallTTextures = prepareTextures([mapWE, normalWE], new Vector2(repeatF.x, (wallHeightF - doorHeight) / wallHeightF * repeatF.y));
+            const halfWallBLTextures = prepareTextures(
+                [mapWE, normalWE],
+                halfRepeat,
+            );
+            const halfWallBRTextures = prepareTextures(
+                [mapWE, normalWE],
+                halfRepeat,
+                new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), 0)
+            );
+            const halfWallTTextures = prepareTextures(
+                [mapWE, normalWE],
+                new Vector2(repeatF.x, (wallHeightF - doorHeight) / wallHeightF * repeatF.y),
+                new Vector2(0, doorHeight / wallHeightF)
+            );
 
+            // External wall lower part, left(view of +z to -z).
             createWall(scene, halfWallWidthF, doorHeight, wallThickness,
                 new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
                 makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness)
             );
+            // External wall lower part, right(view of +z to -z).
             createWall(scene, halfWallWidthF, doorHeight, wallThickness,
                 new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
                 makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness)
             );
+            // External wall upper half.
             createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness,
                 new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5),
                 makeMaterial(halfWallTTextures, wallMetalness, wallRoughness)
