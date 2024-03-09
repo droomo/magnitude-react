@@ -28,7 +28,6 @@ function StageDetection(props: {
                 props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.cross_stage_start
                 props.timeCounter.pressed_date = new Date().getTime()
                 setShowingCross(false)
-                props.timeCounter.cross_stage_start = props.timeCounter.cross_stage_start - props.timeCounter.cross_stage_start
                 props.done(props.timeCounter)
             }
         }
