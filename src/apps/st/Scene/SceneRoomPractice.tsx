@@ -10,7 +10,7 @@ import {
     loadFBXModel
 } from './scene.lib';
 import {PropRoom} from "./SceneRoom";
-import {floorNameList, getFloorUrl, getRandomElement, getWallUrl, material_map, wallNameList} from "../../const";
+import {floorNameList, getFloorUrl, getWallUrl, material_map} from "../../const";
 import {HelperText} from "../Page/HelperText";
 import {Vector3} from "three/src/math/Vector3";
 import {message} from "antd";

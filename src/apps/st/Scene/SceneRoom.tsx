@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import {makeScene, webGlConfig} from './scene.lib';
 import {
     DELAY_TRIAL_START_MASK,
-    floorNameList, getFloorUrl,
-    getRandomElement,
+    floorNameList,
+    getFloorUrl,
     getTimestamp,
     getWallUrl,
     wallNameList

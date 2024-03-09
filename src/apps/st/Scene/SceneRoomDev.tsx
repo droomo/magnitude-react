@@ -1,12 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
     makeScene,
-    doorHeight,
-    makeDoorEXR as makeDoor,
-    webGlConfig, eyeHeight
+    webGlConfig
 } from './scene.lib';
 
-import {floorNameList, getFloorUrl, getTimestamp, getWallUrl, wallNameList} from "../../const";
+import {floorNameList, getFloorUrl, getWallUrl, wallNameList} from "../../const";
 import {OrbitControls} from "three-stdlib";
 import * as THREE from 'three';
 import {Select} from "antd";

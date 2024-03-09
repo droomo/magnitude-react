@@ -1,6 +1,6 @@
 import {Group, MeshStandardMaterial, Object3DEventMap, RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API, getFloorUrl, getWallUrl, material_map} from "../../const";
+import {API, material_map} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 import {PropRoom} from "./SceneRoom";

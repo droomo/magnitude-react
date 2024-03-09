@@ -4,10 +4,7 @@ import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
 import {API, BlockType, getCsrfToken, loader_selector, material_map, page_data} from "../const";
-import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
-import PageTimeCounter from "./Scene/PageTimeCounter";
-import {HelperText} from "./Page/HelperText";
 import axios from "axios";
 
 function Description() {
