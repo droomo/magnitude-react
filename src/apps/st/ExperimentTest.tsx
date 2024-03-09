@@ -25,7 +25,7 @@ export default function ExperimentTest(props: {
             },
         }).then(response => {
             const data: { trials: TrialData[] } = response.data.data;
-            data.trials[0].room_duration = 10000;
+            // data.trials[0].room_duration = 10000;
             setTrialDataList(data.trials);
         })
     }

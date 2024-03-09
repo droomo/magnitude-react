@@ -3,7 +3,7 @@ import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
-import {API, BlockType, getCsrfToken, page_data} from "../const";
+import {API, BlockType, getCsrfToken, loader_selector, material_map, page_data} from "../const";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
 import PageTimeCounter from "./Scene/PageTimeCounter";
@@ -167,6 +167,11 @@ function SceneIntro(props: {
 }
 
 function Introduction() {
+    for (const material_name of Object.values(material_map)) {
+        loader_selector(material_name).load(material_name, function (texture) {
+            console.log(`{${texture.uuid}} ${material_name} loaded`);
+        });
+    }
     return (
         <Routes>
             <Route path="/" element={<Description/>}/>

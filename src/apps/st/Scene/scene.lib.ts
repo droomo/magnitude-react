@@ -40,21 +40,17 @@ export function loadThings(
 
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
-    const pointLight = new THREE.PointLight(0xffffff, 3, 15, 0.1);
-    pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
-    scene.add(pointLight);
 
-    const roomLight = new THREE.PointLight(0xffffff, 2, 15, 0.1);
+    const roomSize = room.depth * room.width * room.height;
+
+    console.log(Math.pow(roomSize, 1 / 3))
+
+    const roomLight = new THREE.PointLight(0xffffff, 2, Math.pow(roomSize, 1 / 3) * 2, 0.4);
     roomLight.position.set(0, doorHeight * 0.8, 0);
     scene.add(roomLight);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
     scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    directionalLight.position.set(0, 10, 0);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
 }
 
 

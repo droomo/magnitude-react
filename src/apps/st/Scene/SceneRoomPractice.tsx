@@ -100,7 +100,6 @@ export default function SceneRoomPractice(props: {
                     break;
             }
         };
-
         const onKeyUp = () => {
             movingDirection = 0;
         };
