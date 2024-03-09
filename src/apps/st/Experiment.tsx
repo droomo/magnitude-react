@@ -50,5 +50,5 @@ export default function Experiment() {
                 >退出实验</span>
             </div>
         </div>
-    </div> : <PageMask text={'Loading...'}/>
+    </div> : <PageMask/>
 }

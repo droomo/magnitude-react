@@ -126,9 +126,5 @@ export default function SceneRoom(props: PropScene) {
         }
     }, [])
 
-    return (
-        <div>
-            <div ref={divRef}/>
-        </div>
-    );
+    return <div ref={divRef} style={{cursor: 'none'}}/>
 }
