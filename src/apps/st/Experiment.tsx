@@ -14,7 +14,7 @@ function Pause(props: {
     setTimeout(() => {
         setCanDone(true);
     }, (DEBUG ? 3 : 60) * 1000)
-    return canDone ? <PageMask text={<div>
+    return canDone ? <PageMask text={<div style={{cursor: 'default'}}>
         <p>请继续实验</p>
         <span className={classes.fakeButton} onClick={props.done}>继续试验</span>
     </div>}/> : <PageMask text={'请休息1分钟'}/>
