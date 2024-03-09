@@ -170,7 +170,7 @@ function Introduction() {
     return (
         <Routes>
             <Route path="/" element={<Description/>}/>
-            <Route path="/scene/shape/" element={<SceneIntro blockType={BlockType.Space}/>}/>
+            <Route path="/scene/space/" element={<SceneIntro blockType={BlockType.Space}/>}/>
             <Route path="/scene/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
         </Routes>
     );

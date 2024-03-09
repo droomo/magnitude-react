@@ -1,7 +1,14 @@
 import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
 import {makeScene, webGlConfig} from './scene.lib';
-import {DELAY_TRIAL_START_MASK, floorNameList, getRandomElement, getTimestamp, wallNameList} from "../../const";
+import {
+    DELAY_TRIAL_START_MASK,
+    floorNameList, getFloorUrl,
+    getRandomElement,
+    getTimestamp,
+    getWallUrl,
+    wallNameList
+} from "../../const";
 
 export interface PropRoom {
     width: number;
@@ -26,6 +33,7 @@ export interface TypeRoomStat {
     camera_moved_fss: number,
     done_from_camera_moved_fss: number,
     floor: string,
+    ceiling: string,
     wall: string
 }
 
@@ -39,6 +47,7 @@ export default function SceneRoom(props: PropScene) {
         done_from_camera_moved_fss: -1,
         camera_moved_fss: -1,
         floor: "",
+        ceiling: "",
         wall: ""
     }).current
 
@@ -66,10 +75,24 @@ export default function SceneRoom(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        roomStat.floor = getRandomElement(floorNameList);
-        roomStat.wall = getRandomElement(wallNameList);
+        roomStat.floor = floorNameList[0];
+        roomStat.wall = wallNameList[0];
+        roomStat.ceiling = wallNameList[0];
 
-        const [scene,] = makeScene(room, roomStat.wall, roomStat.floor, renderer, camera, true);
+        const [scene,] = makeScene(room, {
+            wall: {
+                D: getWallUrl(roomStat.wall, 'D'),
+                N: getWallUrl(roomStat.wall, 'N'),
+            },
+            floor: {
+                D: getFloorUrl(roomStat.floor, 'D'),
+                N: getFloorUrl(roomStat.floor, 'N'),
+            },
+            ceiling: {
+                D: getWallUrl(roomStat.ceiling, 'D'),
+                N: getWallUrl(roomStat.ceiling, 'N'),
+            },
+        }, renderer, camera, true);
 
         let cameraMoved = -1;
 

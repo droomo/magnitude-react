@@ -216,8 +216,17 @@ export function loadFBXModel(pathModel: string, pathD: string, pathN: string, on
     )
 }
 
+interface WallShading {
+    D: string,
+    N: string,
+}
+
 export function makeScene(
-    room: PropRoom, wallName: string, floorName: string,
+    room: PropRoom, wall: {
+        wall: WallShading,
+        floor: WallShading,
+        ceiling: WallShading,
+    },
     renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera,
     isFormalTrial: boolean
 ): [THREE.Scene, THREE.Object3D[]] {
@@ -240,55 +249,62 @@ export function makeScene(
     const repeatBack = new Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
     const repeatLR = new Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
     const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
+    const repeatCeiling = new Vector2(repeatFloor.x, repeatFloor.y);
 
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
 
+    const exr_loader = new EXRLoader();
     loadThings(
-        [
-            material_map.wallExternalD,
-            material_map.wallExternalN,
-        ],
-        ([mapWE, normalWE]) => {
-            mapWE = mapWE as Texture;
-            normalWE = normalWE as Texture;
+        [wall.ceiling.D, wall.ceiling.N],
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
+            const textureCeiling = prepareTextures([map, normal], repeatCeiling);
+            const materialCeiling = makeMaterial(textureCeiling, wallMetalness, wallRoughness);
+            const wall4 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialCeiling);
+            walls.push(wall4);
+        },
+        exr_loader
+    );
+    loadThings(
+        [wall.wall.D, wall.wall.N],
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
+            const textureLR = prepareTextures([map, normal], repeatLR);
+            const textureBack = prepareTextures([map, normal], repeatBack);
+            const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
+            const materialBack = makeMaterial(textureBack, wallMetalness, wallRoughness);
+            const wall1 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
+            const wall2 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
+            const wall3 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
+            walls.push(wall1, wall2, wall3);
+        },
+        exr_loader
+    );
+    loadThings(
+        [wall.floor.D, wall.floor.N],
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
+            const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
+            const wall5 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+            walls.push(wall5);
+        },
+        exr_loader
+    );
 
-            if (isFormalTrial) {
-                const exr_loader = new EXRLoader();
-                loadThings(
-                    [getWallUrl(wallName, 'D'), getWallUrl(wallName, 'N'),],
-                    ([map, normal]) => {
-                        map = map as Texture;
-                        normal = normal as Texture;
+    if (!isFormalTrial) {
+        loadThings(
+            [
+                material_map.wallExternalD,
+                material_map.wallExternalN,
+            ],
+            ([mapWE, normalWE]) => {
+                mapWE = mapWE as Texture;
+                normalWE = normalWE as Texture;
 
-                        const textureLR = prepareTextures([map, normal], repeatLR);
-                        const textureBack = prepareTextures([map, normal], repeatBack);
-                        const textureFloor = prepareTextures([map, normal], repeatFloor);
-
-                        const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
-                        const materialBack = makeMaterial(textureBack, wallMetalness, wallRoughness);
-                        const materialFloor = makeMaterial(textureFloor, wallMetalness, wallRoughness);
-
-                        const wall1 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
-                        const wall2 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
-                        const wall3 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
-                        const wall4 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialFloor);
-                        walls.push(wall1, wall2, wall3, wall4);
-                    },
-                    exr_loader
-                );
-                loadThings(
-                    [getFloorUrl(floorName, 'D'), getFloorUrl(floorName, 'N'),],
-                    ([map, normal]) => {
-                        map = map as Texture;
-                        normal = normal as Texture;
-                        const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
-                        const wall5 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
-                        walls.push(wall5);
-                    },
-                    exr_loader
-                );
-            } else {
                 loadFBXModel(material_map.dadoModel, material_map.dadoD, material_map.dadoN, (dado, material) => {
                     dado.scale.set(.03, .01, .03);
 
@@ -364,10 +380,11 @@ export function makeScene(
                     makeMaterial(halfWallTTextures, wallMetalness, wallRoughness)
                 );
                 walls.push(walla1, walla2, walla3);
-            }
-        },
-        new EXRLoader()
-    )
+
+            },
+            new EXRLoader()
+        )
+    }
 
     return [scene, walls];
 }

@@ -48,7 +48,7 @@ export const getTimestamp = function () {
     return window.performance.now();
 }
 
-export const DELAY_TRIAL_START_MASK = 2300; // ms
+export const DELAY_TRIAL_START_MASK = 1500; // ms
 export const DELAY_INFORM_REACTION_TYPE = 1000; // ms
 export const DELAY_TRIAL_DONE = 1000; // ms
 
@@ -69,48 +69,48 @@ export const material_map = {
 }
 
 export const floorNameList = [
-    "T_Stained_Patterned_Floor_xephfh3_1K",
-    "T_Painted_Cast_In_Situ_Concrete_ve4gdealw_1K",
-    "T_Decorative_Stone_Wall_xblncfx_1K",
-    "T_Concrete_Pavement_xeohbekga_1K",
-    "T_Stucco_Facade_vftlabg_1K",
-    "T_Stucco_Facade_wbzlche_1K",
-    "T_Concrete_Floor_wjvnbhe_1K",
-    "T_Wooden_Floor_wdipfjw_1K",
-    "T_Plywood_vf1oairg_1K",
-    "T_Stucco_Facade_vlsmbe1_1K",
-    "T_Grassy_Soil_xbreair_1K",
-    "T_Weathered_Concrete_Wall_vi4idbm_1K",
-    "T_Slate_Floor_Tiles_wfribhq_1K",
     "T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K",
-    "T_Slate_Flooring_wfqhbdh_1K",
-    "T_Stucco_Facade_vhhleat_1K",
-    "T_Stucco_Facade_wb0ieba_1K",
-    "T_Damaged_Concrete_Floor_vizbefe_1K",
-    "T_Worn_Wooden_Planks_whnfbg3_1K",
-    "T_Construction_Rubble_xephfcjs_1K",
-    "T_Stucco_Facade_vjptaaf_1K",
-    "T_Stucco_Facade_vftkefk_1K",
-    "T_Wooden_Planks_wcboeghs_1K"
+    // "T_Concrete_Pavement_xeohbekga_1K",
+    // "T_Stucco_Facade_vftlabg_1K",
+    // "T_Slate_Flooring_wfqhbdh_1K", // 太重复
+    // "T_Stained_Patterned_Floor_xephfh3_1K", // too many repeat
+    // "T_Painted_Cast_In_Situ_Concrete_ve4gdealw_1K", // 太单调
+    // "T_Decorative_Stone_Wall_xblncfx_1K", // 横向条纹
+    // "T_Stucco_Facade_wbzlche_1K", // 太单调纯色
+    // "T_Concrete_Floor_wjvnbhe_1K", // 太花哨
+    // "T_Wooden_Floor_wdipfjw_1K", // 横向条纹
+    // "T_Plywood_vf1oairg_1K", // 摩尔纹
+    // "T_Stucco_Facade_vlsmbe1_1K", // 太单调纯色
+    // "T_Grassy_Soil_xbreair_1K", // 草地
+    // "T_Weathered_Concrete_Wall_vi4idbm_1K", // 太花哨
+    // "T_Slate_Floor_Tiles_wfribhq_1K", // 太花哨
+    // "T_Stucco_Facade_vhhleat_1K", // 太单调纯色
+    // "T_Stucco_Facade_wb0ieba_1K", // 太单调纯色
+    // "T_Damaged_Concrete_Floor_vizbefe_1K", // 太重复
+    // "T_Worn_Wooden_Planks_whnfbg3_1K", // 纵向条纹
+    // "T_Construction_Rubble_xephfcjs_1K", // 太重复
+    // "T_Stucco_Facade_vjptaaf_1K", // 太单调纯色
+    // "T_Stucco_Facade_vftkefk_1K", // 太单调纯色
+    // "T_Wooden_Planks_wcboeghs_1K" // 横向条纹
 ]
 
 export const wallNameList = [
-    "T_Brick_Wall_vhhkfjp_1K",
-    "T_Painted_Wall_Plaster_xevifcds_1K",
-    "T_Stucco_Wall_ve4meimcw_1K",
-    "T_Worn_Paint_Wall_vjyifds_1K",
-    "T_Stucco_Wall_vigrejf_1K",
-    "T_Brick_Wall_xbjeffk_1K",
-    "T_Decorative_Wall_Tiles_vlqvfdj_1K",
-    "T_Flagstone_Wall_vkmfaek_1K",
-    "T_Plaster_Wall_xepmej1ga_1K",
-    "T_Brick_Wall_xertbj1_1K",
-    "T_Stone_Wall_xblhejj_1K",
     "T_Painted_Wall_Plaster_xepkaecs_1K",
-    "T_Concrete_Wall_vjyifdc_1K",
-    "T_Cob_Wall_vkodejq_1K",
-    "T_Flaked_Paint_Wall_vhqkdfx_1K",
-    "T_Stone_Wall_xboicaz_1K"
+    "T_Stucco_Wall_vigrejf_1K",
+    "T_Stucco_Wall_ve4meimcw_1K",
+    "T_Brick_Wall_vhhkfjp_1K", // 砖头
+    "T_Painted_Wall_Plaster_xevifcds_1K",// 太重复
+    "T_Worn_Paint_Wall_vjyifds_1K", // 太重复
+    "T_Brick_Wall_xbjeffk_1K", // 砖头
+    "T_Decorative_Wall_Tiles_vlqvfdj_1K", // 岩石板
+    "T_Flagstone_Wall_vkmfaek_1K",// 岩石
+    "T_Plaster_Wall_xepmej1ga_1K", // 太重复
+    "T_Brick_Wall_xertbj1_1K", // 砖头
+    "T_Stone_Wall_xblhejj_1K",// 岩石板
+    "T_Concrete_Wall_vjyifdc_1K",// 太重复
+    "T_Cob_Wall_vkodejq_1K",// 太重复
+    "T_Flaked_Paint_Wall_vhqkdfx_1K",// 太重复
+    "T_Stone_Wall_xboicaz_1K"// 岩石板
 ]
 
 const exr_loader = new EXRLoader();
@@ -139,7 +139,7 @@ export function getWallUrl(name: string, type: string) {
 //         console.log(`{${texture.uuid}} ${material_name} loaded`);
 //     });
 // }
-
+//
 // const floor_url_list = [
 //     ...floorNameList.map(name => getFloorUrl(name, 'D')),
 //     ...floorNameList.map(name => getFloorUrl(name, 'N'))

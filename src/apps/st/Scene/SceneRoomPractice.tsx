@@ -10,7 +10,7 @@ import {
     loadFBXModel
 } from './scene.lib';
 import {PropRoom} from "./SceneRoom";
-import {floorNameList, getRandomElement, material_map, wallNameList} from "../../const";
+import {floorNameList, getFloorUrl, getRandomElement, getWallUrl, material_map, wallNameList} from "../../const";
 import {HelperText} from "../Page/HelperText";
 import {Vector3} from "three/src/math/Vector3";
 import {message} from "antd";
@@ -110,7 +110,21 @@ export default function SceneRoomPractice(props: {
 
         const renderer = new THREE.WebGLRenderer(webGlConfig);
 
-        const [scene, walls] = makeScene(room, getRandomElement(wallNameList), getRandomElement(floorNameList), renderer, camera, false);
+        const [scene, walls] = makeScene(
+            room, {
+                wall: {
+                    D: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                    N: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                },
+                floor: {
+                    D: getFloorUrl(floorNameList[0], 'D'),
+                    N: getFloorUrl(floorNameList[0], 'D'),
+                },
+                ceiling: {
+                    D: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                    N: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                },
+            }, renderer, camera, false);
 
         camera.position.set(0, eyeHeight, room.depth * 2);
         camera.lookAt(0, eyeHeight, 0);
