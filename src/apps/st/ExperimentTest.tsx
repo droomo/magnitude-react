@@ -18,7 +18,9 @@ export default function ExperimentTest(props: {
     const navigate = useNavigate();
 
     function requestTrial() {
-        axios.post(`${API.base_url}${page_data['api_make_test_trial']}`, {}, {
+        axios.post(`${API.base_url}${page_data['api_make_test_trial']}`, {
+            'reaction_type': props.blockType === BlockType.Space ? 'S' : 'T'
+        }, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken(),
