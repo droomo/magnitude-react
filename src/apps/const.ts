@@ -157,3 +157,5 @@ export enum BlockType {
     Space = 'space',
     Time = 'time'
 }
+
+export const DEBUG = window.location.search.toLowerCase().includes('debug')

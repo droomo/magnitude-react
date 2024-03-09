@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {API, BlockType, getCsrfToken, page_data} from "../const";
-import {TrialData, TrialProcess} from "./Trial";
+import Trial, {TrialData} from "./Trial";
 import PageMask from "./Page/PageMask";
 import classes from "./css/exp.module.scss";
 import {useNavigate} from "react-router-dom";
@@ -34,7 +34,7 @@ export default function ExperimentTest(props: {
 
     return <>
         {trialDataList.length > 0 &&
-            <TrialProcess
+            <Trial
                 trial={trialDataList[currentIndex]}
                 done={() => {
                     if (currentIndex + 1 === trialDataList.length) {

@@ -2,10 +2,23 @@ import React, {useEffect} from "react";
 import Trial, {TrialData} from "./Trial";
 import classes from "./css/exp.module.scss";
 import axios from "axios";
-import {API, page_data} from "../const";
+import {API, DEBUG, page_data} from "../const";
 import PageMask from "./Page/PageMask";
 
 const trial_api = `${API.base_url}${page_data['api_trial']}`
+
+function Pause(props: {
+    done: () => void
+}) {
+    const [canDone, setCanDone] = React.useState(false);
+    setTimeout(() => {
+        setCanDone(true);
+    }, DEBUG ? 3 : 60 * 1000)
+    return canDone ? <PageMask text={<div>
+        <p>请继续实验</p>
+        <span className={classes.fakeButton} onClick={props.done}>继续试验</span>
+    </div>}/> : <PageMask text={'请休息1分钟'}/>
+}
 
 export default function Experiment() {
 
@@ -14,20 +27,30 @@ export default function Experiment() {
     const [currentIndex, setCurrentIndex] = React.useState(0);
     const [startedIndex, setStartedIndex] = React.useState(0);
     const [isDone, setIsDone] = React.useState(false);
+    const [breakTimes, setBreakTimes] = React.useState(0);
+
+    const [isBreak, setIsBreak] = React.useState(false);
 
     useEffect(() => {
         axios.get(trial_api).then(response => {
             const data = response.data.data;
             setTrialDataList(data.trials);
             setCurrentIndex(data.last_trial_index);
+            setBreakTimes(data.break_times);
         })
     }, []);
 
-    return trialDataList.length > 0 ? <Trial
+    return trialDataList.length > 0 ? isBreak ? <Pause done={() => {
+        setIsBreak(false);
+        setCurrentIndex(i => i + 1)
+        setStartedIndex(i => i + 1)
+    }}/> : <Trial
         trial={trialDataList[currentIndex]}
         done={() => {
             if (currentIndex + 1 === trialDataList.length) {
                 setIsDone(true);
+            } else if ((currentIndex + 1) % breakTimes === 0) {
+                setIsBreak(true);
             } else {
                 setCurrentIndex(i => i + 1)
                 setStartedIndex(i => i + 1)

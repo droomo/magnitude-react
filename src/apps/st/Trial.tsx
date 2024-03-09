@@ -44,7 +44,7 @@ function ControlledScene(props: {
     />
 }
 
-export function TrialProcess(props: {
+export default function Trial(props: {
     trial: TrialData,
     done: () => void,
     startedIndex: number,
@@ -118,23 +118,4 @@ function Reaction(props: {
     return props.trial.reaction_type === 'S' ?
         <SceneShapeRadius done={doneAction}/> :
         <PageTimeCounter done={doneAction}/>
-}
-
-
-export default function Trial(props: {
-    trial: TrialData,
-    done: () => void,
-    startedIndex: number
-}) {
-    return (() => {
-        switch (props.trial.reaction_type) {
-            case 'T':
-            case 'S':
-                return <TrialProcess {...props}/>
-            case 'P':
-                return <div>Pause</div>
-            default:
-                return <div>404</div>
-        }
-    })();
 }
