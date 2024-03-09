@@ -1,9 +1,9 @@
-import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
+import {Route, Routes, useNavigate} from "react-router-dom";
 import React, {useEffect} from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
-import {API, api_subject, BlockType, getCsrfToken, page_data} from "../const";
+import {API, BlockType, getCsrfToken, page_data} from "../const";
 import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
 import axios from "axios";
 
@@ -126,7 +126,7 @@ function SceneIntro(props: {
                 }
             })
         }}
-        room={{width: 10, height: 10, depth: 10, wall: 1, ground: 1, duration: 10000}}
+        room={{width: 10.4, height: 5, depth: 10, wall: 1, ground: 1, duration: 10000}}
     />
 }
 

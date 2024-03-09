@@ -234,7 +234,7 @@ export function makeScene(
 
     // 墙壁
     const wallHeight = room.height;
-    const wallWidth = isFormalTrial ? room.width : 10.3;
+    const wallWidth = room.width;
     const wallDepth = room.depth;
 
     const repeatTimes = 5;
