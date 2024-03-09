@@ -1,7 +1,6 @@
-import React, {useEffect, useLayoutEffect, useState} from "react";
+import React, {useLayoutEffect, useState} from "react";
 import {
     API,
-    DELAY_INFORM_REACTION_TYPE,
     DELAY_TRIAL_DONE,
     DELAY_TRIAL_START_MASK,
     getCsrfToken,
@@ -10,9 +9,7 @@ import {
 import SceneRoom, {TypeRoomStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import PageTimeCounter from "./Scene/PageTimeCounter";
-import classes from "./css/exp.module.scss";
 import axios from "axios";
-import PageMask from "./Page/PageMask";
 
 export interface TrialData {
     reaction_type: string
