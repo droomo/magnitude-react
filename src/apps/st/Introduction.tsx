@@ -1,9 +1,9 @@
 import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
-import React from "react";
+import React, {useEffect} from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
-import {API, BlockType, getCsrfToken, page_data} from "../const";
+import {API, api_subject, BlockType, getCsrfToken, page_data} from "../const";
 import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
 import axios from "axios";
 
@@ -93,9 +93,9 @@ function Description(props: {
                     cursor: 'pointer'
                 }}
                 onClick={() => {
-                    navigate('/st/')
+                    navigate('/st/intro/');
                 }}
-            >直接开始实验</span>
+            >切换</span>
         </div>}
     />
 }
@@ -131,12 +131,25 @@ function SceneIntro(props: {
 }
 
 function Introduction() {
-    const location = useLocation()
-    const firstTrialType = location.state ? location.state.firstTrialType : BlockType.Space;
+    const [firstTrialType, setFirstTrialType] = React.useState<BlockType | undefined | null>();
+
+    useEffect(() => {
+        axios.get(`${API.base_url}${page_data['api_first_reaction_type']}`).then(response => {
+            if (response.data.first_reaction_type === null) {
+                setFirstTrialType(null);
+            } else {
+                setFirstTrialType(response.data.first_reaction_type === 'S' ? BlockType.Space : BlockType.Time);
+            }
+        });
+    }, [])
 
     return (
         <Routes>
-            <Route path="/" element={<Description testTrialType={firstTrialType}/>}/>
+            <Route path="/" element={firstTrialType !== undefined && (firstTrialType === null ?
+                <PageMask text={<>
+                    <p>被试已完成实验</p>
+                    <a href="/st/logout/" style={{color: "white"}}>开始新用户</a>
+                </>}/> : <Description testTrialType={firstTrialType}/>)}/>
             <Route path="/space/" element={<SceneIntro blockType={BlockType.Space}/>}/>
             <Route path="/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
         </Routes>

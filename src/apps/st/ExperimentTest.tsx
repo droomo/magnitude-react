@@ -26,9 +26,14 @@ export default function ExperimentTest(props: {
                 'X-CSRFToken': getCsrfToken(),
             },
         }).then(response => {
-            const data: { trials: TrialData[] } = response.data.data;
+            const data: {
+                trials: TrialData[],
+                last_trial_index: number
+            } = response.data.data;
             data.trials[0].room_duration = 6000;
             setTrialDataList(data.trials);
+            setCurrentIndex(data.last_trial_index);
+            setStartedIndex(0);
         })
     }
 
@@ -38,10 +43,10 @@ export default function ExperimentTest(props: {
                 trial={trialDataList[currentIndex]}
                 done={() => {
                     if (currentIndex + 1 === trialDataList.length) {
-                        setTrialDataList([])
+                        setTrialDataList([]);
                     }
-                    setCurrentIndex(i => i + 1)
-                    setStartedIndex(i => i + 1)
+                    setCurrentIndex(i => i + 1);
+                    setStartedIndex(i => i + 1);
                 }}
                 startedIndex={startedIndex}
                 helperText={props.blockType === BlockType.Space ?

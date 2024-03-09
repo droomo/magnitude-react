@@ -27,6 +27,8 @@ const page_data_doc = document.getElementById('page_data');
 const page_data_str = page_data_doc?.innerText || '{}';
 export const page_data = JSON.parse(page_data_str);
 
+export const api_subject = `${API.base_url}${page_data['api_subject']}`
+
 export function getCsrfToken() {
     return getCookie('csrftoken')
 }

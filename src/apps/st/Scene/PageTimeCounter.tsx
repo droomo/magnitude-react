@@ -71,7 +71,7 @@ export default function PageTimeCounter(props: {
         setTimeout(() => {
             timeCounter.prep_disappear_date = new Date().getTime()
             setShowingPreparation(false)
-        }, DEBUG ? 100 : 1000)
+        }, DEBUG ? 10 : 1000)
     }, []);
 
     return done ? <PageMask/> : <div className={classes.timeCounter}>

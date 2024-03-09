@@ -97,7 +97,7 @@ export default function SceneRoom(props: PropScene) {
 
         let cameraMoved = -1;
 
-        const duration = DEBUG ? 500 : room.duration;
+        const duration = DEBUG ? 10 : room.duration;
 
         function check() {
             const now = getTimestamp();
