@@ -48,7 +48,7 @@ export const getTimestamp = function () {
     return window.performance.now();
 }
 
-export const DELAY_TRIAL_START_MASK = 300; // ms
+export const DELAY_TRIAL_START_MASK = 2300; // ms
 export const DELAY_INFORM_REACTION_TYPE = 1000; // ms
 export const DELAY_TRIAL_DONE = 1000; // ms
 
@@ -134,11 +134,11 @@ export function getWallUrl(name: string, type: string) {
     return `${TEXTURE_BASE}/wall/internal/${name}_${type}.EXR`
 }
 
-for (const material_name of Object.values(material_map)) {
-    loader_selector(material_name).load(material_name, function (texture) {
-        console.log(`{${texture.uuid}} ${material_name} loaded`);
-    });
-}
+// for (const material_name of Object.values(material_map)) {
+//     loader_selector(material_name).load(material_name, function (texture) {
+//         console.log(`{${texture.uuid}} ${material_name} loaded`);
+//     });
+// }
 
 // const floor_url_list = [
 //     ...floorNameList.map(name => getFloorUrl(name, 'D')),
@@ -157,4 +157,9 @@ for (const material_name of Object.values(material_map)) {
 export function getRandomElement(arr: string[]) {
     const randomIndex = Math.floor(Math.random() * arr.length);
     return arr[randomIndex];
+}
+
+export enum BlockType {
+    Space = 'space',
+    Time = 'time'
 }

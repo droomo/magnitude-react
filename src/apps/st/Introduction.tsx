@@ -3,7 +3,7 @@ import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
 import {Col, Row} from "antd";
-import {API, getCsrfToken, page_data} from "../const";
+import {API, BlockType, getCsrfToken, page_data} from "../const";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
 import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
 import PageTimeCounter from "./Scene/PageTimeCounter";
@@ -139,7 +139,7 @@ function Description() {
 }
 
 function SceneIntro(props: {
-    blockType: string
+    blockType: BlockType
 }) {
     const navigate = useNavigate();
 
@@ -153,9 +153,9 @@ function SceneIntro(props: {
             }).then(response => {
                 if (response.data.status === 200) {
                     if (props.blockType === 'time') {
-                        navigate('/st/intro/time/')
+                        navigate('/st/test/time/')
                     } else if (props.blockType === 'space') {
-                        navigate('/st/intro/shape/')
+                        navigate('/st/test/space/')
                     }
                 } else {
                     alert('error')
@@ -166,113 +166,12 @@ function SceneIntro(props: {
     />
 }
 
-function LeaningControl() {
-    const navigate = useNavigate();
-
-    return <div className={classes.screen} style={{cursor: 'default'}}>
-        <div className={classes.content}>
-            <p className={classes.descriptionText}>请复现空间/时距</p>
-            <p style={{
-                lineHeight: '2',
-                fontSize: '2rem'
-            }}>现在正处在游戏指引阶段<br/>在正式实验中，将直接进入复现阶段，不需要选择复现种类</p>
-            <div>
-                <span
-                    style={{
-                        border: "1px solid #ccc",
-                        marginRight: '2rem'
-                    }}
-                    onClick={() => {
-                        navigate('/st/intro/shape/')
-                    }}
-                    className={classes.fakeButton}
-                >复现空间</span>
-                <span
-                    style={{
-                        border: "1px solid #ccc",
-                        marginLeft: '2rem'
-                    }}
-                    onClick={() => {
-                        navigate('/st/intro/time/')
-                    }}
-                    className={classes.fakeButton}
-                >复现时距</span>
-            </div>
-            <div style={{
-                marginTop: '4rem'
-            }}>
-                    <span
-                        onClick={() => {
-                            navigate('/st/intro/scene/', {state: {stageState: 1}})
-                        }}
-                        className={classes.fakeButton}
-                    >重新进入体验阶段</span>
-            </div>
-            <div style={{
-                marginTop: '2rem'
-            }}>
-                    <span
-                        onClick={() => {
-                            navigate('/st/test/', {state: {stageState: 1}})
-                        }}
-                        className={classes.fakeButton}
-                    >已经学会操作了，进入练习</span>
-            </div>
-        </div>
-    </div>
-}
-
-function ShapeIntro() {
-    const navigate = useNavigate();
-    return <>
-        <HelperText>
-            <p>请复现空间</p>
-            <p>请使用鼠标滚轮控制多面体的体积</p>
-            <p>尽可能反应你在体验阶段感受到的房间体积</p>
-            <p>不要求精确还原</p>
-            <p>反应你的主观体验即可</p>
-            <br/>
-            <p>完成后，点击下方的“完成”按钮</p>
-        </HelperText>
-        <SceneShapeRadius
-            isStagePrepared={false}
-            done={() => {
-                navigate('/st/intro/control/')
-            }}
-        />
-    </>
-}
-
-function TimeIntro() {
-    const navigate = useNavigate();
-    return <>
-        <HelperText>
-            <p>请复现时距</p>
-            <p>尽可能反应你在体验阶段感受到的房间时长</p>
-            <p>不要求精确还原</p>
-            <p>反应你的主观体验即可</p>
-            <p>显示准备后请做好准备</p>
-            <p>屏幕中间出现<strong style={{fontSize: '5rem'}}>+</strong>时开始计时</p>
-            <p>当达到在体验阶段相同的时距后点击鼠标左键</p>
-        </HelperText>
-        <PageTimeCounter
-            done={() => {
-                navigate('/st/intro/control/')
-            }}
-            shouldStart={true}
-        />
-    </>
-}
-
 function Introduction() {
     return (
         <Routes>
             <Route path="/" element={<Description/>}/>
-            <Route path="/control/" element={<LeaningControl/>}/>
-            <Route path="/scene/shape/" element={<SceneIntro blockType={'shape'}/>}/>
-            <Route path="/scene/time/" element={<SceneIntro blockType={'time'}/>}/>
-            <Route path="/shape/" element={<ShapeIntro/>}/>
-            <Route path="/time/" element={<TimeIntro/>}/>
+            <Route path="/scene/shape/" element={<SceneIntro blockType={BlockType.Space}/>}/>
+            <Route path="/scene/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
         </Routes>
     );
 }

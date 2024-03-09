@@ -17,7 +17,7 @@ export default function Experiment() {
 
     useEffect(() => {
         axios.get(trial_api).then(response => {
-            const data = response.data.data
+            const data = response.data.data;
             setTrialDataList(data.trials);
             setCurrentIndex(data.last_trial_index);
         })

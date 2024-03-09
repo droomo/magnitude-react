@@ -47,7 +47,6 @@ function StageDetection(props: {
 
 export default function PageTimeCounter(props: {
     done: (timeCounter: TypeTimeCounter) => void,
-    shouldStart: boolean
 }) {
     const timeCounter = useRef<TypeTimeCounter>({
         prep_disappear_date: -1,
@@ -62,13 +61,11 @@ export default function PageTimeCounter(props: {
     const [done, setDone] = useState(false);
 
     useLayoutEffect(() => {
-        if (props.shouldStart) {
-            setTimeout(() => {
-                timeCounter.prep_disappear_date = new Date().getTime()
-                setShowingPreparation(false)
-            }, 1000)
-        }
-    }, [props.shouldStart]);
+        setTimeout(() => {
+            timeCounter.prep_disappear_date = new Date().getTime()
+            setShowingPreparation(false)
+        }, 1000)
+    }, []);
 
     return done ? <PageMask/> : <div className={classes.timeCounter}>
         {showingPreparation ? <StagePreparation/> : <StageDetection

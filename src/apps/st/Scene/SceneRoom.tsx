@@ -1,9 +1,7 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
-import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig, eyeHeight} from './scene.lib';
+import {makeScene, webGlConfig} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, floorNameList, getRandomElement, getTimestamp, wallNameList} from "../../const";
-import PageMask from "../Page/PageMask";
-import classes from "../css/exp.module.scss";
 
 export interface PropRoom {
     width: number;
@@ -20,10 +18,13 @@ export interface PropScene {
     startedIndex: number,
 }
 
+const FRAME = 1000 / 60;
+
 export interface TypeRoomStat {
-    door_opened: number,
-    camera_moved: number,
-    done_from_camera_moved: number,
+    stage_started_date: number,
+    stage_started: number,
+    camera_moved_fss: number,
+    done_from_camera_moved_fss: number,
     floor: string,
     wall: string
 }
@@ -32,54 +33,33 @@ export default function SceneRoom(props: PropScene) {
     const room = props.room;
 
     const divRef = useRef<HTMLDivElement>(null);
-    const doorOpened = useRef(false);
     const roomStat = useRef<TypeRoomStat>({
-        door_opened: -1,
-        camera_moved: -1,
-        done_from_camera_moved: -1,
+        stage_started_date: -1,
+        stage_started: -1,
+        done_from_camera_moved_fss: -1,
+        camera_moved_fss: -1,
         floor: "",
         wall: ""
     }).current
-    const [mask, setMask] = React.useState(true);
-
-    const lastAnimationID = useRef(0);
-
-    const renderer = useMemo(() => {
-        return new THREE.WebGLRenderer(webGlConfig);
-    }, [])
 
     useEffect(() => {
-        setTimeout(() => {
-            setMask(false)
-        }, DELAY_TRIAL_START_MASK)
+        roomStat.stage_started_date = new Date().getTime();
+        roomStat.stage_started = getTimestamp();
+
+        const renderer = new THREE.WebGLRenderer(webGlConfig);
+
+        renderer.setClearColor(new THREE.Color(0xEEEEEE));
+
+        divRef.current!.appendChild(renderer.domElement);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        camera.position.set(0, eyeHeight, props.room.depth / 2 + 4);
-        camera.lookAt(0, eyeHeight, 0);
 
-        function onDoorOpen() {
-            doorOpened.current = true;
-            roomStat.door_opened = getTimestamp();
-            camera.position.set(0, room.height / 2, room.depth / 2);
-            camera.lookAt(0, room.height / 2, 0);
-
-            roomStat.camera_moved = getTimestamp();
-            cancelAnimationFrame(lastAnimationID.current);
-            setTimeout(() => {
-                while (true) {
-                    if (room.duration + roomStat.camera_moved < getTimestamp()) {
-                        roomStat.done_from_camera_moved = getTimestamp() - roomStat.camera_moved
-                        roomStat.camera_moved -= roomStat.door_opened
-                        roomStat.door_opened -= roomStat.door_opened
-                        props.done(roomStat)
-                        break;
-                    }
-                }
-            }, 0)
+        function setBlackCamera() {
+            camera.position.set(0, -100, 0);
+            camera.lookAt(0, -100, 0);
         }
 
-        const clock = new THREE.Clock();
-        const [door, handleDoor] = makeDoor(room, onDoorOpen);
+        setBlackCamera();
 
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -90,35 +70,33 @@ export default function SceneRoom(props: PropScene) {
         roomStat.wall = getRandomElement(wallNameList);
 
         const [scene,] = makeScene(room, roomStat.wall, roomStat.floor, renderer, camera, true);
-        scene.add(door);
 
-        function onWindowResize() {
-            camera.position.set(0, room.height / 2, room.depth / 2);
-            camera.lookAt(0, room.height / 2, 0);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            render();
+        let cameraMoved = -1;
+
+        function check() {
+            const now = getTimestamp();
+
+            if (cameraMoved > -1 && (room.duration + cameraMoved < now + FRAME * 0.5)) {
+                setBlackCamera();
+                roomStat.camera_moved_fss = cameraMoved - roomStat.stage_started;
+                roomStat.done_from_camera_moved_fss = now - cameraMoved;
+                props.done(roomStat);
+                return
+            }
+            if (now - roomStat.stage_started > DELAY_TRIAL_START_MASK - FRAME * 1.01) {
+                if (cameraMoved === -1) {
+                    cameraMoved = now;
+                    camera.position.set(0, room.height / 2, room.depth / 2);
+                    camera.lookAt(0, room.height / 2, 0);
+                    renderer.render(scene, camera);
+                }
+            }
+            requestAnimationFrame(check);
         }
 
-        function render() {
-            renderer.render(scene, camera);
-        }
-
-        function animate() {
-            // console.log('aniing')
-            lastAnimationID.current = requestAnimationFrame(animate);
-            handleDoor(clock);
-            render();
-        }
-
-        window.addEventListener('resize', onWindowResize);
-
-        divRef.current?.appendChild(renderer.domElement);
-        animate();
+        check();
 
         return () => {
-            window.removeEventListener('resize', onWindowResize);
             console.log('Requested force context loss');
             renderer.forceContextLoss();
             renderer.domElement.remove();
@@ -126,11 +104,8 @@ export default function SceneRoom(props: PropScene) {
     }, [])
 
     return (
-        <>{
-            mask && <div style={{cursor: 'none'}} className={classes.mask}>
-                <PageMask text={props.startedIndex === 0 ? 'Loading...' : '已完成'}/>
-            </div>}
-            <div style={{cursor: 'none'}} ref={divRef}/>
-        </>
+        <div>
+            <div ref={divRef}/>
+        </div>
     );
 }

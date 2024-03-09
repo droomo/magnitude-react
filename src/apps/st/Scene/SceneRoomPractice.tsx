@@ -50,6 +50,7 @@ export default function SceneRoomPractice(props: {
     const lastAnimationID = useRef(0);
     const stats = useRef(new Stats()).current;
     const [stage, setStage] = React.useState(0);
+    const isDoorOpened = useRef<boolean>(false);
 
     const record: TypeExploringRecord = {end_date: 0, key_pressed: '', start_date: 0}
 
@@ -76,10 +77,11 @@ export default function SceneRoomPractice(props: {
                     movingDirection = 4;
                     break;
                 case 'e':
-                    record.end_date = new Date().getTime();
-                    props.done(record);
-                    if (camera.position.y === room.height / 2) {
+                    console.log('eee')
+                    console.log(isDoorOpened.current)
+                    if (isDoorOpened.current) {
                         record.end_date = new Date().getTime();
+                        console.log(record);
                         props.done(record);
                     } else if (camera.position.distanceTo(new Vector3(...bookPosition)) < 3) {
                         if (book !== undefined && book !== 2) {
@@ -106,7 +108,7 @@ export default function SceneRoomPractice(props: {
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
 
-        const renderer = new THREE.WebGLRenderer(webGlConfig)
+        const renderer = new THREE.WebGLRenderer(webGlConfig);
 
         const [scene, walls] = makeScene(room, getRandomElement(wallNameList), getRandomElement(floorNameList), renderer, camera, false);
 
@@ -121,6 +123,7 @@ export default function SceneRoomPractice(props: {
             cancelAnimationFrame(lastAnimationID.current);
             stats.dom.remove();
             setStage(2);
+            isDoorOpened.current = true;
         }
 
         const clock = new THREE.Clock();
@@ -201,14 +204,6 @@ export default function SceneRoomPractice(props: {
                         style={{color: 'red'}}>“前左后右”</strong>，按<strong
                         style={{color: 'red'}}>“E”</strong>键捡拾物品或开门</p>
                     <p>请捡起地上的书，然后进入房间</p>
-                </>}
-                {stage === 2 && <>
-                    <p>恭喜你已经成功进入房间</p>
-                    <p>接下来进入实验环节</p>
-                    <p>请观察现在你所处的空间，并<strong style={{color: 'red'}}>感受空间大小</strong></p>
-                    <p>稍后<strong style={{color: 'red'}}>需要你还原这个房间的大小</strong></p>
-                    <p></p>
-                    <p>准备好了请按E继续</p>
                 </>}
             </HelperText>
             <div ref={divRef}/>

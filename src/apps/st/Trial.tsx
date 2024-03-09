@@ -50,7 +50,11 @@ function ControlledScene(props: {
 export function TrialProcess(props: {
     trial: TrialData,
     done: () => void,
-    startedIndex: number
+    startedIndex: number,
+    helperText?: {
+        scene?: React.ReactElement,
+        reaction?: React.ReactElement,
+    }
 }) {
     const [sceneStage, setSceneStage] = useState<boolean>(true);
 
@@ -77,28 +81,20 @@ export function TrialProcess(props: {
         })
     }
     return sceneStage ?
-        <ControlledScene trial={props.trial} done={sceneDoneAction} startedIndex={props.startedIndex}/> :
-        <Reaction trial={props.trial} done={props.done}/>
-}
-
-const reactionNameMap = {
-    'S': '空间',
-    'T': '时距',
+        <>
+            {props.helperText && props.helperText.scene && props.helperText.scene}
+            <ControlledScene trial={props.trial} done={sceneDoneAction} startedIndex={props.startedIndex}/>
+        </> :
+        <>
+            {props.helperText && props.helperText.reaction && props.helperText.reaction}
+            <Reaction trial={props.trial} done={props.done}/>
+        </>
 }
 
 function Reaction(props: {
     trial: TrialData,
     done: () => void
 }) {
-    const name = reactionNameMap[props.trial.reaction_type as keyof typeof reactionNameMap]
-    const [isStagePrepared, setIsStagePrepared] = useState<boolean>(true)
-
-    useEffect(() => {
-        setTimeout(() => {
-            setIsStagePrepared(false)
-        }, DELAY_INFORM_REACTION_TYPE)
-    }, []);
-
     const doneAction = (result: any) => {
         const doneDate = new Date().getTime();
         axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
@@ -122,11 +118,9 @@ function Reaction(props: {
             alert('error happened 44')
         })
     }
-    return <>{isStagePrepared && <div className={classes.mask}><PageMask text={`请估计${name}`}/></div>}
-        {props.trial.reaction_type === 'S' ?
-            <SceneShapeRadius done={doneAction} isStagePrepared={isStagePrepared}/> :
-            <PageTimeCounter shouldStart={!isStagePrepared} done={doneAction}/>}
-    </>
+    return props.trial.reaction_type === 'S' ?
+        <SceneShapeRadius done={doneAction}/> :
+        <PageTimeCounter done={doneAction}/>
 }
 
 
