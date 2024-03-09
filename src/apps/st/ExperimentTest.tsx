@@ -27,7 +27,7 @@ export default function ExperimentTest(props: {
             },
         }).then(response => {
             const data: { trials: TrialData[] } = response.data.data;
-            // data.trials[0].room_duration = 10000;
+            data.trials[0].room_duration = 6000;
             setTrialDataList(data.trials);
         })
     }
@@ -54,8 +54,6 @@ export default function ExperimentTest(props: {
                             <p>请复现空间</p>
                             <p>请使用鼠标滚轮控制多面体的体积</p>
                             <p>尽可能反应你在体验阶段感受到的房间体积</p>
-                            <p>不要求精确还原</p>
-                            <p>反应你的主观体验即可</p>
                             <br/>
                             <p>完成后，点击下方的“完成”按钮</p>
                         </HelperText> : undefined
@@ -65,12 +63,9 @@ export default function ExperimentTest(props: {
                             <p>稍后<strong style={{color: 'red'}}>需要你还原在这个房间所经历的时间</strong></p>
                         </HelperText> : undefined,
                         reaction: currentIndex < 3 ? <HelperText>
-                            <p>请复现时距</p>
-                            <p>尽可能反应你在体验阶段感受到的房间时长</p>
-                            <p>不要求精确还原</p>
-                            <p>反应你的主观体验即可</p>
+                            <p>请复现时距，尽可能反应你在体验阶段感受到的房间时长</p>
                             <p>显示准备后请做好准备</p>
-                            <p>屏幕中间出现<strong style={{fontSize: '5rem'}}>+</strong>时开始计时</p>
+                            <p>出现<strong style={{fontSize: '5rem'}}>+</strong>时开始计时</p>
                             <p>当达到在体验阶段相同的时距后点击鼠标左键</p>
                         </HelperText> : undefined
                     }

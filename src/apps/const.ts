@@ -159,3 +159,9 @@ export enum BlockType {
 }
 
 export const DEBUG = window.location.search.toLowerCase().includes('debug')
+
+for (const material_name of Object.values(material_map)) {
+    loader_selector(material_name).load(material_name, function (texture) {
+        console.log(`{${texture.uuid}} ${material_name} loaded`);
+    });
+}

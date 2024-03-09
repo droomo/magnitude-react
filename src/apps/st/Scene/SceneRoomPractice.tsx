@@ -47,9 +47,7 @@ export default function SceneRoomPractice(props: {
 }) {
     const room = props.room;
     const divRef = useRef<HTMLDivElement>(null);
-    const lastAnimationID = useRef(0);
     const stats = useRef(new Stats()).current;
-    const [stage, setStage] = React.useState(0);
     const isDoorOpened = useRef<boolean>(false);
 
     const record: TypeExploringRecord = {end_date: 0, key_pressed: '', start_date: 0}
@@ -77,13 +75,7 @@ export default function SceneRoomPractice(props: {
                     movingDirection = 4;
                     break;
                 case 'e':
-                    console.log('eee')
-                    console.log(isDoorOpened.current)
-                    if (isDoorOpened.current) {
-                        record.end_date = new Date().getTime();
-                        console.log(record);
-                        props.done(record);
-                    } else if (camera.position.distanceTo(new Vector3(...bookPosition)) < 3) {
+                    if (camera.position.distanceTo(new Vector3(...bookPosition)) < 3) {
                         if (book !== undefined && book !== 2) {
                             scene.remove(book);
                             book = 2;
@@ -131,12 +123,9 @@ export default function SceneRoomPractice(props: {
         const bookPosition: [number, number, number] = [-room.width, 0, room.depth * 0.9];
 
         function onDoorOpen() {
-            camera.position.set(0, room.height / 2, room.depth / 2 + 1);
-            camera.lookAt(0, room.height / 2, 0);
-            cancelAnimationFrame(lastAnimationID.current);
-            stats.dom.remove();
-            setStage(2);
+            record.end_date = new Date().getTime();
             isDoorOpened.current = true;
+            props.done(record);
         }
 
         const clock = new THREE.Clock();
@@ -169,27 +158,22 @@ export default function SceneRoomPractice(props: {
             }
         );
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            render();
-        }
 
         function render() {
             renderer.render(scene, camera);
         }
 
         function animate() {
+            if (isDoorOpened.current) {
+                return;
+            }
             updateDoor(clock);
-            lastAnimationID.current = requestAnimationFrame(animate);
+            requestAnimationFrame(animate);
             moveCamera(camera, raycaster, movingDirection, moveSpeed, walls);
             stats.begin();
             stats.end();
             render();
         }
-
-        window.addEventListener('resize', onWindowResize);
 
         stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 
@@ -200,7 +184,6 @@ export default function SceneRoomPractice(props: {
         return () => {
             window.removeEventListener('keydown', onKeyDown);
             window.removeEventListener('keyup', onKeyUp);
-            window.removeEventListener('resize', onWindowResize);
             renderer.forceContextLoss();
             console.log('Requested force context loss');
             renderer.domElement.remove();
@@ -210,14 +193,12 @@ export default function SceneRoomPractice(props: {
     return (
         <>
             <HelperText>
-                {stage === 0 && <>
-                    <p>请想象你正以第一人称视角处于游戏环境中</p>
-                    <p>游戏的操作同多数电脑游戏一致</p>
-                    <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向<strong
-                        style={{color: 'red'}}>“前左后右”</strong>，按<strong
-                        style={{color: 'red'}}>“E”</strong>键捡拾物品或开门</p>
-                    <p>请捡起地上的书，然后进入房间</p>
-                </>}
+                <p>请想象你正以第一人称视角处于游戏环境中</p>
+                <p>游戏的操作同多数电脑游戏一致</p>
+                <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向<strong
+                    style={{color: 'red'}}>“前左后右”</strong>，按<strong
+                    style={{color: 'red'}}>“E”</strong>键捡拾物品或开门</p>
+                <p>请捡起地上的书，然后进入房间</p>
             </HelperText>
             <div ref={divRef}/>
         </>

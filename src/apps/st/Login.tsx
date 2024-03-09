@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import {Form, Input, Button, Select, InputNumber, message, Row, Col} from 'antd';
 import {UserOutlined, PhoneOutlined} from '@ant-design/icons';
-import {API, getCsrfToken, page_data} from "../const";
+import {API, BlockType, getCsrfToken, page_data} from "../const";
 import {useNavigate} from "react-router-dom";
 
 
@@ -29,9 +29,15 @@ const SubjectForm: React.FC = () => {
                 'X-CSRFToken': getCsrfToken(),
             },
         })
-            .then(() => {
+            .then((resp) => {
+                const data = resp.data;
                 localStorage.setItem('username', values.name);
-                navigate('/st/intro/');
+
+                navigate('/st/intro/', {
+                    state: {
+                        firstTrialType: data.first_trial_reaction_type === 'S' ? BlockType.Space : BlockType.Time
+                    }
+                });
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);
@@ -51,7 +57,13 @@ const SubjectForm: React.FC = () => {
     }
 
     return (
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            backgroundColor: '#ffffff'
+        }}>
             <Row justify="center" style={{width: '100vw', marginTop: '-20px'}}>
                 <Col xs={24} sm={16} md={14} lg={10} xl={7}>
                     <Form

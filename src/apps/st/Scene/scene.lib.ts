@@ -40,11 +40,7 @@ export function loadThings(
 
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
-
     const roomSize = room.depth * room.width * room.height;
-
-    console.log(Math.pow(roomSize, 1 / 3))
-
     const roomLight = new THREE.PointLight(0xffffff, 2, Math.pow(roomSize, 1 / 3) * 2, 0.4);
     roomLight.position.set(0, doorHeight * 0.8, 0);
     scene.add(roomLight);
@@ -404,27 +400,21 @@ function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE
         exposure: renderer.toneMappingExposure
     };
 
-    function guiChanged() {
+    const uniforms = sky.material.uniforms;
+    uniforms['turbidity'].value = effectController.turbidity;
+    uniforms['rayleigh'].value = effectController.rayleigh;
+    uniforms['mieCoefficient'].value = effectController.mieCoefficient;
+    uniforms['mieDirectionalG'].value = effectController.mieDirectionalG;
 
-        const uniforms = sky.material.uniforms;
-        uniforms['turbidity'].value = effectController.turbidity;
-        uniforms['rayleigh'].value = effectController.rayleigh;
-        uniforms['mieCoefficient'].value = effectController.mieCoefficient;
-        uniforms['mieDirectionalG'].value = effectController.mieDirectionalG;
+    const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
+    const theta = THREE.MathUtils.degToRad(effectController.azimuth);
 
-        const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
-        const theta = THREE.MathUtils.degToRad(effectController.azimuth);
+    sun.setFromSphericalCoords(1, phi, theta);
 
-        sun.setFromSphericalCoords(1, phi, theta);
+    uniforms['sunPosition'].value.copy(sun);
 
-        uniforms['sunPosition'].value.copy(sun);
-
-        renderer.toneMappingExposure = effectController.exposure;
-        renderer.render(scene, camera);
-
-    }
-
-    guiChanged();
+    renderer.toneMappingExposure = effectController.exposure;
+    renderer.render(scene, camera);
 
 }
 

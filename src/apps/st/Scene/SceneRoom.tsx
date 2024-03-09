@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
 import {makeScene, webGlConfig} from './scene.lib';
 import {
+    DEBUG,
     DELAY_TRIAL_START_MASK,
     floorNameList,
     getFloorUrl,
@@ -96,10 +97,12 @@ export default function SceneRoom(props: PropScene) {
 
         let cameraMoved = -1;
 
+        const duration = DEBUG ? 500 : room.duration;
+
         function check() {
             const now = getTimestamp();
 
-            if (cameraMoved > -1 && (room.duration + cameraMoved < now + FRAME * 0.5)) {
+            if (cameraMoved > -1 && (duration + cameraMoved < now + FRAME * 0.5)) {
                 setBlackCamera();
                 roomStat.camera_moved_fss = cameraMoved - roomStat.stage_started;
                 roomStat.done_from_camera_moved_fss = now - cameraMoved;

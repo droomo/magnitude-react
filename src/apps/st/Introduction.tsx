@@ -1,4 +1,4 @@
-import {Route, Routes, useNavigate} from "react-router-dom";
+import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import React from "react";
 import classes from "./css/exp.module.scss";
 import PageMask from "./Page/PageMask";
@@ -7,7 +7,9 @@ import {API, BlockType, getCsrfToken, loader_selector, material_map, page_data} 
 import SceneRoomPractice, {TypeExploringRecord} from "./Scene/SceneRoomPractice";
 import axios from "axios";
 
-function Description() {
+function Description(props: {
+    testTrialType: BlockType
+}) {
     const navigate = useNavigate();
     return <PageMask
         text={<div style={{cursor: 'default', padding: '8rem 0'}}>
@@ -113,7 +115,7 @@ function Description() {
             </Row>
             <span
                 onClick={() => {
-                    navigate('/st/intro/scene/')
+                    navigate(`/st/intro/${props.testTrialType}/`)
                 }}
                 style={{marginTop: '2rem'}}
                 className={classes.fakeButton}
@@ -153,6 +155,8 @@ function SceneIntro(props: {
                         navigate('/st/test/time/')
                     } else if (props.blockType === 'space') {
                         navigate('/st/test/space/')
+                    } else {
+                        alert(11)
                     }
                 } else {
                     alert('error')
@@ -164,16 +168,14 @@ function SceneIntro(props: {
 }
 
 function Introduction() {
-    for (const material_name of Object.values(material_map)) {
-        loader_selector(material_name).load(material_name, function (texture) {
-            console.log(`{${texture.uuid}} ${material_name} loaded`);
-        });
-    }
+    const location = useLocation()
+    const firstTrialType = location.state ? location.state.firstTrialType : BlockType.Space;
+
     return (
         <Routes>
-            <Route path="/" element={<Description/>}/>
-            <Route path="/scene/space/" element={<SceneIntro blockType={BlockType.Space}/>}/>
-            <Route path="/scene/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
+            <Route path="/" element={<Description testTrialType={firstTrialType}/>}/>
+            <Route path="/space/" element={<SceneIntro blockType={BlockType.Space}/>}/>
+            <Route path="/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
         </Routes>
     );
 }

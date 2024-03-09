@@ -6,6 +6,7 @@ import classes from "../css/exp.module.scss";
 import PageMask from "../Page/PageMask";
 // @ts-ignore
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import {DEBUG} from "../../const";
 
 export interface TypeSceneShapeResult {
     radius: number
@@ -142,6 +143,12 @@ export default function SceneShapeRadius(props: {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        if (DEBUG) {
+            setTimeout(() => {
+                document.querySelector('span')?.click();
+            }, 100)
         }
 
         return () => {

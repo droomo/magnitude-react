@@ -13,7 +13,7 @@ function Pause(props: {
     const [canDone, setCanDone] = React.useState(false);
     setTimeout(() => {
         setCanDone(true);
-    }, DEBUG ? 3 : 60 * 1000)
+    }, (DEBUG ? 3 : 60) * 1000)
     return canDone ? <PageMask text={<div>
         <p>请继续实验</p>
         <span className={classes.fakeButton} onClick={props.done}>继续试验</span>
@@ -34,13 +34,17 @@ export default function Experiment() {
     useEffect(() => {
         axios.get(trial_api).then(response => {
             const data = response.data.data;
-            setTrialDataList(data.trials);
-            setCurrentIndex(data.last_trial_index);
-            setBreakTimes(data.break_times);
+            if (data.last_trial_index === data.trials.length) {
+                setIsDone(true);
+            } else {
+                setTrialDataList(data.trials);
+                setCurrentIndex(data.last_trial_index);
+                setBreakTimes(data.break_times);
+            }
         })
     }, []);
 
-    return trialDataList.length > 0 ? isBreak ? <Pause done={() => {
+    return (trialDataList.length) > 0 ? (isBreak ? <Pause done={() => {
         setIsBreak(false);
         setCurrentIndex(i => i + 1)
         setStartedIndex(i => i + 1)
@@ -57,7 +61,7 @@ export default function Experiment() {
             }
         }}
         startedIndex={startedIndex}
-    /> : isDone ? <div className={classes.screen} style={{cursor: 'default'}}>
+    />) : isDone ? <div className={classes.screen} style={{cursor: 'default'}}>
         <div className={classes.content}>
             <p className={classes.descriptionText}>已完成</p>
             <p className={classes.descriptionTextSmall}>感谢你，{
