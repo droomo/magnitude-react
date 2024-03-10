@@ -78,7 +78,7 @@ function Description(props: {
             </Row>
             <span
                 onClick={() => {
-                    navigate(`/st/intro/${props.testTrialType}/`)
+                    navigate('/intro/scene/')
                 }}
                 style={{marginTop: '2rem'}}
                 className={classes.fakeButton}
@@ -93,7 +93,7 @@ function Description(props: {
                     cursor: 'pointer'
                 }}
                 onClick={() => {
-                    navigate('/st/intro/');
+                    navigate('/')
                 }}
             >切换</span>
         </div>}
@@ -115,11 +115,9 @@ function SceneIntro(props: {
             }).then(response => {
                 if (response.data.status === 200) {
                     if (props.blockType === 'time') {
-                        navigate('/st/test/time/')
+                        navigate('/intro/time/')
                     } else if (props.blockType === 'space') {
-                        navigate('/st/test/space/')
-                    } else {
-                        alert(11)
+                        navigate('/intro/shape/')
                     }
                 } else {
                     alert('error')

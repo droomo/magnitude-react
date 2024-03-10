@@ -88,13 +88,13 @@ export default function ExperimentTest(props: {
                     <span onClick={requestTrial} className={classes.fakeButton}>（重新）开始练习</span>
                 </div>
                 <div style={{marginTop: '4rem'}}>
-                <span
-                    onClick={() => {
-                        navigate('/st/')
-                    }}
-                    className={classes.fakeButton}
-                    style={{fontSize: '0.8rem'}}
-                >我已不需要练习了，直接开始正式实验</span>
+                    <span
+                        onClick={() => {
+                            navigate('/')
+                        }}
+                        className={classes.fakeButton}
+                        style={{color: 'red'}}
+                    >开始正式实验</span>
                 </div>
             </div>
         </div>}/>}

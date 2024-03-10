@@ -28,13 +28,9 @@ const SubjectForm: React.FC = () => {
                 'X-CSRFToken': getCsrfToken(),
             },
         })
-            .then((resp) => {
-                if (resp.data.user) {
-                    localStorage.setItem('username', values.name);
-                    navigate('/st/intro/');
-                } else {
-                    alert('error');
-                }
+            .then(() => {
+                localStorage.setItem('username', values.name);
+                navigate('/intro/');
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);
