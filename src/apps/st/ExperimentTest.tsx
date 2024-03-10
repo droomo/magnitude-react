@@ -53,25 +53,28 @@ export default function ExperimentTest(props: {
                     {
                         scene: currentIndex < 3 ? <HelperText>
                             <p>请观察你所处的空间大小，并感受时间的流逝</p>
-                            <p>稍后<strong style={{color: 'red'}}>需要你还原这个房间的大小</strong></p>
+                            <p>稍后需要你还原这个<strong style={{color: 'red'}}>房间的大小</strong></p>
                         </HelperText> : undefined,
                         reaction: currentIndex < 3 ? <HelperText>
                             <p>请复现空间</p>
-                            <p>请使用鼠标滚轮控制多面体的体积</p>
-                            <p>尽可能反应你在体验阶段感受到的房间体积</p>
-                            <br/>
-                            <p>完成后，点击下方的“完成”按钮</p>
+                            <p>控制多面体的大小反应你感受到的房间的<strong style={{color: 'red'}}>相对大小</strong></p>
+                            <p>只要求大小比例对应，不要求体积绝对相符</p>
+                            <strong>如何控制？</strong>
+                            <p>1. 使用鼠标滚轮控制多面体的体积</p>
+                            <p>2. 完成后，点击下方的“完成”按钮</p>
                         </HelperText> : undefined
                     } : {
                         scene: currentIndex < 3 ? <HelperText>
                             <p>请感受时间的流逝，并观察现在你所处的空间大小</p>
-                            <p>稍后<strong style={{color: 'red'}}>需要你还原在这个房间所经历的时间</strong></p>
+                            <p>稍后需要你还原在这个房间<strong style={{color: 'red'}}>所经历的时间</strong></p>
                         </HelperText> : undefined,
                         reaction: currentIndex < 3 ? <HelperText>
-                            <p>请复现时距，尽可能反应你在体验阶段感受到的房间时长</p>
-                            <p>显示准备后请做好准备</p>
-                            <p>出现<strong style={{fontSize: '5rem'}}>+</strong>时开始计时</p>
-                            <p>当达到在体验阶段相同的时距后点击鼠标左键</p>
+                            <p>请复现时距</p>
+                            <p>尽可能反应你在房间中体验到的时长</p>
+                            <strong>如何控制？</strong>
+                            <p>开始计时：“&nbsp;<strong
+                                style={{fontSize: '4rem', fontWeight: "bolder"}}>+</strong>&nbsp;”出现时自动开始计时</p>
+                            <p>结束计时：请点击鼠标左键</p>
                         </HelperText> : undefined
                     }
                 }
