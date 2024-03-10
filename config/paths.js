@@ -57,8 +57,6 @@ module.exports = {
   appBuild: resolveApp(buildPath),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
-  consumer2023: resolveModule(resolveApp, 'src/apps/consumer2023/index'),
-  numberSense: resolveModule(resolveApp, 'src/apps/numberSense/index'),
   space_time: resolveModule(resolveApp, 'src/apps/st/index'),
   appIndexJs: resolveModule(resolveApp, 'src/index'),
   appPackageJson: resolveApp('package.json'),

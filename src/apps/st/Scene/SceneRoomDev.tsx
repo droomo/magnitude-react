@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
     makeScene,
-    doorHeight,
     makeDoorEXR as makeDoor,
     webGlConfig, eyeHeight
 } from './scene.lib';

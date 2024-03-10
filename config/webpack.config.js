@@ -204,8 +204,6 @@ module.exports = function (webpackEnv) {
         // This means they will be the "root" imports that are included in JS bundle.
         entry: {
             space_time: [paths.space_time],
-            consumer2023: [paths.consumer2023],
-            number_sense: [paths.numberSense],
             main: [paths.appIndexJs],
         },
         output: {
@@ -574,7 +572,7 @@ module.exports = function (webpackEnv) {
         },
         plugins: [
             new BundleTracker({
-                path: path.join(__dirname, isEnvProduction ? '../build/' : '../../droomo-django/'),
+                path: path.join(__dirname, isEnvProduction ? '../build/' : '../../django/'),
                 filename: 'webpack-stats.json'
             }),
 

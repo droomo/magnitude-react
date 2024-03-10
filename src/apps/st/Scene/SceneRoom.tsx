@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
-import {makeScene, doorHeight, makeDoorEXR as makeDoor, webGlConfig, eyeHeight} from './scene.lib';
+import {makeScene, makeDoorEXR as makeDoor, webGlConfig, eyeHeight} from './scene.lib';
 import {DELAY_TRIAL_START_MASK, floorNameList, getRandomElement, getTimestamp, wallNameList} from "../../const";
 import PageMask from "../Page/PageMask";
 import classes from "../css/exp.module.scss";
