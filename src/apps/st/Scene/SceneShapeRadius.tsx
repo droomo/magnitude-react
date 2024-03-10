@@ -13,6 +13,7 @@ export interface TypeSceneShapeResult {
     control_times: number
     page_start_date: number
     page_end_date: number
+    location: THREE.Vector2
 }
 
 export default function SceneShapeRadius(props: {
@@ -98,6 +99,12 @@ export default function SceneShapeRadius(props: {
         }
     }, [camera, group, scene, renderer]);
 
+    const point_location = useMemo(() => {
+        const x_rand = (Math.random() - 0.5) * 20; // +-10
+        const y_rand = (Math.random() - 0.5) * 6; // +-10
+        return new THREE.Vector2(x_rand, y_rand);
+    }, [])
+
     useEffect(() => {
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -137,6 +144,8 @@ export default function SceneShapeRadius(props: {
         group.add(points);
         group.add(mesh);
 
+        group.position.set(point_location.x, point_location.y, 0);
+
         window.addEventListener('resize', onWindowResize);
 
         function onWindowResize() {
@@ -171,7 +180,8 @@ export default function SceneShapeRadius(props: {
                         radius,
                         page_start_date,
                         page_end_date: new Date().getTime(),
-                        control_times: controlTimes
+                        control_times: controlTimes,
+                        location: point_location
                     })
                 }}
             >完&nbsp;成</span>}
