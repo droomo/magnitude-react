@@ -116,7 +116,7 @@ function Description() {
             </Row>
             <span
                 onClick={() => {
-                    navigate('/st/intro/scene/')
+                    navigate('/intro/scene/')
                 }}
                 style={{marginTop: '2rem'}}
                 className={classes.fakeButton}
@@ -131,7 +131,7 @@ function Description() {
                     cursor: 'pointer'
                 }}
                 onClick={() => {
-                    navigate('/st/')
+                    navigate('/')
                 }}
             >直接开始实验</span>
         </div>}
@@ -153,9 +153,9 @@ function SceneIntro(props: {
             }).then(response => {
                 if (response.data.status === 200) {
                     if (props.blockType === 'time') {
-                        navigate('/st/intro/time/')
+                        navigate('/intro/time/')
                     } else if (props.blockType === 'space') {
-                        navigate('/st/intro/shape/')
+                        navigate('/intro/shape/')
                     }
                 } else {
                     alert('error')
@@ -183,7 +183,7 @@ function LeaningControl() {
                         marginRight: '2rem'
                     }}
                     onClick={() => {
-                        navigate('/st/intro/shape/')
+                        navigate('/intro/shape/')
                     }}
                     className={classes.fakeButton}
                 >复现空间</span>
@@ -193,7 +193,7 @@ function LeaningControl() {
                         marginLeft: '2rem'
                     }}
                     onClick={() => {
-                        navigate('/st/intro/time/')
+                        navigate('/intro/time/')
                     }}
                     className={classes.fakeButton}
                 >复现时距</span>
@@ -203,7 +203,7 @@ function LeaningControl() {
             }}>
                     <span
                         onClick={() => {
-                            navigate('/st/intro/scene/', {state: {stageState: 1}})
+                            navigate('/intro/scene/', {state: {stageState: 1}})
                         }}
                         className={classes.fakeButton}
                     >重新进入体验阶段</span>
@@ -213,7 +213,7 @@ function LeaningControl() {
             }}>
                     <span
                         onClick={() => {
-                            navigate('/st/test/', {state: {stageState: 1}})
+                            navigate('/test/', {state: {stageState: 1}})
                         }}
                         className={classes.fakeButton}
                     >已经学会操作了，进入练习</span>
@@ -237,7 +237,7 @@ function ShapeIntro() {
         <SceneShapeRadius
             isStagePrepared={false}
             done={() => {
-                navigate('/st/intro/control/')
+                navigate('/intro/control/')
             }}
         />
     </>
@@ -257,7 +257,7 @@ function TimeIntro() {
         </HelperText>
         <PageTimeCounter
             done={() => {
-                navigate('/st/intro/control/')
+                navigate('/intro/control/')
             }}
             shouldStart={true}
         />

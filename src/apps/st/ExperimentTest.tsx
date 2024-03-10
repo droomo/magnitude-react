@@ -69,7 +69,7 @@ export default function ExperimentTest() {
                 <div style={{marginTop: '4rem'}}>
                     <span
                         onClick={() => {
-                            navigate('/st/')
+                            navigate('/')
                         }}
                         className={classes.fakeButton}
                         style={{color: 'red'}}

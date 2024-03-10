@@ -31,7 +31,7 @@ const SubjectForm: React.FC = () => {
         })
             .then(() => {
                 localStorage.setItem('username', values.name);
-                navigate('/st/intro/');
+                navigate('/intro/');
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);

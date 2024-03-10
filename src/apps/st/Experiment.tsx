@@ -45,7 +45,7 @@ export default function Experiment() {
                     className={classes.fakeButton}
                     onClick={() => {
                         localStorage.removeItem('username');
-                        window.location.href = '/st/logout/';
+                        window.location.href = '/logout/';
                     }}
                 >退出实验</span>
             </div>
