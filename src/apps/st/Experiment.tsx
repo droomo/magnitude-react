@@ -72,7 +72,7 @@ export default function Experiment() {
             /> : <Trial
                 trial={trialDataList[currentIndex]}
                 done={() => {
-                    if (end_reason === 'need_change_block' && last_reaction_type_trial_id === currentIndex + 1) {
+                    if (end_reason === 'need_change_block' && last_reaction_type_trial_id === trialDataList[currentIndex].id) {
                         setBreakType(2);
                     } else if (currentIndex + 1 === trialDataList.length) {
                         if (end_reason === 'done') {
