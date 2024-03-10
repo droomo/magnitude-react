@@ -16,12 +16,12 @@ const root = ReactDOM.createRoot(
 root.render(
     <BrowserRouter>
         <Routes>
-            <Route path="/st/" element={<Experiment/>}/>
-            <Route path="/st/test/space/" element={<ExperimentTest blockType={BlockType.Space}/>}/>
-            <Route path="/st/test/time/" element={<ExperimentTest blockType={BlockType.Time}/>}/>
-            <Route path="/st/intro/*" element={<Introduction/>}/>
-            <Route path="/st/login/" element={<Login/>}/>
-            <Route path="/st/dev/" element={<SceneRoomDev room={{
+            <Route path="/" element={<Experiment/>}/>
+            <Route path="/test/space/" element={<ExperimentTest blockType={BlockType.Space}/>}/>
+            <Route path="/test/time/" element={<ExperimentTest blockType={BlockType.Time}/>}/>
+            <Route path="/intro/*" element={<Introduction/>}/>
+            <Route path="/login/" element={<Login/>}/>
+            <Route path="/dev/" element={<SceneRoomDev room={{
                 width: 8,
                 height: 3,
                 depth: 5,
