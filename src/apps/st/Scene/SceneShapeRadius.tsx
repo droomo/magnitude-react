@@ -6,6 +6,7 @@ import classes from "../css/exp.module.scss";
 import PageMask from "../Page/PageMask";
 // @ts-ignore
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import {DEBUG} from "../../const";
 
 export interface TypeSceneShapeResult {
     radius: number
@@ -16,7 +17,6 @@ export interface TypeSceneShapeResult {
 
 export default function SceneShapeRadius(props: {
     done: (result: TypeSceneShapeResult) => void,
-    isStagePrepared: boolean
 }) {
     const page_start_date = new Date().getTime()
     const [radius, setRadius] = useState(6);
@@ -145,6 +145,12 @@ export default function SceneShapeRadius(props: {
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
+        if (DEBUG) {
+            setTimeout(() => {
+                document.querySelector('span')?.click();
+            }, 100)
+        }
+
         return () => {
             group.remove(mesh)
             group.remove(points)
@@ -157,7 +163,7 @@ export default function SceneShapeRadius(props: {
     return (
         <>
             {done ? <PageMask/> : <div ref={divRef}/>}
-            {!props.isStagePrepared && !done && <span
+            {!done && <span
                 className={[classes.shapeButton, classes.fakeButton].join(' ')}
                 onClick={() => {
                     setDone(true)

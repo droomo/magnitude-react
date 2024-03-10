@@ -1,7 +1,7 @@
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import classes from '../css/exp.module.scss'
 
-import {getTimestamp} from "../../const";
+import {DEBUG, getTimestamp} from "../../const";
 import PageMask from "../Page/PageMask";
 
 export interface TypeTimeCounter {
@@ -13,9 +13,6 @@ export interface TypeTimeCounter {
     pressed_fss: number
 }
 
-function StagePreparation() {
-    return <PageMask text={<span className={classes.warningText}>准备</span>}/>
-}
 
 function StageDetection(props: {
     done: (timeCounter: TypeTimeCounter) => void,
@@ -31,13 +28,23 @@ function StageDetection(props: {
                 props.timeCounter.pressed_fss = getTimestamp() - props.timeCounter.cross_stage_start
                 props.timeCounter.pressed_date = new Date().getTime()
                 setShowingCross(false)
-                props.timeCounter.cross_stage_start = props.timeCounter.cross_stage_start - props.timeCounter.cross_stage_start
                 props.done(props.timeCounter)
             }
         }
 
         props.timeCounter.cross_appear_fss = getTimestamp() - props.timeCounter.cross_stage_start;
         window.addEventListener('mousedown', onMousedownDown)
+
+        if (DEBUG) {
+            setTimeout(() => {
+                const evt = new MouseEvent("mousedown", {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                });
+                document.querySelector('body')!.dispatchEvent(evt);
+            }, 100)
+        }
         return () => {
             window.removeEventListener('mousedown', onMousedownDown)
         }
@@ -47,7 +54,6 @@ function StageDetection(props: {
 
 export default function PageTimeCounter(props: {
     done: (timeCounter: TypeTimeCounter) => void,
-    shouldStart: boolean
 }) {
     const timeCounter = useRef<TypeTimeCounter>({
         prep_disappear_date: -1,
@@ -62,21 +68,21 @@ export default function PageTimeCounter(props: {
     const [done, setDone] = useState(false);
 
     useLayoutEffect(() => {
-        if (props.shouldStart) {
-            setTimeout(() => {
-                timeCounter.prep_disappear_date = new Date().getTime()
-                setShowingPreparation(false)
-            }, 1000)
-        }
-    }, [props.shouldStart]);
+        setTimeout(() => {
+            timeCounter.prep_disappear_date = new Date().getTime()
+            setShowingPreparation(false)
+        }, DEBUG ? 10 : 1000)
+    }, []);
 
     return done ? <PageMask/> : <div className={classes.timeCounter}>
-        {showingPreparation ? <StagePreparation/> : <StageDetection
-            done={() => {
-                setDone(true)
-                props.done(timeCounter)
-            }}
-            timeCounter={timeCounter}
-        />}
+        {showingPreparation ?
+            <PageMask text={<span className={classes.warningText}>准备</span>}/> :
+            <StageDetection
+                done={() => {
+                    setDone(true)
+                    props.done(timeCounter)
+                }}
+                timeCounter={timeCounter}
+            />}
     </div>;
 }
