@@ -104,8 +104,8 @@ const SubjectForm: React.FC = () => {
                             rules={[{required: true, message: 'Please select the subject gender!'}]}
                         >
                             <Select placeholder="Select a gender">
-                                <Select.Option value="M">Male</Select.Option>
-                                <Select.Option value="F">Female</Select.Option>
+                                <Select.Option value="M">男 Male</Select.Option>
+                                <Select.Option value="F">女 Female</Select.Option>
                             </Select>
                         </Form.Item>
 

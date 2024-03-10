@@ -62,7 +62,7 @@ export default function ExperimentTest(props: {
                             <p>请复现空间</p>
                             <p>控制多面体的大小反应你感受到的房间的<strong style={{color: 'red'}}>相对大小</strong></p>
                             <p>只要求大小比例对应，不要求体积绝对相符</p>
-                            <strong>如何控制？</strong>
+                            <strong>控制方法：</strong>
                             <p>1. 使用鼠标滚轮控制多面体的体积</p>
                             <p>2. 完成后，点击下方的“完成”按钮</p>
                         </HelperText> : undefined
@@ -74,7 +74,7 @@ export default function ExperimentTest(props: {
                         reaction: currentIndex < 3 ? <HelperText>
                             <p>请复现时距</p>
                             <p>尽可能反应你在房间中体验到的时长</p>
-                            <strong>如何控制？</strong>
+                            <strong>控制方法：</strong>
                             <p>开始计时：“&nbsp;<strong
                                 style={{fontSize: '4rem', fontWeight: "bolder"}}>+</strong>&nbsp;”出现时自动开始计时</p>
                             <p>结束计时：请点击鼠标左键</p>
