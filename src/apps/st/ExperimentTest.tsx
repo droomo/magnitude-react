@@ -15,6 +15,8 @@ export default function ExperimentTest(props: {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [startedIndex, setStartedIndex] = useState(0);
 
+    const [tryTimes, setTryTimes] = useState(0);
+
     const navigate = useNavigate();
 
     function requestTrial() {
@@ -47,6 +49,7 @@ export default function ExperimentTest(props: {
                     }
                     setCurrentIndex(i => i + 1);
                     setStartedIndex(i => i + 1);
+                    setTryTimes(i => i + 1);
                 }}
                 startedIndex={startedIndex}
                 helperText={props.blockType === BlockType.Space ?
@@ -84,21 +87,25 @@ export default function ExperimentTest(props: {
             cursor: 'default'
         }}>
             <div className={classes.content}>
-                <p className={classes.descriptionTextSmall}>相信你已经比较熟悉游戏所呈现的场景了</p>
-                <p className={classes.descriptionTextSmall}>下面进入实验流程，正式实验一旦开始则无法退出，过程中有休息时间</p>
-                <p className={classes.descriptionTextSmall}>现在，你可以进行几组正式实验前的练习</p>
-                <div>
-                    <span onClick={requestTrial} className={classes.fakeButton}>（重新）开始练习</span>
+                <div className={classes.descriptionTextSmall}>
+                    <p>相信你已经熟悉所呈现的场景了，即将进入<strong
+                        style={{color: 'red'}}>{props.blockType === BlockType.Time ? '时间' : '空间'}复现</strong>实验流程
+                    </p>
                 </div>
-                <div style={{marginTop: '4rem'}}>
+                <p className={classes.descriptionTextSmall}>现在请开始正式实验前的练习</p>
+                <div>
+                    <span onClick={requestTrial} className={classes.fakeButton}>{tryTimes > 0 && "重新"}开始练习</span>
+                </div>
+                {tryTimes > 0 && <>
+                    <p className={classes.descriptionTextSmall}>正式实验一旦开始则无法退出，实验过程中有休息时间</p>
                     <span
                         onClick={() => {
                             navigate('/')
                         }}
                         className={classes.fakeButton}
-                        style={{color: 'red'}}
-                    >开始正式实验</span>
-                </div>
+                        style={{fontSize: '1rem'}}
+                    >不需要练习了，开始正式实验</span>
+                </>}
             </div>
         </div>}/>}
     </>

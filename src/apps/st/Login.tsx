@@ -28,7 +28,14 @@ const SubjectForm: React.FC = () => {
                 'X-CSRFToken': getCsrfToken(),
             },
         })
-            .then(() => {
+            .then((resp) => {
+                if (resp.data.user) {
+                    localStorage.setItem('username', values.name);
+                    navigate('/intro/');
+                } else {
+                    alert('error');
+                }
+
                 localStorage.setItem('username', values.name);
                 navigate('/intro/');
             })
