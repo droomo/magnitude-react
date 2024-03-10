@@ -56,48 +56,13 @@ export default function Experiment() {
     }, []);
 
     return <>
-        {
-            trialDataList.length > 0 && (breakType > 0 ? <Pause
-                done={() => {
-                    if (breakType === 1) {
-                        setCurrentIndex(i => i + 1)
-                        setStartedIndex(i => i + 1)
-                    } else {
-                        navigate('/intro/');
-                    }
-                    setBreakType(0);
-                }}
-                time={breakType === 1 ? 60 : 60 * 3}
-                text={breakType === 1 ? '请休息1分钟' : '已经完成一组实验，请休息3分钟，之后开始下一组'}
-            /> : <Trial
-                trial={trialDataList[currentIndex]}
-                done={() => {
-                    if (end_reason === 'need_change_block' && last_reaction_type_trial_id === trialDataList[currentIndex].id) {
-                        setBreakType(2);
-                    } else if (currentIndex + 1 === trialDataList.length) {
-                        if (end_reason === 'done') {
-                            setIsDone(true);
-                        } else {
-                            alert('error happened 94133');
-                        }
-                    } else if ((currentIndex + 1) % breakTimes === 0) {
-                        setBreakType(1);
-                    } else {
-                        setCurrentIndex(i => i + 1)
-                        setStartedIndex(i => i + 1)
-                    }
-                }}
-                startedIndex={startedIndex}
-            />)
-        }
-        {
-            isDone && <div className={classes.screen} style={{cursor: 'default'}}>
-                <div className={classes.content}>
-                    <p className={classes.descriptionText}>实验已完成</p>
-                    <p className={classes.descriptionTextSmall}>感谢你，{
-                        localStorage.getItem('username') ? localStorage.getItem('username') + '，' : ''
-                    }为心理学事业的发展做出贡献！</p>
-                    <div style={{marginTop: '6rem'}}>
+        {isDone ? (<div className={classes.screen} style={{cursor: 'default'}}>
+            <div className={classes.content}>
+                <p className={classes.descriptionText}>实验已完成</p>
+                <p className={classes.descriptionTextSmall}>感谢你，{
+                    localStorage.getItem('username') ? localStorage.getItem('username') + '，' : ''
+                }为心理学事业的发展做出贡献！</p>
+                <div style={{marginTop: '6rem'}}>
                         <span
                             className={classes.fakeButton}
                             onClick={() => {
@@ -105,9 +70,39 @@ export default function Experiment() {
                                 window.location.href = '/logout/';
                             }}
                         >退出实验</span>
-                    </div>
                 </div>
             </div>
-        }
+        </div>) : trialDataList.length > 0 && (breakType > 0 ? <Pause
+            done={() => {
+                if (breakType === 1) {
+                    setCurrentIndex(i => i + 1)
+                    setStartedIndex(i => i + 1)
+                } else {
+                    navigate('/intro/');
+                }
+                setBreakType(0);
+            }}
+            time={breakType === 1 ? 60 : 60 * 3}
+            text={breakType === 1 ? '请休息1分钟' : '已经完成一组实验，请休息3分钟，之后开始下一组'}
+        /> : <Trial
+            trial={trialDataList[currentIndex]}
+            done={() => {
+                if (end_reason === 'need_change_block' && last_reaction_type_trial_id === trialDataList[currentIndex].id) {
+                    setBreakType(2);
+                } else if (currentIndex + 1 === trialDataList.length) {
+                    if (end_reason === 'done') {
+                        setIsDone(true);
+                    } else {
+                        alert('error happened 94133');
+                    }
+                } else if ((currentIndex + 1) % breakTimes === 0) {
+                    setBreakType(1);
+                } else {
+                    setCurrentIndex(i => i + 1)
+                    setStartedIndex(i => i + 1)
+                }
+            }}
+            startedIndex={startedIndex}
+        />)}
     </>
 }
