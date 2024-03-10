@@ -17,7 +17,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "src": "cd E:\\Data\\2024\\Exp\\texture && http-server --cors -p 9000 --gzip"
+    "src": "cd E:\\Data\\2024\\Exp\\texture && http-server --cors -p 19000 --gzip"
   },
   "eslintConfig": {
     "extends": [

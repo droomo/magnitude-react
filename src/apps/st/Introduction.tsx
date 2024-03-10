@@ -14,7 +14,10 @@ function Description(props: {
     return <PageMask
         text={<div style={{cursor: 'default', padding: '8rem 0'}}>
             <h1 style={{fontSize: '3rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索实验</h1>
-            <p style={{margin: '5px 0', fontSize: '2rem'}}>接下来的实验将分组进行，每组都有多次实验任务</p>
+            <p style={{margin: '5px 0', fontSize: '2rem'}}>实验将两分组进行，每组都有多次实验任务</p>
+            <p style={{margin: '5px 0', fontSize: '2rem'}}>接下来的一组实验需要复现<strong
+                style={{color: "red"}}>{props.testTrialType === BlockType.Time ? '时间' : '空间'}</strong></p>
+            <p/>
             <p style={{margin: '5px 0', fontSize: '2rem'}}>实验任务包含<strong
                 style={{color: 'red'}}>体验</strong>和<strong style={{color: 'red'}}>再现</strong>两个环节</p>
             <Row>
@@ -78,7 +81,7 @@ function Description(props: {
             </Row>
             <span
                 onClick={() => {
-                    navigate('/intro/scene/')
+                    navigate(`/intro/${props.testTrialType}/`)
                 }}
                 style={{marginTop: '2rem'}}
                 className={classes.fakeButton}
@@ -93,7 +96,7 @@ function Description(props: {
                     cursor: 'pointer'
                 }}
                 onClick={() => {
-                    navigate('/')
+                    navigate('/intro/');
                 }}
             >切换</span>
         </div>}
@@ -115,9 +118,11 @@ function SceneIntro(props: {
             }).then(response => {
                 if (response.data.status === 200) {
                     if (props.blockType === 'time') {
-                        navigate('/intro/time/')
+                        navigate('/test/time/')
                     } else if (props.blockType === 'space') {
-                        navigate('/intro/shape/')
+                        navigate('/test/space/')
+                    } else {
+                        alert(11)
                     }
                 } else {
                     alert('error')
@@ -146,7 +151,7 @@ function Introduction() {
             <Route path="/" element={firstTrialType !== undefined && (firstTrialType === null ?
                 <PageMask text={<>
                     <p>被试已完成实验</p>
-                    <a href="/st/logout/" style={{color: "white"}}>开始新用户</a>
+                    <a href="/logout/" style={{color: "white"}}>开始新用户</a>
                 </>}/> : <Description testTrialType={firstTrialType}/>)}/>
             <Route path="/space/" element={<SceneIntro blockType={BlockType.Space}/>}/>
             <Route path="/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
