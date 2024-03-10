@@ -167,7 +167,7 @@ export default function SceneShapeRadius(props: {
             rotationXRef.current = group.rotation.x;
             window.removeEventListener('resize', onWindowResize);
         }
-    }, [radius, camera, group, scene, renderer, pointsMaterial])
+    }, [radius, camera, group, scene, renderer, pointsMaterial, point_location.x, point_location.y])
 
     return (
         <>
