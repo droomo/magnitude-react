@@ -1,12 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {BrowserRouter, Routes, Route} from "react-router-dom"
+import {BrowserRouter, Route, Routes} from "react-router-dom"
 import Experiment from "./Experiment";
 import Login from "./Login";
 import './css/style.css'
 import Introduction from "./Introduction";
 import ExperimentTest from "./ExperimentTest";
 import SceneRoomDev from "./Scene/SceneRoomDev";
+import {BlockType} from "../const";
 
 
 const root = ReactDOM.createRoot(
@@ -16,7 +17,8 @@ root.render(
     <BrowserRouter>
         <Routes>
             <Route path="/" element={<Experiment/>}/>
-            <Route path="/test/" element={<ExperimentTest/>}/>
+            <Route path="/test/space/" element={<ExperimentTest blockType={BlockType.Space}/>}/>
+            <Route path="/test/time/" element={<ExperimentTest blockType={BlockType.Time}/>}/>
             <Route path="/intro/*" element={<Introduction/>}/>
             <Route path="/login/" element={<Login/>}/>
             <Route path="/dev/" element={<SceneRoomDev room={{

@@ -1,6 +1,6 @@
 import {Group, MeshStandardMaterial, Object3DEventMap, RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
-import {API, getFloorUrl, getWallUrl, material_map} from "../../const";
+import {API, material_map} from "../../const";
 // @ts-ignore
 import {Sky} from 'three/addons/objects/Sky.js'
 import {PropRoom} from "./SceneRoom";
@@ -40,21 +40,13 @@ export function loadThings(
 
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
-    // const pointLight = new THREE.PointLight(0xffffff, 3, 15, 0.1);
-    // pointLight.position.set(0, doorHeight / 2, room.depth / 2 + 10);
-    // scene.add(pointLight);
-
-    const roomLight = new THREE.PointLight(0xffffff, 2, 15, 0.1);
+    const roomSize = room.depth * room.width * room.height;
+    const roomLight = new THREE.PointLight(0xffffff, 2, Math.pow(roomSize, 1 / 3) * 2, 0.4);
     roomLight.position.set(0, doorHeight * 0.8, 0);
     scene.add(roomLight);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
     scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    directionalLight.position.set(0, 10, 0);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
 }
 
 
@@ -106,7 +98,7 @@ export function makeDoorEXR(room: PropRoom, doorOpenedAction: () => void): [
                     doorGroup.rotation.y = targetRotationY;
                 }
             } else {
-                doorOpenedAction()
+                doorOpenedAction();
             }
         } else if (!open && doorGroup.rotation.y < 0) {
             doorGroup.rotation.y += delta * 3.2;
@@ -216,106 +208,118 @@ export function loadFBXModel(pathModel: string, pathD: string, pathN: string, on
     )
 }
 
+interface WallShading {
+    D: string,
+    N: string,
+}
+
 export function makeScene(
-    room: PropRoom, wallName: string, floorName: string,
+    room: PropRoom, wall: {
+        wall: WallShading,
+        floor: WallShading,
+        ceiling: WallShading,
+    },
     renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera,
     isFormalTrial: boolean
 ): [THREE.Scene, THREE.Object3D[]] {
     const scene = new THREE.Scene();
-    addGroundEXR(scene, isFormalTrial);
+
+    if (!isFormalTrial) {
+        addGroundEXR(scene, isFormalTrial);
+        addSky(scene, renderer, camera);
+    }
+    addLight(scene, room);
 
     const walls: THREE.Object3D[] = [];
 
     // 墙壁
     const wallHeight = room.height;
-    const wallWidth = isFormalTrial ? room.width : 10.3;
+    const wallWidth = room.width;
     const wallDepth = room.depth;
 
     const repeatTimes = 5;
     const repeatBack = new Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
     const repeatLR = new Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
     const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
-
-    // 前墙壁
-    const wallHeightF = isFormalTrial ? 10 : wallHeight;
-    const wallWidthF = isFormalTrial ? 20 : wallWidth;
-    const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
-
-    const repeatF = new Vector2(repeatTimes * wallWidthF / wallWidth, (repeatTimes / wallWidth * wallHeight) * wallHeightF / wallHeight);
+    const repeatCeiling = new Vector2(repeatFloor.x, repeatFloor.y);
 
     const wallMetalness = 0.1;
     const wallRoughness = 0.8;
 
-    loadFBXModel(material_map.dadoModel, material_map.dadoD, material_map.dadoN, (dado, material) => {
-        dado.scale.set(.03, .01, .03);
-
-        dado.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-                (child as THREE.Mesh).material = material;
-                (child as THREE.Mesh).geometry.computeBoundingBox();
-            }
-        });
-
-        const bbox = new THREE.Box3().setFromObject(dado);
-        const width = bbox.max.x - bbox.min.x;
-
-        dado.rotateX(-Math.PI / 2);
-        dado.position.z = room.depth / 2 + wallThickness;
-        dado.position.x = width / 2 + doorWidth / 2;
-        scene.add(dado);
-
-        const dado_left = dado.clone();
-        dado_left.position.x = -width / 2 - doorWidth / 2;
-        scene.add(dado_left);
-    });
-
+    const exr_loader = new EXRLoader();
     loadThings(
-        [
-            material_map.wallExternalD,
-            material_map.wallExternalN,
-        ],
-        ([mapWE, normalWE]) => {
-            mapWE = mapWE as Texture;
-            normalWE = normalWE as Texture;
+        [wall.ceiling.D, wall.ceiling.N],
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
+            const textureCeiling = prepareTextures([map, normal], repeatCeiling);
+            const materialCeiling = makeMaterial(textureCeiling, wallMetalness, wallRoughness);
+            const wall4 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialCeiling);
+            walls.push(wall4);
+        },
+        exr_loader
+    );
+    loadThings(
+        [wall.wall.D, wall.wall.N],
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
+            const textureLR = prepareTextures([map, normal], repeatLR);
+            const textureBack = prepareTextures([map, normal], repeatBack);
+            const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
+            const materialBack = makeMaterial(textureBack, wallMetalness, wallRoughness);
+            const wall1 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
+            const wall2 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
+            const wall3 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
+            walls.push(wall1, wall2, wall3);
+        },
+        exr_loader
+    );
+    loadThings(
+        [wall.floor.D, wall.floor.N],
+        ([map, normal]) => {
+            map = map as Texture;
+            normal = normal as Texture;
+            const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
+            const wall5 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+            walls.push(wall5);
+        },
+        exr_loader
+    );
 
-            if (isFormalTrial) {
-                const exr_loader = new EXRLoader();
-                loadThings(
-                    [getWallUrl(wallName, 'D'), getWallUrl(wallName, 'N'),],
-                    ([map, normal]) => {
-                        map = map as Texture;
-                        normal = normal as Texture;
+    if (!isFormalTrial) {
+        loadThings(
+            [
+                material_map.wallExternalD,
+                material_map.wallExternalN,
+            ],
+            ([mapWE, normalWE]) => {
+                mapWE = mapWE as Texture;
+                normalWE = normalWE as Texture;
 
-                        console.log(map);
+                loadFBXModel(material_map.dadoModel, material_map.dadoD, material_map.dadoN, (dado, material) => {
+                    dado.scale.set(.03, .01, .03);
 
-                        const textureLR = prepareTextures([map, normal], repeatLR);
-                        const textureBack = prepareTextures([map, normal], repeatBack);
-                        const textureFloor = prepareTextures([map, normal], repeatFloor);
+                    dado.traverse((child) => {
+                        if ((child as THREE.Mesh).isMesh) {
+                            (child as THREE.Mesh).material = material;
+                            (child as THREE.Mesh).geometry.computeBoundingBox();
+                        }
+                    });
 
-                        const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
-                        const materialBack = makeMaterial(textureBack, wallMetalness, wallRoughness);
-                        const materialFloor = makeMaterial(textureFloor, wallMetalness, wallRoughness);
+                    const bbox = new THREE.Box3().setFromObject(dado);
+                    const width = bbox.max.x - bbox.min.x;
 
-                        const wall1 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
-                        const wall2 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
-                        const wall3 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialBack);
-                        const wall4 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialFloor);
-                        walls.push(wall1, wall2, wall3, wall4);
-                    },
-                    exr_loader
-                );
-                loadThings(
-                    [getFloorUrl(floorName, 'D'), getFloorUrl(floorName, 'N'),],
-                    ([map, normal]) => {
-                        map = map as Texture;
-                        normal = normal as Texture;
-                        const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
-                        const wall5 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
-                        walls.push(wall5);
-                    },
-                    exr_loader
-                );
-            } else {
+                    dado.rotateX(-Math.PI / 2);
+                    dado.position.z = room.depth / 2 + wallThickness;
+                    dado.position.x = width / 2 + doorWidth / 2;
+                    scene.add(dado);
+
+                    const dado_left = dado.clone();
+                    dado_left.position.x = -width / 2 - doorWidth / 2;
+                    scene.add(dado_left);
+                });
+
                 const mainTextures = prepareTextures([mapWE, normalWE], repeatFloor);
                 const material = makeMaterial(mainTextures, wallMetalness, wallRoughness)
                 const wall6 = createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), material);
@@ -323,49 +327,56 @@ export function makeScene(
                 const wall8 = createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), material);
                 const wall9 = createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), material);
                 walls.push(wall6, wall7, wall8, wall9);
-            }
 
-            const halfRepeat = new Vector2(
-                (wallWidthF - doorWidth) / 2 / wallWidthF * repeatF.x,
-                doorHeight / wallHeightF * repeatF.y
-            );
-            const bottomOffsetY = -doorHeight / wallHeightF * repeatF.y;
-            const halfWallBLTextures = prepareTextures(
-                [mapWE, normalWE],
-                halfRepeat,
-                new Vector2(0, bottomOffsetY)
-            );
-            const halfWallBRTextures = prepareTextures(
-                [mapWE, normalWE],
-                halfRepeat,
-                new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), bottomOffsetY)
-            );
-            const halfWallTTextures = prepareTextures(
-                [mapWE, normalWE],
-                new Vector2(repeatF.x, (wallHeightF - doorHeight) / wallHeightF * repeatF.y),
-            );
+                // frontal walls
 
-            // External wall lower part, left(view of +z to -z).
-            const walla1 = createWall(scene, halfWallWidthF, doorHeight, wallThickness,
-                new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
-                makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness)
-            );
-            // External wall lower part, right(view of +z to -z).
-            const walla2 = createWall(scene, halfWallWidthF, doorHeight, wallThickness,
-                new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
-                makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness)
-            );
-            // External wall upper half.
-            const walla3 = createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness,
-                new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5),
-                makeMaterial(halfWallTTextures, wallMetalness, wallRoughness)
-            );
-            walls.push(walla1, walla2, walla3);
-        },
-        new EXRLoader()
-    )
-    addLight(scene, room);
-    addSky(scene, renderer, camera);
+                const wallHeightF = isFormalTrial ? 10 : wallHeight;
+                const wallWidthF = isFormalTrial ? 20 : wallWidth;
+                const halfWallWidthF = (wallWidthF - doorWidth) * 0.5;
+
+                const repeatF = new Vector2(repeatTimes * wallWidthF / wallWidth, (repeatTimes / wallWidth * wallHeight) * wallHeightF / wallHeight);
+
+                const halfRepeat = new Vector2(
+                    (wallWidthF - doorWidth) / 2 / wallWidthF * repeatF.x,
+                    doorHeight / wallHeightF * repeatF.y
+                );
+                const bottomOffsetY = -doorHeight / wallHeightF * repeatF.y;
+                const halfWallBLTextures = prepareTextures(
+                    [mapWE, normalWE],
+                    halfRepeat,
+                    new Vector2(0, bottomOffsetY)
+                );
+                const halfWallBRTextures = prepareTextures(
+                    [mapWE, normalWE],
+                    halfRepeat,
+                    new Vector2((doorWidth * repeatF.x - wallWidthF) / (2 * wallWidthF), bottomOffsetY)
+                );
+                const halfWallTTextures = prepareTextures(
+                    [mapWE, normalWE],
+                    new Vector2(repeatF.x, (wallHeightF - doorHeight) / wallHeightF * repeatF.y),
+                );
+
+                // External wall lower part, left(view of +z to -z).
+                const walla1 = createWall(scene, halfWallWidthF, doorHeight, wallThickness,
+                    new THREE.Vector3(-(halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
+                    makeMaterial(halfWallBLTextures, wallMetalness, wallRoughness)
+                );
+                // External wall lower part, right(view of +z to -z).
+                const walla2 = createWall(scene, halfWallWidthF, doorHeight, wallThickness,
+                    new THREE.Vector3((halfWallWidthF + doorWidth) * 0.5, doorHeight * 0.5, wallDepth * 0.5),
+                    makeMaterial(halfWallBRTextures, wallMetalness, wallRoughness)
+                );
+                // External wall upper half.
+                const walla3 = createWall(scene, wallWidthF, wallHeightF - doorHeight, wallThickness,
+                    new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5),
+                    makeMaterial(halfWallTTextures, wallMetalness, wallRoughness)
+                );
+                walls.push(walla1, walla2, walla3);
+
+            },
+            new EXRLoader()
+        )
+    }
 
     return [scene, walls];
 }
@@ -389,27 +400,21 @@ function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE
         exposure: renderer.toneMappingExposure
     };
 
-    function guiChanged() {
+    const uniforms = sky.material.uniforms;
+    uniforms['turbidity'].value = effectController.turbidity;
+    uniforms['rayleigh'].value = effectController.rayleigh;
+    uniforms['mieCoefficient'].value = effectController.mieCoefficient;
+    uniforms['mieDirectionalG'].value = effectController.mieDirectionalG;
 
-        const uniforms = sky.material.uniforms;
-        uniforms['turbidity'].value = effectController.turbidity;
-        uniforms['rayleigh'].value = effectController.rayleigh;
-        uniforms['mieCoefficient'].value = effectController.mieCoefficient;
-        uniforms['mieDirectionalG'].value = effectController.mieDirectionalG;
+    const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
+    const theta = THREE.MathUtils.degToRad(effectController.azimuth);
 
-        const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
-        const theta = THREE.MathUtils.degToRad(effectController.azimuth);
+    sun.setFromSphericalCoords(1, phi, theta);
 
-        sun.setFromSphericalCoords(1, phi, theta);
+    uniforms['sunPosition'].value.copy(sun);
 
-        uniforms['sunPosition'].value.copy(sun);
-
-        renderer.toneMappingExposure = effectController.exposure;
-        renderer.render(scene, camera);
-
-    }
-
-    guiChanged();
+    renderer.toneMappingExposure = effectController.exposure;
+    renderer.render(scene, camera);
 
 }
 

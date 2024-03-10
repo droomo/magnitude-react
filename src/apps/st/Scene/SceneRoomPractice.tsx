@@ -10,7 +10,7 @@ import {
     loadFBXModel
 } from './scene.lib';
 import {PropRoom} from "./SceneRoom";
-import {floorNameList, getRandomElement, material_map, wallNameList} from "../../const";
+import {floorNameList, getFloorUrl, getWallUrl, material_map} from "../../const";
 import {HelperText} from "../Page/HelperText";
 import {Vector3} from "three/src/math/Vector3";
 import {message} from "antd";
@@ -47,9 +47,8 @@ export default function SceneRoomPractice(props: {
 }) {
     const room = props.room;
     const divRef = useRef<HTMLDivElement>(null);
-    const lastAnimationID = useRef(0);
     const stats = useRef(new Stats()).current;
-    const [stage, setStage] = React.useState(0);
+    const isDoorOpened = useRef<boolean>(false);
 
     const record: TypeExploringRecord = {end_date: 0, key_pressed: '', start_date: 0}
 
@@ -76,12 +75,7 @@ export default function SceneRoomPractice(props: {
                     movingDirection = 4;
                     break;
                 case 'e':
-                    record.end_date = new Date().getTime();
-                    props.done(record);
-                    if (camera.position.y === room.height / 2) {
-                        record.end_date = new Date().getTime();
-                        props.done(record);
-                    } else if (camera.position.distanceTo(new Vector3(...bookPosition)) < 3) {
+                    if (camera.position.distanceTo(new Vector3(...bookPosition)) < 3) {
                         if (book !== undefined && book !== 2) {
                             scene.remove(book);
                             book = 2;
@@ -98,7 +92,6 @@ export default function SceneRoomPractice(props: {
                     break;
             }
         };
-
         const onKeyUp = () => {
             movingDirection = 0;
         };
@@ -106,9 +99,23 @@ export default function SceneRoomPractice(props: {
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
 
-        const renderer = new THREE.WebGLRenderer(webGlConfig)
+        const renderer = new THREE.WebGLRenderer(webGlConfig);
 
-        const [scene, walls] = makeScene(room, getRandomElement(wallNameList), getRandomElement(floorNameList), renderer, camera, false);
+        const [scene, walls] = makeScene(
+            room, {
+                wall: {
+                    D: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                    N: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                },
+                floor: {
+                    D: getFloorUrl(floorNameList[0], 'D'),
+                    N: getFloorUrl(floorNameList[0], 'D'),
+                },
+                ceiling: {
+                    D: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                    N: getWallUrl('T_Decorative_Wall_Tiles_vlqvfdj_1K', 'D'),
+                },
+            }, renderer, camera, false);
 
         camera.position.set(0, eyeHeight, room.depth * 2);
         camera.lookAt(0, eyeHeight, 0);
@@ -116,11 +123,9 @@ export default function SceneRoomPractice(props: {
         const bookPosition: [number, number, number] = [-room.width, 0, room.depth * 0.9];
 
         function onDoorOpen() {
-            camera.position.set(0, room.height / 2, room.depth / 2 + 1);
-            camera.lookAt(0, room.height / 2, 0);
-            cancelAnimationFrame(lastAnimationID.current);
-            stats.dom.remove();
-            setStage(2);
+            record.end_date = new Date().getTime();
+            isDoorOpened.current = true;
+            props.done(record);
         }
 
         const clock = new THREE.Clock();
@@ -153,27 +158,22 @@ export default function SceneRoomPractice(props: {
             }
         );
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            render();
-        }
 
         function render() {
             renderer.render(scene, camera);
         }
 
         function animate() {
+            if (isDoorOpened.current) {
+                return;
+            }
             updateDoor(clock);
-            lastAnimationID.current = requestAnimationFrame(animate);
+            requestAnimationFrame(animate);
             moveCamera(camera, raycaster, movingDirection, moveSpeed, walls);
             stats.begin();
             stats.end();
             render();
         }
-
-        window.addEventListener('resize', onWindowResize);
 
         stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 
@@ -184,7 +184,6 @@ export default function SceneRoomPractice(props: {
         return () => {
             window.removeEventListener('keydown', onKeyDown);
             window.removeEventListener('keyup', onKeyUp);
-            window.removeEventListener('resize', onWindowResize);
             renderer.forceContextLoss();
             console.log('Requested force context loss');
             renderer.domElement.remove();
@@ -194,22 +193,12 @@ export default function SceneRoomPractice(props: {
     return (
         <>
             <HelperText>
-                {stage === 0 && <>
-                    <p>请想象你正以第一人称视角处于游戏环境中</p>
-                    <p>游戏的操作同多数电脑游戏一致</p>
-                    <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向<strong
-                        style={{color: 'red'}}>“前左后右”</strong>，按<strong
-                        style={{color: 'red'}}>“E”</strong>键捡拾物品或开门</p>
-                    <p>请捡起地上的书，然后进入房间</p>
-                </>}
-                {stage === 2 && <>
-                    <p>恭喜你已经成功进入房间</p>
-                    <p>接下来进入实验环节</p>
-                    <p>请观察现在你所处的空间，并<strong style={{color: 'red'}}>感受空间大小</strong></p>
-                    <p>稍后<strong style={{color: 'red'}}>需要你还原这个房间的大小</strong></p>
-                    <p></p>
-                    <p>准备好了请按E继续</p>
-                </>}
+                <p>请想象你正以第一人称视角处于游戏环境中</p>
+                <p>游戏的操作同多数电脑游戏一致</p>
+                <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向<strong
+                    style={{color: 'red'}}>“前左后右”</strong>，按<strong
+                    style={{color: 'red'}}>“E”</strong>键捡拾物品或开门</p>
+                <p>请捡起地上的书，然后进入房间</p>
             </HelperText>
             <div ref={divRef}/>
         </>

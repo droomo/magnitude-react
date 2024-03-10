@@ -2,14 +2,14 @@ import React from 'react';
 import axios from 'axios';
 import {Form, Input, Button, Select, InputNumber, message, Row, Col} from 'antd';
 import {UserOutlined, PhoneOutlined} from '@ant-design/icons';
-import {API, getCsrfToken, page_data} from "../const";
+import {api_subject, getCsrfToken} from "../const";
 import {useNavigate} from "react-router-dom";
 
 
 interface SubjectFormValues {
     name: string;
     age: number;
-    code?: string;
+    code: string;
     tel?: string;
     gender: 'M' | 'F' | 'U';
     note?: string;
@@ -18,7 +18,6 @@ interface SubjectFormValues {
 
 const SubjectForm: React.FC = () => {
     const [form] = Form.useForm();
-    const api_subject = `${API.base_url}${page_data['api_subject']}`
 
     const navigate = useNavigate();
 
@@ -51,7 +50,13 @@ const SubjectForm: React.FC = () => {
     }
 
     return (
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            backgroundColor: '#ffffff'
+        }}>
             <Row justify="center" style={{width: '100vw', marginTop: '-20px'}}>
                 <Col xs={24} sm={16} md={14} lg={10} xl={7}>
                     <Form
