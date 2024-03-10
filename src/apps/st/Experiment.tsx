@@ -61,11 +61,11 @@ export default function Experiment() {
                 setCurrentIndex(i => i + 1)
                 setStartedIndex(i => i + 1)
             } else {
-                navigate('/st/intro/');
+                navigate('/intro/');
             }
             setBreakType(0);
         }}
-        time={breakType === 1 ? 60 : 3}
+        time={breakType === 1 ? 60 : 60 * 3}
         text={breakType === 1 ? '请休息1分钟' : '已经完成一组实验，请休息3分钟，之后开始下一组'}
     /> : <Trial
         trial={trialDataList[currentIndex]}
