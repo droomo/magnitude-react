@@ -8,9 +8,15 @@ import PageMask from "../Page/PageMask";
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import {DEBUG} from "../../const";
 
+interface MouseEvent {
+    d: number,
+    dt: number
+}
+
 export interface TypeSceneShapeResult {
     radius: number
     control_times: number
+    control_event: MouseEvent[]
     page_start_date: number
     page_end_date: number
     location: THREE.Vector2
@@ -22,6 +28,7 @@ export default function SceneShapeRadius(props: {
     const page_start_date = new Date().getTime()
     const [radius, setRadius] = useState(6);
     const [controlTimes, setControlTimes] = useState(0);
+    const controlEvents = useRef<MouseEvent[]>([]);
 
     const divRef = useRef<HTMLDivElement>(null);
     const rotationYRef = useRef(0);
@@ -39,7 +46,11 @@ export default function SceneShapeRadius(props: {
                 const target = r - event.deltaY / 400;
                 return target > 0 ? target : r;
             })
-            setControlTimes(t => t + 1)
+            setControlTimes(t => t + 1);
+            controlEvents.current.push({
+                d: event.deltaY,
+                dt: event.timeStamp
+            })
         });
     }, [renderer]);
 
@@ -181,7 +192,8 @@ export default function SceneShapeRadius(props: {
                         page_start_date,
                         page_end_date: new Date().getTime(),
                         control_times: controlTimes,
-                        location: point_location
+                        location: point_location,
+                        control_event: controlEvents.current
                     })
                 }}
             >完&nbsp;成</span>}
