@@ -93,7 +93,7 @@ function Reaction(props: {
     done: () => void
 }) {
     const doneAction = (result: any) => {
-        const doneDate = new Date().getTime();
+        // const doneDate = new Date().getTime();
         axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
             stat_reaction: result,
             id: props.trial.id,
@@ -105,9 +105,7 @@ function Reaction(props: {
             },
         }).then(response => {
             if (response.data.status === 200) {
-                setTimeout(() => {
-                    props.done()
-                }, DELAY_TRIAL_DONE - new Date().getTime() + doneDate - DELAY_TRIAL_START_MASK)
+                props.done()
             } else {
                 alert('error happened 33')
             }
