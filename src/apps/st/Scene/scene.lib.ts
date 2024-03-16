@@ -191,19 +191,6 @@ export function checkCollisionAndMoveDelta(raycaster: THREE.Raycaster, direction
     }
 }
 
-export function checkCollisionAndMove(raycaster: THREE.Raycaster, direction: Vector3, distance: number, camera: THREE.Camera, walls: THREE.Object3D[]) {
-    raycaster.set(camera.position, direction);
-
-    const intersections = raycaster.intersectObjects(walls);
-
-    if (intersections.length > 0 && intersections[0].distance < distance + wallThickness * 19) {
-        // console.log("Collision detected, can't move");
-    } else {
-        const newPosition = direction.clone().multiplyScalar(distance).add(camera.position);
-        camera.position.copy(newPosition);
-    }
-}
-
 export function loadFBXModel(pathModel: string, pathD: string, pathN: string, onLoad: (model: Group<Object3DEventMap>, material: MeshStandardMaterial) => void) {
     loadThings(
         [pathD, pathN,],
@@ -451,7 +438,7 @@ export function makeSceneWalk(): THREE.Scene {
     const exr_loader = new EXRLoader();
 
     const repeat: [number, number] = [300, 600];
-    const size: [number, number] = [repeat[0] * 3, repeat[0] * 4];
+    const size: [number, number] = [repeat[0] * 1.5, repeat[0] * 2];
 
     loadThings(
         [

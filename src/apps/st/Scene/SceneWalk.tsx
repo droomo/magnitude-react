@@ -8,11 +8,6 @@ import {
 } from './scene.lib';
 import {getTimestamp} from "../../const";
 
-const moveCamera = function (camera: THREE.Camera, moveSpeed: number) {
-    const newPosition = new THREE.Vector3(0, 0, -0.3).clone().multiplyScalar(moveSpeed).add(camera.position);
-    camera.position.copy(newPosition);
-}
-
 const moveCameraDelta = function (camera: THREE.Camera, moveSpeed: number, deltaTime: number) {
     const distance = moveSpeed * deltaTime; // deltaTime应该以秒为单位
 
