@@ -35,6 +35,7 @@ export interface TypeWalkResult {
     page_start: number,
     walk_start: number,
     walk_end: number,
+    walk_end_fws: number,
     walk_event_times: number
 }
 
@@ -53,7 +54,14 @@ export class SceneWalk extends React.Component<TypeSceneWalk, any> {
         super(props);
         this.divRef = React.createRef<HTMLDivElement>();
         this.stats = new Stats();
-        this.result = {page_start: 0, page_start_date: 0, walk_end: 0, walk_start: 0, walk_event_times: 0};
+        this.result = {
+            page_start: 0,
+            page_start_date: 0,
+            walk_end: 0,
+            walk_start: 0,
+            walk_event_times: 0,
+            walk_end_fws: 0
+        };
         this.movingDirection = 0;
         this.state = {}
     }
@@ -83,9 +91,11 @@ export class SceneWalk extends React.Component<TypeSceneWalk, any> {
             if (this.movingDirection > 0) {
 
                 this.movingDirection = 0;
+                const now = getTimestamp();
                 this.props.done({
                     ...this.result,
-                    walk_end: getTimestamp(),
+                    walk_end: now,
+                    walk_end_fws: now - this.result.walk_start
                 })
                 window.removeEventListener('keydown', onKeyDown);
                 window.removeEventListener('keyup', onKeyUp);
