@@ -5,7 +5,7 @@ import {
     makeScene,
     makeDoorEXR as makeDoor,
     webGlConfig,
-    checkCollisionAndMove,
+    checkCollisionAndMoveDelta as checkCollisionAndMove,
     eyeHeight,
     loadFBXModel
 } from './scene.lib';
@@ -15,20 +15,20 @@ import {HelperText} from "../Page/HelperText";
 import {Vector3} from "three/src/math/Vector3";
 import {message} from "antd";
 
-const moveCamera = function (camera: THREE.Camera, raycaster: THREE.Raycaster, movingDirection: number, moveSpeed: number, walls: THREE.Object3D[]) {
+const moveCamera = function (camera: THREE.Camera, raycaster: THREE.Raycaster, movingDirection: number, moveSpeed: number, walls: THREE.Object3D[], deltaTime: number) {
     // camera.lookAt(0, eyeHeight, 0);
     switch (movingDirection) {
         case 1:
-            checkCollisionAndMove(raycaster, new THREE.Vector3(0, 0, -1), moveSpeed, camera, walls);
+            checkCollisionAndMove(raycaster, new THREE.Vector3(0, 0, -1), moveSpeed, camera, walls, deltaTime);
             break;
         case 2:
-            checkCollisionAndMove(raycaster, new THREE.Vector3(0, 0, 1), moveSpeed, camera, walls);
+            checkCollisionAndMove(raycaster, new THREE.Vector3(0, 0, 1), moveSpeed, camera, walls, deltaTime);
             break;
         case 3:
-            checkCollisionAndMove(raycaster, new THREE.Vector3(-1, 0, 0), moveSpeed, camera, walls);
+            checkCollisionAndMove(raycaster, new THREE.Vector3(-1, 0, 0), moveSpeed, camera, walls, deltaTime);
             break;
         case 4:
-            checkCollisionAndMove(raycaster, new THREE.Vector3(1, 0, 0), moveSpeed, camera, walls);
+            checkCollisionAndMove(raycaster, new THREE.Vector3(1, 0, 0), moveSpeed, camera, walls, deltaTime);
             break;
         default:
             break;
@@ -58,7 +58,7 @@ export default function SceneRoomPractice(props: {
         const raycaster = new THREE.Raycaster();
 
         let movingDirection: number = 0;
-        const moveSpeed = 0.08;
+        const moveSpeed = 2;
         const onKeyDown = (event: KeyboardEvent) => {
             record.key_pressed += event.key;
             switch (event.code) {
@@ -158,10 +158,11 @@ export default function SceneRoomPractice(props: {
             }
         );
 
-
         function render() {
             renderer.render(scene, camera);
         }
+
+        let lastTime = 0;
 
         function animate() {
             if (isDoorOpened.current) {
@@ -169,7 +170,12 @@ export default function SceneRoomPractice(props: {
             }
             updateDoor(clock);
             requestAnimationFrame(animate);
-            moveCamera(camera, raycaster, movingDirection, moveSpeed, walls);
+
+            const now = performance.now();
+            const deltaTime = (now - lastTime) / 1000;
+            moveCamera(camera, raycaster, movingDirection, moveSpeed, walls, deltaTime);
+            lastTime = now;
+
             stats.begin();
             stats.end();
             render();

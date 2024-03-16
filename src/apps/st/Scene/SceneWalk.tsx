@@ -13,6 +13,17 @@ const moveCamera = function (camera: THREE.Camera, moveSpeed: number) {
     camera.position.copy(newPosition);
 }
 
+const moveCameraDelta = function (camera: THREE.Camera, moveSpeed: number, deltaTime: number) {
+    const distance = moveSpeed * deltaTime; // deltaTime应该以秒为单位
+
+    // 使用摄像机的前向方向和移动距离来更新位置
+    const direction = new THREE.Vector3(0, 0, -1); // 默认前向方向
+    direction.applyQuaternion(camera.quaternion); // 应用摄像机的旋转
+    direction.multiplyScalar(distance); // 根据时间差调整移动距离
+
+    camera.position.add(direction);
+}
+
 export interface TypeExploringRecord {
     start_date: number,
     end_date: number,
@@ -29,6 +40,7 @@ export interface TypeWalkResult {
 
 export interface TypeSceneWalk {
     done: (result: TypeWalkResult) => void,
+    speed: number
 }
 
 export class SceneWalk extends React.Component<TypeSceneWalk, any> {
@@ -52,7 +64,8 @@ export class SceneWalk extends React.Component<TypeSceneWalk, any> {
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
 
-        const moveSpeed = 0.08;
+        const moveSpeed = this.props.speed / 1000;
+
         const onKeyDown = (event: KeyboardEvent) => {
             switch (event.code) {
                 case 'ArrowUp':
@@ -104,11 +117,16 @@ export class SceneWalk extends React.Component<TypeSceneWalk, any> {
             renderer.render(scene, camera);
         }
 
+        let lastTime = 0;
+
         const animate = () => {
             requestAnimationFrame(animate);
+            const now = performance.now();
             if (this.movingDirection > 0) {
-                moveCamera(camera, moveSpeed);
+                const deltaTime = (now - lastTime) / 1000;
+                moveCameraDelta(camera, moveSpeed, deltaTime);
             }
+            lastTime = now;
             this.stats.begin();
             this.stats.end();
             render();

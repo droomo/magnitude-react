@@ -15,6 +15,7 @@ export interface TrialData {
     width: number
     depth: number
     height: number
+    reaction_speed: number
 }
 
 function ControlledScene(props: {
@@ -105,5 +106,5 @@ function Reaction(props: {
     }
     return props.trial.reaction_type === 'S' ?
         <SceneShapeRadius done={doneAction}/> :
-        <SceneWalk done={doneAction}/>
+        <SceneWalk done={doneAction} speed={props.trial.reaction_speed}/>
 }

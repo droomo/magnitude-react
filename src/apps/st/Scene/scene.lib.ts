@@ -174,6 +174,22 @@ const makeMaterial = ([map, normalMap]: Texture[], metalness: number, roughness:
     });
 }
 
+export function checkCollisionAndMoveDelta(raycaster: THREE.Raycaster, direction: THREE.Vector3, speed: number, camera: THREE.Camera, walls: THREE.Object3D[], deltaTime: number) {
+    raycaster.set(camera.position, direction.normalize());
+
+    const intersections = raycaster.intersectObjects(walls);
+    // 计算基于时间差的实际移动距离
+    const actualDistance = speed * deltaTime;
+
+    if (intersections.length > 0 && intersections[0].distance < actualDistance + wallThickness * 19) {
+        // 如果检测到碰撞，并且碰撞发生在预期移动距离加上墙厚度的范围内，则不移动
+        // console.log("Collision detected, can't move");
+    } else {
+        // 如果没有碰撞，根据计算出的实际移动距离更新摄像机位置
+        const newPosition = direction.clone().normalize().multiplyScalar(actualDistance).add(camera.position);
+        camera.position.copy(newPosition);
+    }
+}
 
 export function checkCollisionAndMove(raycaster: THREE.Raycaster, direction: Vector3, distance: number, camera: THREE.Camera, walls: THREE.Object3D[]) {
     raycaster.set(camera.position, direction);
