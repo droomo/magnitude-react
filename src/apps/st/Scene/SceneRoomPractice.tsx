@@ -61,20 +61,20 @@ export default function SceneRoomPractice(props: {
         const moveSpeed = 0.08;
         const onKeyDown = (event: KeyboardEvent) => {
             record.key_pressed += event.key;
-            switch (event.key) {
-                case 'w':
+            switch (event.code) {
+                case 'ArrowUp':
                     movingDirection = 1;
                     break;
-                case 's':
+                case 'ArrowDown':
                     movingDirection = 2;
                     break;
-                case 'a':
+                case 'ArrowLeft':
                     movingDirection = 3;
                     break;
-                case 'd':
+                case 'ArrowRight':
                     movingDirection = 4;
                     break;
-                case 'e':
+                case 'KeyE':
                     if (camera.position.distanceTo(new Vector3(...bookPosition)) < 3) {
                         if (book !== undefined && book !== 2) {
                             scene.remove(book);

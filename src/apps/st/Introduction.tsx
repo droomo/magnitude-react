@@ -14,10 +14,8 @@ function Description(props: {
     return <PageMask
         text={<div style={{cursor: 'default', padding: '8rem 0'}}>
             <h1 style={{fontSize: '3rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索实验</h1>
+            <p style={{margin: '5px 0', fontSize: '2rem'}}>请将手机调至静音或关机，实验过程中全程不要使用手机</p>
             <p style={{margin: '5px 0', fontSize: '2rem'}}>实验将两分组进行，每组都有多次实验任务</p>
-            <p style={{margin: '5px 0', fontSize: '2rem'}}>接下来的一组实验需要复现<strong
-                style={{color: "red"}}>{props.testTrialType === BlockType.Time ? '时间' : '空间'}</strong></p>
-            <p/>
             <p style={{margin: '5px 0', fontSize: '2rem'}}>实验任务包含<strong
                 style={{color: 'red'}}>体验</strong>和<strong style={{color: 'red'}}>再现</strong>两个环节</p>
             <Row>
@@ -58,19 +56,18 @@ function Description(props: {
                         margin: '5px 0',
                         marginTop: '40px',
                         fontSize: '3rem',
-                    }}><span style={{fontWeight: 'bold'}}><strong style={{color: "red"}}>{
-                        props.testTrialType === BlockType.Time ? '时间' : '空间'}</strong></span>再现</p>
+                    }}>空间再现</p>
                     <div style={{textAlign: 'center'}}>
                         {props.testTrialType === BlockType.Space && <p style={{
                             margin: '5px 0',
                             fontSize: '1.8rem',
                             marginTop: '20px'
-                        }}>使用鼠标滚轮控制大小</p>}
-                        {props.testTrialType === BlockType.Time && <p style={{
+                        }}>使用鼠标滚轮控制多面体大小</p>}
+                        {props.testTrialType === BlockType.Distance && <p style={{
                             margin: '5px 0',
                             fontSize: '1.8rem',
                             marginTop: '20px'
-                        }}>点击鼠标左键控制结束</p>}
+                        }}>按键盘控制行走</p>}
                     </div>
                     <div style={{textAlign: 'center'}}>
                         <img src={`${API.texture_base_url}/src/${props.testTrialType}.png`}
@@ -85,20 +82,7 @@ function Description(props: {
                 }}
                 style={{marginTop: '2rem'}}
                 className={classes.fakeButton}
-            >我已理解，进行下一步</span>
-            <span
-                style={{
-                    position: 'absolute',
-                    right: '2rem',
-                    bottom: '2rem',
-                    fontSize: '1rem',
-                    color: '#101010',
-                    cursor: 'pointer'
-                }}
-                onClick={() => {
-                    navigate('/intro/');
-                }}
-            >切换</span>
+            >进行下一步</span>
         </div>}
     />
 }
@@ -117,9 +101,9 @@ function SceneIntro(props: {
                 }
             }).then(response => {
                 if (response.data.status === 200) {
-                    if (props.blockType === 'time') {
-                        navigate('/test/time/')
-                    } else if (props.blockType === 'space') {
+                    if (props.blockType === BlockType.Distance) {
+                        navigate('/test/distance/')
+                    } else if (props.blockType === BlockType.Space) {
                         navigate('/test/space/')
                     } else {
                         alert(11)
@@ -129,32 +113,35 @@ function SceneIntro(props: {
                 }
             })
         }}
-        room={{width: 10.4, height: 5, depth: 10, wall: 1, ground: 1, duration: 10000}}
+        room={{width: 10.4, height: 5, depth: 10, duration: 10000}}
     />
 }
 
 function Introduction() {
-    const [firstTrialType, setFirstTrialType] = React.useState<BlockType | undefined | null>();
+    const [firstTrialType, setFirstTrialType] = React.useState<BlockType>();
+    const [exp_done, setExpDone] = React.useState(false);
 
     useEffect(() => {
         axios.get(`${API.base_url}${page_data['api_first_reaction_type']}`).then(response => {
-            if (response.data.first_reaction_type === null) {
-                setFirstTrialType(null);
-            } else {
-                setFirstTrialType(response.data.first_reaction_type === 'S' ? BlockType.Space : BlockType.Time);
-            }
+            setExpDone(response.data.exp_done);
+            setFirstTrialType(response.data.first_reaction_type);
         });
-    }, [])
+    }, []);
 
     return (
         <Routes>
-            <Route path="/" element={firstTrialType !== undefined && (firstTrialType === null ?
-                <PageMask text={<>
-                    <p>被试已完成实验</p>
-                    <a href="/logout/" style={{color: "white"}}>开始新用户</a>
-                </>}/> : <Description testTrialType={firstTrialType}/>)}/>
-            <Route path="/space/" element={<SceneIntro blockType={BlockType.Space}/>}/>
-            <Route path="/time/" element={<SceneIntro blockType={BlockType.Time}/>}/>
+            <Route path="/" element={
+                exp_done ?
+                    <PageMask
+                        text={<>
+                            <p>被试已完成实验</p>
+                            <a href="/logout/" style={{color: "white"}}>开始新用户</a>
+                        </>}
+                    /> :
+                    firstTrialType && <Description testTrialType={firstTrialType}/>
+            }/>
+            <Route path="/S/" element={<SceneIntro blockType={BlockType.Space}/>}/>
+            <Route path="/D/" element={<SceneIntro blockType={BlockType.Distance}/>}/>
         </Routes>
     );
 }

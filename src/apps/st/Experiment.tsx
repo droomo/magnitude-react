@@ -2,11 +2,10 @@ import React, {useEffect} from "react";
 import Trial, {TrialData} from "./Trial";
 import classes from "./css/exp.module.scss";
 import axios from "axios";
-import {API, DEBUG, page_data} from "../const";
+import {API, BlockType, DEBUG, page_data} from "../const";
 import PageMask from "./Page/PageMask";
 import {useNavigate} from "react-router-dom";
 
-const trial_api = `${API.base_url}${page_data['api_trial']}`
 
 function Pause(props: {
     text: string,
@@ -16,43 +15,58 @@ function Pause(props: {
     const [canDone, setCanDone] = React.useState(false);
     setTimeout(() => {
         setCanDone(true);
-    }, (DEBUG ? 3 : props.time) * 1000)
+    }, (DEBUG ? 3 : props.time) * 1000);
     return canDone ? <PageMask text={<div style={{cursor: 'default'}}>
-        <p>请继续实验</p>
+        <p>休息好后请继续</p>
         <span className={classes.fakeButton} onClick={props.done}>继续实验</span>
     </div>}/> : <PageMask text={props.text}/>
 }
 
 export default function Experiment() {
-
     const [trialDataList, setTrialDataList] = React.useState<TrialData[]>([]);
 
     const [currentIndex, setCurrentIndex] = React.useState(0);
-    const [startedIndex, setStartedIndex] = React.useState(0);
     const [isDone, setIsDone] = React.useState(false);
     const [breakTimes, setBreakTimes] = React.useState(0);
 
     const [breakType, setBreakType] = React.useState(0);
-    const [end_reason, setEndReason] = React.useState<string>('');
-    const [last_reaction_type_trial_id, set_last_reaction_type_trial_id] = React.useState<number>(-1);
+    const [last_trial_id, set_last_trial_id] = React.useState<number>(-1);
+    const [blockType, setBlockType] = React.useState<BlockType>(BlockType.Space);
 
     const navigate = useNavigate();
 
-    useEffect(() => {
-        axios.get(trial_api).then(response => {
-            const data = response.data;
+    function requestTrial(blockType_: string) {
+        axios.get(`${API.base_url}${page_data['api_make_or_get_trial']}`, {
+            params: {
+                'reaction_type': blockType_,
+                'trial_type': "F",
+            }
+        }).then(response => {
+            const data = response.data.data;
+            const trials: TrialData[] = data.trials;
+            set_last_trial_id(data.last_id);
+            setBreakTimes(data.break_times);
+            let i = 0;
+            for (const t of trials) {
+                if (!t.done) {
+                    setCurrentIndex(i)
+                    break
+                }
+                i++;
+            }
+            setTrialDataList(trials);
+        })
+    }
 
-            if (data.status === 204) {
+    useEffect(() => {
+        axios.get(`${API.base_url}${page_data['api_first_reaction_type']}`).then(response => {
+            if (response.data.exp_done) {
                 setIsDone(true);
             } else {
-                const trials = data.trials;
-                setEndReason(data.end_reason);
-                set_last_reaction_type_trial_id(data.last_reaction_type_trial_id);
-                setTrialDataList(trials.trials);
-                setCurrentIndex(trials.last_trial_index);
-                setBreakTimes(trials.break_times);
+                setBlockType(response.data.first_reaction_type)
+                requestTrial(response.data.first_reaction_type)
             }
-        })
+        });
     }, []);
 
     return <>
@@ -76,33 +90,26 @@ export default function Experiment() {
             done={() => {
                 if (breakType === 1) {
                     setCurrentIndex(i => i + 1)
-                    setStartedIndex(i => i + 1)
                 } else {
                     navigate('/intro/');
                 }
                 setBreakType(0);
             }}
-            time={breakType === 1 ? 60 : 60 * 3}
-            text={breakType === 1 ? '请休息1分钟' : '已经完成一组实验，请休息3分钟，之后开始下一组'}
+            time={breakType === 1 ? 30 : 60}
+            text={breakType === 1 ? '请休息' : '已经完成一组实验，请休息1分钟，之后开始下一组'}
         /> : <Trial
             trial={trialDataList[currentIndex]}
             done={() => {
-                if (end_reason === 'need_change_block' && last_reaction_type_trial_id === trialDataList[currentIndex].id) {
+                if (blockType === BlockType.Space && last_trial_id === trialDataList[currentIndex].id) {
                     setBreakType(2);
                 } else if (currentIndex + 1 === trialDataList.length) {
-                    if (end_reason === 'done') {
-                        setIsDone(true);
-                    } else {
-                        alert('error happened 94133');
-                    }
+                    setIsDone(true);
                 } else if ((currentIndex + 1) % breakTimes === 0) {
                     setBreakType(1);
                 } else {
                     setCurrentIndex(i => i + 1)
-                    setStartedIndex(i => i + 1)
                 }
             }}
-            startedIndex={startedIndex}
         />)}
     </>
 }

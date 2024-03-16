@@ -56,6 +56,14 @@ export const DELAY_TRIAL_DONE = 1000; // ms
 
 
 export const material_map = {
+    walkGroundD: `${TEXTURE_BASE}/ground/walk/T_Painted_Brick_Wall_vhhmbje_1K_D.EXR`,
+    walkGroundN: `${TEXTURE_BASE}/ground/walk/T_Painted_Brick_Wall_vhhmbje_1K_N.EXR`,
+    walkGround2D: `${TEXTURE_BASE}/ground/walk/5/D.png`,
+    walkGround2N: `${TEXTURE_BASE}/ground/walk/5/N.png`,
+    walkGroundBaseColor: `${TEXTURE_BASE}/ground/walk/MI_Painted_Brick_Wall_vhhmbje_4K_BaseColor.png`,
+    walkGroundMetallicRoughness: `${TEXTURE_BASE}/ground/walk/MI_Painted_Brick_Wall_vhhmbje_4K_MetallicRoughness.png`,
+    walkGroundNormal: `${TEXTURE_BASE}/ground/walk/MI_Painted_Brick_Wall_vhhmbje_4K_Normal.png`,
+    walkGroundOcclusion: `${TEXTURE_BASE}/ground/walk/MI_Painted_Brick_Wall_vhhmbje_4K_Occlusion.png`,
     groundD: `${TEXTURE_BASE}/ground/outdoor/ground_D.EXR`,
     groundN: `${TEXTURE_BASE}/ground/outdoor/ground_N.EXR`,
     doorD: `${TEXTURE_BASE}/door/door_D.EXR`,
@@ -156,19 +164,19 @@ export function getRandomElement(arr: string[]) {
 }
 
 export enum BlockType {
-    Space = 'space',
-    Time = 'time'
+    Space = 'S',
+    Distance = 'D'
 }
 
 export const DEBUG = window.location.search.toLowerCase().includes('debug')
 
-if (window.location.pathname !== '/') {
-    for (const material_name of Object.values(material_map)) {
-        loader_selector(material_name).load(material_name, function (texture) {
-            console.log(`{${texture.uuid}} ${material_name} loaded`);
-        });
-    }
-}
+// if (window.location.pathname !== '/') {
+//     for (const material_name of Object.values(material_map)) {
+//         loader_selector(material_name).load(material_name, function (texture) {
+//             console.log(`{${texture.uuid}} ${material_name} loaded`);
+//         });
+//     }
+// }
 
 window.oncontextmenu=function(e){
     e.preventDefault();

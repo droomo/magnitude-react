@@ -18,7 +18,7 @@ root.render(
         <Routes>
             <Route path="/" element={<Experiment/>}/>
             <Route path="/test/space/" element={<ExperimentTest blockType={BlockType.Space}/>}/>
-            <Route path="/test/time/" element={<ExperimentTest blockType={BlockType.Time}/>}/>
+            <Route path="/test/distance/" element={<ExperimentTest blockType={BlockType.Distance}/>}/>
             <Route path="/intro/*" element={<Introduction/>}/>
             <Route path="/login/" element={<Login/>}/>
             <Route path="/dev/" element={<SceneRoomDev room={{

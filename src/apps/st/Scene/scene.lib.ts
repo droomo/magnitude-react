@@ -41,8 +41,8 @@ export function loadThings(
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
     const roomSize = room.depth * room.width * room.height;
-    const roomLight = new THREE.PointLight(0xffffff, 2, Math.pow(roomSize, 1 / 3) * 2, 0.4);
-    roomLight.position.set(0, doorHeight * 0.8, 0);
+    const roomLight = new THREE.PointLight(0xffffff, 2, Math.pow(roomSize, 1 / 3) * 1.5, 0.3);
+    roomLight.position.set(0, room.height * 0.5, 0);
     scene.add(roomLight);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
@@ -243,8 +243,8 @@ export function makeScene(
     const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
     const repeatCeiling = new Vector2(repeatFloor.x, repeatFloor.y);
 
-    const wallMetalness = 0.1;
-    const wallRoughness = 0.8;
+    const wallMetalness = 0.02;
+    const wallRoughness = 0.96;
 
     const exr_loader = new EXRLoader();
     loadThings(
@@ -421,5 +421,53 @@ function addSky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, camera: THREE
 export const webGlConfig = {
     powerPreference: 'high-performance',
     antialias: true,
-    failIfMajorPerformanceCaveat: true
+    failIfMajorPerformanceCaveat: true,
+    logarithmicDepthBuffer: true,
+}
+
+
+export function makeSceneWalk(): THREE.Scene {
+    const scene = new THREE.Scene();
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 11);
+    scene.add(ambientLight);
+
+    const exr_loader = new EXRLoader();
+
+    const repeat: [number, number] = [300, 600];
+    const size: [number, number] = [repeat[0] * 3, repeat[0] * 4];
+
+    loadThings(
+        [
+            material_map.walkGroundD,
+            material_map.walkGroundN,
+        ],
+        ([map, normal]) => {
+            [map, normal].forEach(texture => {
+                texture = texture as Texture
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(...repeat);
+                // texture.magFilter = THREE.LinearFilter
+                // texture.minFilter  = THREE.LinearMipMapLinearFilter
+            });
+            const material = new THREE.MeshStandardMaterial({
+                map: map as Texture,
+                normalMap: normal as Texture,
+                metalness: 0.01,
+                roughness: 0.95,
+                normalScale: new THREE.Vector2(0, 0),
+            });
+            const planeGeometry = new THREE.PlaneGeometry(...size);
+            const plane = new THREE.Mesh(planeGeometry, material);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.set(0,0.2,-200)
+            // plane.receiveShadow = true;
+            scene.add(plane);
+        },
+        exr_loader
+        // new TextureLoader()
+    )
+
+    return scene;
 }
