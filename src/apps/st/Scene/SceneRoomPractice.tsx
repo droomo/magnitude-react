@@ -201,7 +201,7 @@ export default function SceneRoomPractice(props: {
             <HelperText>
                 <p>请想象你正以第一人称视角处于游戏环境中</p>
                 <p>游戏的操作同多数电脑游戏一致</p>
-                <p>按<strong style={{color: 'red'}}>“WASD”</strong>键控制方向<strong
+                <p>按<strong style={{color: 'red'}}>“上下左右”</strong>键控制方向<strong
                     style={{color: 'red'}}>“前左后右”</strong>，按<strong
                     style={{color: 'red'}}>“E”</strong>键捡拾物品或开门</p>
                 <p>请捡起地上的书，然后进入房间</p>
