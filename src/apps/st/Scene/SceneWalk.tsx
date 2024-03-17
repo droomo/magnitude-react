@@ -6,7 +6,7 @@ import {
     eyeHeight,
     makeSceneWalk
 } from './scene.lib';
-import {getTimestamp} from "../../const";
+import {DEBUG, getTimestamp} from "../../const";
 
 const moveCameraDelta = function (camera: THREE.Camera, moveSpeed: number, deltaTime: number) {
     const distance = moveSpeed * deltaTime; // deltaTime应该以秒为单位
@@ -132,15 +132,19 @@ export class SceneWalk extends React.Component<TypeSceneWalk, any> {
                 moveCameraDelta(camera, moveSpeed, deltaTime);
             }
             lastTime = now;
-            this.stats.begin();
-            this.stats.end();
+            if (DEBUG) {
+                this.stats.begin();
+                this.stats.end();
+            }
             render();
         }
 
-        this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        if (DEBUG) {
+            this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+            this.divRef.current?.appendChild(this.stats.dom);
+        }
 
         this.divRef.current?.appendChild(renderer.domElement);
-        this.divRef.current?.appendChild(this.stats.dom);
 
         animate();
 

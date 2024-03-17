@@ -40,12 +40,12 @@ export function loadThings(
 
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
-    const roomSize = room.depth * room.width * room.height;
-    const roomLight = new THREE.PointLight(0xffffff, 2, Math.pow(roomSize, 1 / 3) * 1.5, 0.3);
+    const roomLight = new THREE.PointLight(
+        0xffffff, (room.width - 4) / 12 + 2, room.width, (16 - room.width) / 30 + 0.1
+    );
     roomLight.position.set(0, room.height * 0.5, 0);
     scene.add(roomLight);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, (room.width - 4) / 24 + 2);
     scene.add(ambientLight);
 }
 
@@ -437,8 +437,8 @@ export function makeSceneWalk(): THREE.Scene {
 
     const exr_loader = new EXRLoader();
 
-    const repeat: [number, number] = [300, 600];
-    const size: [number, number] = [repeat[0] * 1.5, repeat[0] * 2];
+    const repeat: [number, number] = [1200, 1800];
+    const size: [number, number] = [600, 900];
 
     loadThings(
         [
@@ -456,15 +456,15 @@ export function makeSceneWalk(): THREE.Scene {
             });
             const material = new THREE.MeshStandardMaterial({
                 map: map as Texture,
-                normalMap: normal as Texture,
+                // normalMap: normal as Texture,
                 metalness: 0.01,
                 roughness: 0.95,
-                normalScale: new THREE.Vector2(0, 0),
+                // normalScale: new THREE.Vector2(0, 0),
             });
             const planeGeometry = new THREE.PlaneGeometry(...size);
             const plane = new THREE.Mesh(planeGeometry, material);
             plane.rotation.x = -Math.PI / 2;
-            plane.position.set(0,0.2,-200)
+            plane.position.set(0, 0.2, -200)
             // plane.receiveShadow = true;
             scene.add(plane);
         },

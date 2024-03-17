@@ -43,7 +43,6 @@ export default function Trial(props: {
         reaction?: React.ReactElement,
     }
 }) {
-    console.log(props.trial)
     const [sceneStage, setSceneStage] = useState<boolean>(true);
 
     useLayoutEffect(() => {
