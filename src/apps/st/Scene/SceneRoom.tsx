@@ -23,7 +23,7 @@ export interface PropScene {
     done: (timeStat: TypeRoomStat) => void,
 }
 
-const FRAME = 1000 / 60;
+const FRAME = 1000 / 144;
 
 export interface TypeRoomStat {
     stage_started_date: number,

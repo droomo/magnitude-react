@@ -7,7 +7,6 @@ import {PropRoom} from "./SceneRoom";
 import {TextureLoader, Texture} from 'three';
 import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
 import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
-import {Vector3} from "three/src/math/Vector3";
 
 export const TEXTURE_BASE = API.texture_base_url;
 
