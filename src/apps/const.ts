@@ -5,7 +5,7 @@ import {TextureLoader} from "three";
 
 THREE.Cache.enabled = true;
 
-let base_host = 'dev1.droomo.com'
+let base_host = 'xr.droomo.com'
 let scheme = 'https'
 
 if (window.location.href.indexOf(base_host) === -1) {
