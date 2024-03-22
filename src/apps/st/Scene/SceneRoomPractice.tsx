@@ -2,13 +2,13 @@ import React from 'react';
 import * as THREE from 'three';
 import Stats from 'stats.js';
 import {
+    eyeHeight,
     makeScene,
     webGlConfig,
 } from './scene.lib';
 import {PropRoom} from "./SceneRoom";
 import {floorNameList, getFloorUrl, getWallUrl, wallNameList, WS_CONTROL_COMMAND} from "../../const";
 import {HelperText} from "../Page/HelperText";
-import {VRButton} from "three/examples/jsm/webxr/VRButton";
 import {message} from "antd";
 import WSRC, {TypeSendData} from "../WSRC";
 
@@ -39,7 +39,8 @@ export default class SceneRoomPractice extends WSRC<{
         this.renderer = new THREE.WebGLRenderer(webGlConfig);
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         this.scene = makeScene(
-            this.props.room, {
+            this.props.room,
+            {
                 wall: {
                     D: getWallUrl(wallNameList[0], 'D'),
                     N: getWallUrl(wallNameList[0], 'D'),
@@ -60,7 +61,6 @@ export default class SceneRoomPractice extends WSRC<{
         super.componentDidMount()
         this.record.start_date = new Date().getTime();
 
-
         this.renderer.xr.enabled = true;
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -73,8 +73,10 @@ export default class SceneRoomPractice extends WSRC<{
         if (this.divRef.current) {
             this.divRef.current.appendChild(this.stats.dom);
             this.divRef.current.appendChild(this.renderer.domElement);
-            // this.divRef.current.appendChild(VRButton.createButton(this.renderer));
         }
+
+        this.camera.position.set(0, eyeHeight, this.props.room.depth * 0.5);
+        this.camera.lookAt(0, eyeHeight, 0);
 
         const animate = () => {
             this.stats.begin();

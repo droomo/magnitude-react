@@ -109,11 +109,12 @@ interface WallShading {
 }
 
 export function makeScene(
-    room: PropRoom, wall: {
+    room: PropRoom,
+    wall: {
         wall: WallShading,
         floor: WallShading,
         ceiling: WallShading,
-    },
+    }
 ): THREE.Scene {
     const scene = new THREE.Scene();
 
@@ -134,22 +135,18 @@ export function makeScene(
     const wallRoughness = 0.96;
 
     const exr_loader = new EXRLoader();
+
     loadThings(
-        [wall.ceiling.D, wall.ceiling.N],
-        ([map, normal]) => {
+        [wall.wall.D, wall.wall.N, wall.floor.D, wall.floor.N],
+        ([map, normal, mapFloor, normalFloor]) => {
             map = map as Texture;
             normal = normal as Texture;
+            mapFloor = mapFloor as Texture;
+            normalFloor = normalFloor as Texture;
+
             const textureCeiling = prepareTextures([map, normal], repeatCeiling);
             const materialCeiling = makeMaterial(textureCeiling, wallMetalness, wallRoughness);
             createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialCeiling);
-        },
-        exr_loader
-    );
-    loadThings(
-        [wall.wall.D, wall.wall.N],
-        ([map, normal]) => {
-            map = map as Texture;
-            normal = normal as Texture;
             const textureLR = prepareTextures([map, normal], repeatLR);
             const textureFB = prepareTextures([map, normal], repeatBack);
             const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
@@ -160,16 +157,11 @@ export function makeScene(
             createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialFB);
             // front
             createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, wallDepth / 2), materialFB);
-        },
-        exr_loader
-    );
-    loadThings(
-        [wall.floor.D, wall.floor.N],
-        ([map, normal]) => {
-            map = map as Texture;
-            normal = normal as Texture;
-            const material = makeMaterial(prepareTextures([map, normal], repeatFloor), wallMetalness, wallRoughness);
+
+            // floor
+            const material = makeMaterial(prepareTextures([mapFloor, normalFloor], repeatFloor), wallMetalness, wallRoughness);
             createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+
         },
         exr_loader
     );
