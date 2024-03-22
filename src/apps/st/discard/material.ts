@@ -1,106 +1,106 @@
-import * as THREE from "three";
-import {Group, RepeatWrapping, Texture, TextureLoader, Vector2} from "three";
-import {doorHeight, doorWidth, TEXTURE_BASE, wallThickness} from "../Scene/scene.lib";
-import {PropRoom} from "../Scene/SceneRoom";
-import {material_map} from "../../const";
-import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
-import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
-
-export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
-    const wallDepth = room.depth;
-
-    const textureLoader = new THREE.TextureLoader();
-    const doorTextures = [
-        textureLoader.load(`${TEXTURE_BASE}/door/door.png`),
-        textureLoader.load(`${TEXTURE_BASE}/door/doorM.png`),
-        textureLoader.load(`${TEXTURE_BASE}/door/doorN.png`),
-    ];
-
-    doorTextures.forEach(texture => {
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    });
-
-    const doorMaterial = new THREE.MeshStandardMaterial({
-        map: doorTextures[0],
-        metalnessMap: doorTextures[1],
-        normalMap: doorTextures[2],
-        metalness: 0.4,
-        roughness: 0.5
-    });
-
-    const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.1);
-    doorGeometry.translate(doorWidth * 0.5, 0, 0);
-
-    const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
-    const doorGroup = new THREE.Group();
-    doorGroup.position.set(-doorWidth * 0.5, doorHeight * 0.5, wallDepth / 2);
-    doorGroup.add(doorMesh);
-
-    let open = false;
-    let targetRotationY = 0;
-
-    function updateDoor(clock: THREE.Clock) {
-        const delta = clock.getDelta();
-        if (open) {
-            if (doorGroup.rotation.y > targetRotationY) {
-                doorGroup.rotation.y -= delta * 3.2;
-                if (doorGroup.rotation.y < targetRotationY) {
-                    doorGroup.rotation.y = targetRotationY;
-                }
-            } else {
-                doorOpenedAction()
-            }
-        } else if (!open && doorGroup.rotation.y < 0) {
-            doorGroup.rotation.y += delta * 3.2;
-            if (doorGroup.rotation.y > 0) {
-                doorGroup.rotation.y = 0;
-            }
-        }
-    }
-
-    const onKeyDown = (event: { key: any; }) => {
-        switch (event.key) {
-            case 'e':
-                open = !open;
-                targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
-        }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-
-    return [doorGroup, updateDoor];
-}
-
-
-export function addGround(scene: THREE.Scene) {
-    const loader = new TextureLoader();
-
-    const baseColorTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`);
-    const metalnessTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`);
-    const normalTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`);
-    const aoTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`);
-
-    [baseColorTexture, metalnessTexture, normalTexture, aoTexture].forEach(texture => {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(2, 2);
-    });
-
-    const material = new THREE.MeshStandardMaterial({
-        map: baseColorTexture,
-        metalnessMap: metalnessTexture,
-        normalMap: normalTexture,
-        aoMap: aoTexture,
-        metalness: 0.4,
-        roughness: 0.5,
-        normalScale: new THREE.Vector2(2, 2),
-    });
-    const planeGeometry = new THREE.PlaneGeometry(6e2, 2e2);
-    const plane = new THREE.Mesh(planeGeometry, material);
-    plane.rotation.x = -Math.PI / 2;
-    plane.receiveShadow = true;
-    scene.add(plane);
-}
+// import * as THREE from "three";
+// import {Group, RepeatWrapping, Texture, TextureLoader, Vector2} from "three";
+// import {doorHeight, doorWidth, TEXTURE_BASE, wallThickness} from "../Scene/scene.lib";
+// import {PropRoom} from "../Scene/SceneRoom";
+// import {material_map} from "../../const";
+// import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
+// import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
+//
+// export function makeDoor(room: PropRoom, doorOpenedAction: () => void): [THREE.Group, (clock: THREE.Clock) => void] {
+//     const wallDepth = room.depth;
+//
+//     const textureLoader = new THREE.TextureLoader();
+//     const doorTextures = [
+//         textureLoader.load(`${TEXTURE_BASE}/door/door.png`),
+//         textureLoader.load(`${TEXTURE_BASE}/door/doorM.png`),
+//         textureLoader.load(`${TEXTURE_BASE}/door/doorN.png`),
+//     ];
+//
+//     doorTextures.forEach(texture => {
+//         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+//     });
+//
+//     const doorMaterial = new THREE.MeshStandardMaterial({
+//         map: doorTextures[0],
+//         metalnessMap: doorTextures[1],
+//         normalMap: doorTextures[2],
+//         metalness: 0.4,
+//         roughness: 0.5
+//     });
+//
+//     const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.1);
+//     doorGeometry.translate(doorWidth * 0.5, 0, 0);
+//
+//     const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+//     const doorGroup = new THREE.Group();
+//     doorGroup.position.set(-doorWidth * 0.5, doorHeight * 0.5, wallDepth / 2);
+//     doorGroup.add(doorMesh);
+//
+//     let open = false;
+//     let targetRotationY = 0;
+//
+//     function updateDoor(clock: THREE.Clock) {
+//         const delta = clock.getDelta();
+//         if (open) {
+//             if (doorGroup.rotation.y > targetRotationY) {
+//                 doorGroup.rotation.y -= delta * 3.2;
+//                 if (doorGroup.rotation.y < targetRotationY) {
+//                     doorGroup.rotation.y = targetRotationY;
+//                 }
+//             } else {
+//                 doorOpenedAction()
+//             }
+//         } else if (!open && doorGroup.rotation.y < 0) {
+//             doorGroup.rotation.y += delta * 3.2;
+//             if (doorGroup.rotation.y > 0) {
+//                 doorGroup.rotation.y = 0;
+//             }
+//         }
+//     }
+//
+//     const onKeyDown = (event: { key: any; }) => {
+//         switch (event.key) {
+//             case 'e':
+//                 open = !open;
+//                 targetRotationY = open ? -Math.PI / 1.3 : 0; // 旋转90度开门
+//         }
+//     };
+//
+//     window.addEventListener('keydown', onKeyDown);
+//
+//     return [doorGroup, updateDoor];
+// }
+//
+//
+// export function addGround(scene: THREE.Scene) {
+//     const loader = new TextureLoader();
+//
+//     const baseColorTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_BaseColor.png`);
+//     const metalnessTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_MetallicRoughness.png`);
+//     const normalTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Normal.png`);
+//     const aoTexture = loader.load(`${TEXTURE_BASE}/wild_grass/MI_Wild_Grass_pjwce0_4K_Occlusion.png`);
+//
+//     [baseColorTexture, metalnessTexture, normalTexture, aoTexture].forEach(texture => {
+//         texture.wrapS = THREE.RepeatWrapping;
+//         texture.wrapT = THREE.RepeatWrapping;
+//         texture.repeat.set(2, 2);
+//     });
+//
+//     const material = new THREE.MeshStandardMaterial({
+//         map: baseColorTexture,
+//         metalnessMap: metalnessTexture,
+//         normalMap: normalTexture,
+//         aoMap: aoTexture,
+//         metalness: 0.4,
+//         roughness: 0.5,
+//         normalScale: new THREE.Vector2(2, 2),
+//     });
+//     const planeGeometry = new THREE.PlaneGeometry(6e2, 2e2);
+//     const plane = new THREE.Mesh(planeGeometry, material);
+//     plane.rotation.x = -Math.PI / 2;
+//     plane.receiveShadow = true;
+//     scene.add(plane);
+// }
 
 //
 //
@@ -219,3 +219,4 @@ export function addGround(scene: THREE.Scene) {
 //         createWall(wallWidthF, wallHeightF - doorHeight, wallThickness, new THREE.Vector3(0, (wallHeightF + doorHeight) * 0.5, wallDepth * 0.5), makeMaterial(halfWallTTextures));
 //     })
 // }
+export {}

@@ -2,7 +2,6 @@ import React, {useLayoutEffect, useState} from "react";
 import {API, getCsrfToken, page_data,} from "../const";
 import SceneRoom, {TypeRoomStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import {SceneWalk} from "./Scene/SceneWalk";
 import axios from "axios";
 
 const api_trial = `${API.base_url}${page_data['api_trial']}`;
@@ -103,7 +102,5 @@ function Reaction(props: {
             alert('error happened 44')
         })
     }
-    return props.trial.reaction_type === 'S' ?
-        <SceneShapeRadius done={doneAction}/> :
-        <SceneWalk done={doneAction} speed={props.trial.reaction_speed}/>
+    return <SceneShapeRadius done={doneAction}/>
 }

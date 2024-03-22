@@ -8,6 +8,7 @@ import Introduction from "./Introduction";
 import ExperimentTest from "./ExperimentTest";
 import SceneRoomDev from "./Scene/SceneRoomDev";
 import {BlockType} from "../const";
+import Control from "./control/Control";
 
 
 const root = ReactDOM.createRoot(
@@ -16,6 +17,7 @@ const root = ReactDOM.createRoot(
 root.render(
     <BrowserRouter>
         <Routes>
+            <Route path="/control" element={<Control/>}/>
             <Route path="/" element={<Experiment/>}/>
             <Route path="/test/space/" element={<ExperimentTest blockType={BlockType.Space}/>}/>
             <Route path="/test/distance/" element={<ExperimentTest blockType={BlockType.Distance}/>}/>

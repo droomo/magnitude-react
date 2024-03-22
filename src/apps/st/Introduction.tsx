@@ -113,7 +113,7 @@ function SceneIntro(props: {
                 }
             })
         }}
-        room={{width: 10.4, height: 5, depth: 10, duration: 10000}}
+        room={{width: 4, height: 3, depth: 5, duration: 10000}}
     />
 }
 

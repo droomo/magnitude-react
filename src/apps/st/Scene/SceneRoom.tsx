@@ -77,7 +77,7 @@ export default function SceneRoom(props: PropScene) {
         roomStat.wall = wallNameList[0];
         roomStat.ceiling = wallNameList[0];
 
-        const [scene,] = makeScene(room, {
+        const scene = makeScene(room, {
             wall: {
                 D: getWallUrl(roomStat.wall, 'D'),
                 N: getWallUrl(roomStat.wall, 'N'),
@@ -90,7 +90,7 @@ export default function SceneRoom(props: PropScene) {
                 D: getWallUrl(roomStat.ceiling, 'D'),
                 N: getWallUrl(roomStat.ceiling, 'N'),
             },
-        }, renderer, camera, true);
+        });
 
         let cameraMoved = -1;
 

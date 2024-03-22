@@ -43,7 +43,7 @@ export default function SceneRoomDev(props: PropScene) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        const [scene,] = makeScene(room, {
+        const scene = makeScene(room, {
             wall: {
                 D: getWallUrl(wallName, 'D'),
                 N: getWallUrl(wallName, 'N'),
@@ -56,7 +56,7 @@ export default function SceneRoomDev(props: PropScene) {
                 D: getWallUrl(ceilingName, 'D'),
                 N: getWallUrl(ceilingName, 'N'),
             },
-        }, renderer, camera, true);
+        });
 
 
         function render() {

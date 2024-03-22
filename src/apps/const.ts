@@ -16,8 +16,10 @@ if (window.location.href.indexOf(base_host) === -1) {
 export const API: {
     base_url: string,
     texture_base_url: string,
+    ws_url: string,
 } = {
     base_url: `${scheme}://${base_host}:8023`,
+    ws_url: `wss://${base_host}:8023`,
     texture_base_url: `${scheme}://${base_host}:19000`,
 }
 
@@ -54,23 +56,6 @@ export const DELAY_TRIAL_START_MASK = 1000; // ms
 export const DELAY_INFORM_REACTION_TYPE = 1000; // ms
 export const DELAY_TRIAL_DONE = 1000; // ms
 
-
-export const material_map = {
-    walkGroundD: `${TEXTURE_BASE}/floor/T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K_D.EXR`,
-    walkGroundN: `${TEXTURE_BASE}/floor/T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K_N.EXR`,
-    groundD: `${TEXTURE_BASE}/ground/outdoor/ground_D.EXR`,
-    groundN: `${TEXTURE_BASE}/ground/outdoor/ground_N.EXR`,
-    doorD: `${TEXTURE_BASE}/door/door_D.EXR`,
-    doorN: `${TEXTURE_BASE}/door/door_N.EXR`,
-    dadoD: `${TEXTURE_BASE}/wall/external/dado/model_D.EXR`,
-    dadoN: `${TEXTURE_BASE}/wall/external/dado/model_N.EXR`,
-    wallExternalD: `${TEXTURE_BASE}/wall/external/Decorative/T_Decorative_Wall_Tiles_vlqvfdj_1K_D.EXR`,
-    wallExternalN: `${TEXTURE_BASE}/wall/external/Decorative/T_Decorative_Wall_Tiles_vlqvfdj_1K_N.EXR`,
-    dadoModel: `${TEXTURE_BASE}/wall/external/dado/model.FBX`,
-    bookModel: `${TEXTURE_BASE}/book/book.FBX`,
-    bookN: `${TEXTURE_BASE}/book/bookN.EXR`,
-    bookD: `${TEXTURE_BASE}/book/bookD.EXR`,
-}
 
 export const floorNameList = [
     "T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K",
@@ -164,14 +149,11 @@ export enum BlockType {
 
 export const DEBUG = window.location.search.toLowerCase().includes('debug')
 
-if (window.location.pathname.includes('intro')) {
-    for (const material_name of Object.values(material_map)) {
-        loader_selector(material_name).load(material_name, function (texture) {
-            console.log(`{${texture.uuid}} ${material_name} loaded`);
-        });
-    }
+window.oncontextmenu = function (e) {
+    e.preventDefault();
 }
 
-window.oncontextmenu=function(e){
-    e.preventDefault();
+export const WS_CONTROL_COMMAND = {
+    enter_practice: 'enter_practice',
+    exit_practice: 'exit_practice',
 }
