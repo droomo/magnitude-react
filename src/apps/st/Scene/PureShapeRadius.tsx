@@ -72,6 +72,8 @@ class PureShapeRadius {
 
         this.session.requestAnimationFrame(this.onXRFrame);
 
+        this.session.addEventListener('select', this.handleCompleteClick);
+
         this.radius = 6
         this.controlTimes = 0
         this.controlEvents = []
@@ -82,6 +84,7 @@ class PureShapeRadius {
     }
 
     clear = () => {
+        this.session.removeEventListener('select', this.handleCompleteClick)
         this.renderer.setAnimationLoop(null);
         while (this.group.children.length) {
             this.group.remove(this.group.children[0]);
@@ -97,14 +100,14 @@ class PureShapeRadius {
         let session = frame.session;
         session.requestAnimationFrame(this.onXRFrame);
 
-        const inputSource = session.inputSources[0]
+        const axes1 = session.inputSources[0].gamepad.axes;
+        const axes2 = session.inputSources[1].gamepad.axes;
 
-        const axes = inputSource.gamepad.axes;
-        const y = axes[3];
+        const y = axes1[3] + axes2[3];
+
         if (y) {
             this.handleWheelEvent(y, Math.round(time * 100) / 100)
         }
-
     }
 
     handleWheelEvent = (y: number, time: number) => {

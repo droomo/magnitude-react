@@ -1,20 +1,33 @@
 import React from 'react';
-import * as THREE from 'three';
-import Stats from 'stats.js';
-import {
-    eyeHeight,
-    createWalls,
-    webGlConfig, addLight,
-} from './scene.lib';
-import {PropRoom} from "./SceneRoom";
-import {floorNameList, getFloorUrl, getWallUrl, wallNameList, WS_CONTROL_COMMAND} from "../../const";
+import {eyeHeight, createWalls, webGlConfig, addLight,} from './scene.lib';
+import {API, BlockType, getCsrfToken, getTimestamp, page_data, WS_CONTROL_COMMAND} from "../../const";
 import {HelperText} from "../Page/HelperText";
-import {message} from "antd";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
 import PureShapeRadius from "./PureShapeRadius";
+import * as THREE from 'three';
+import {message} from "antd";
 import {Scene} from "three";
+import axios from "axios";
 
+interface TrialData {
+    reaction_type: string
+    done: boolean
+    id: number
+    duration: number
+    width: number
+    depth: number
+    height: number
+    reaction_speed: number
+}
+
+
+interface TypeRoomStat {
+    stage_started_date: number,
+    stage_started: number,
+    camera_moved_fss: number,
+    done_from_camera_moved_fss: number,
+}
 
 export interface TypeExploringRecord {
     start_date: number,
@@ -22,58 +35,93 @@ export interface TypeExploringRecord {
     key_pressed: string,
 }
 
-const roomWall = {
-    wall: {
-        D: getWallUrl(wallNameList[0], 'D'),
-        N: getWallUrl(wallNameList[0], 'N'),
-    },
-    floor: {
-        D: getFloorUrl(floorNameList[0], 'D'),
-        N: getFloorUrl(floorNameList[0], 'N'),
-    },
-    ceiling: {
-        D: getWallUrl(wallNameList[0], 'D'),
-        N: getWallUrl(wallNameList[0], 'N'),
-    },
+export interface TypeRoom {
+    width: number;
+    height: number;
+    depth: number;
 }
 
-export default class SceneRoomPractice extends WSRC<{
-    room: PropRoom,
-    done: (record: TypeExploringRecord) => void,
-}, {}> {
+const api_trial = `${API.base_url}${page_data['api_trial']}`;
+
+export default class SceneRoomPractice extends WSRC<{}, {}> {
     private divRef: React.RefObject<HTMLDivElement>;
     private startButtonRef: React.RefObject<HTMLButtonElement>;
-    private stats: Stats;
-    private record: TypeExploringRecord;
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.PerspectiveCamera;
     private scene: THREE.Scene;
-    private walls: THREE.Mesh[];
-    private shapeScene: PureShapeRadius | null = null;
+    private shapeScene: PureShapeRadius | undefined;
+    private trials: TrialData[]
+    private trial: TrialData | undefined
+    private roomStat: TypeRoomStat | undefined;
+    private lookingCenter: boolean
+
+    protected lastTime: number;
+    protected frames: number;
+    protected frameRate: number;
+    private shouldSwitchShape: boolean;
 
 
     constructor(props: any) {
         super(props);
         this.divRef = React.createRef<HTMLDivElement>();
         this.startButtonRef = React.createRef<HTMLButtonElement>();
-        this.stats = new Stats();
-        this.record = {end_date: 0, key_pressed: '', start_date: 0};
+
         this.renderer = new THREE.WebGLRenderer(webGlConfig);
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
 
         this.scene = new THREE.Scene();
 
-        this.walls = [];
+        this.trials = [];
+        this.lookingCenter = false;
+        this.shouldSwitchShape = false;
 
-        createWalls(this.props.room, roomWall, this.walls)
+        this.lastTime = (new Date()).getTime();
+        this.frames = 0;
+        this.frameRate = 60;
     }
 
     switchRoomScene() {
         this.clearScene();
-        addLight(this.scene, this.props.room)
-        for (const wall of this.walls) {
-            this.scene.add(wall)
+
+        this.trial = this.trials.shift();
+        let room: TypeRoom
+        if (this.trial) {
+            room = {
+                width: this.trial.width,
+                height: this.trial.height,
+                depth: this.trial.depth,
+            }
+        } else {
+            room = {
+                width: 3,
+                height: 2.2,
+                depth: 4,
+            }
         }
+        addLight(this.scene, room);
+
+        createWalls(room,
+            wallGroup => {
+                this.scene.add(wallGroup);
+
+                this.roomStat = {
+                    stage_started_date: new Date().getTime(),
+                    stage_started: getTimestamp(),
+                    camera_moved_fss: 0,
+                    done_from_camera_moved_fss: 0,
+                }
+                this.lookingCenter = false;
+                this.shouldSwitchShape = false;
+
+                this.camera.position.set(0, eyeHeight, -room.depth * 0.5 + 0.1);
+                this.camera.lookAt(0, eyeHeight, 0);
+
+                if (this.trial) {
+                    console.log(9898888888888)
+                    this.lookingCenter = true;
+                }
+            }
+        );
     }
 
     switchShapeScene = () => {
@@ -86,26 +134,69 @@ export default class SceneRoomPractice extends WSRC<{
             renderer: this.renderer,
             camera: this.camera,
             scene: this.scene,
-            done: () => {
-                alert(1)
+            done: (result) => {
+                if (this.trial) {
+                    axios.post(api_trial, {
+                        stat_reaction: result,
+                        id: this.trial.id,
+                        done: true
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfToken(),
+                        },
+                    }).then(response => {
+                        if (response.data.status === 200) {
+                            if (this.trials.length) {
+                                this.switchRoomScene();
+                            } else {
+                                this.sendCommand('done');
+                            }
+                        } else {
+                            alert('error happened 33')
+                        }
+                    }).catch(() => {
+                        alert('error happened 44')
+                    })
+                } else {
+                    this.switchRoomScene();
+                }
             }
         })
     }
 
     clearScene() {
         this.shapeScene?.clear();
-        this.scene.clear();
         this.scene = new Scene();
-        this.scene.add(this.camera);
         this.camera.clear();
-        this.camera.position.set(0, this.props.room.height / 2, -this.props.room.depth * 0.5);
-        this.camera.lookAt(0, this.props.room.height / 2, 0);
+        this.scene.add(this.camera);
         this.renderer.setAnimationLoop(this.animate);
+    }
+
+    requestTrial = (trial_type: string) => {
+        axios.get(`${API.base_url}${page_data['api_make_or_get_trial']}`, {
+            params: {
+                'reaction_type': BlockType.Space,
+                'trial_type': trial_type,
+            }
+        }).then(response => {
+            const data: {
+                trials: TrialData[],
+                last_trial_index: number
+            } = response.data.data;
+
+            if (trial_type === 'T') {
+                data.trials[0].duration = 6000;
+            }
+
+            this.trials = data.trials;
+
+            this.switchRoomScene();
+        })
     }
 
     componentDidMount() {
         super.componentDidMount()
-        this.record.start_date = new Date().getTime();
 
         this.renderer.xr.enabled = true;
 
@@ -115,10 +206,7 @@ export default class SceneRoomPractice extends WSRC<{
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 0.5;
 
-        this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-
         if (this.divRef.current) {
-            this.divRef.current.appendChild(this.stats.dom);
             this.divRef.current.appendChild(this.renderer.domElement);
         }
 
@@ -128,9 +216,61 @@ export default class SceneRoomPractice extends WSRC<{
     }
 
     animate = () => {
-        this.stats.begin();
+
+        const currentTime = (new Date()).getTime();
+        this.frames++;
+
+        if (currentTime - this.lastTime >= 1000) {
+            this.frameRate = this.frames;
+            console.log(`FPS: ${this.frameRate}`);
+            this.frames = 0;
+            this.lastTime = currentTime;
+        }
+
+        if (this.lookingCenter && this.roomStat) {
+            this.lookingCenter = false;
+            this.roomStat.camera_moved_fss = getTimestamp();
+            console.log(2222222222)
+        } else {
+            console.log(11111111111122)
+            if (this.trial && this.roomStat && this.trial.duration - (getTimestamp() - this.roomStat.camera_moved_fss) < 500 / this.frameRate) {
+                this.shouldSwitchShape = true;
+                this.scene = new Scene();
+                console.log(111111111133)
+            }
+        }
+
         this.renderer.render(this.scene, this.camera);
-        this.stats.end();
+
+        if (this.shouldSwitchShape) {
+            this.shouldSwitchShape = false;
+            this.roomStat!.done_from_camera_moved_fss = getTimestamp() - this.roomStat!.camera_moved_fss;
+            this.roomStat!.camera_moved_fss -= this.roomStat!.stage_started;
+
+            console.log(this.roomStat)
+
+            if (this.trial) {
+                axios.post(api_trial, {
+                    stat_scene: this.roomStat,
+                    id: this.trial.id,
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                }).then(response => {
+                    if (response.data.status !== 200) {
+                        alert('error happened 11')
+                    }
+                }).catch(() => {
+                    alert('error happened 22')
+                })
+            }
+
+            this.switchShapeScene();
+
+        }
+
     };
 
     startSession = () => {
@@ -156,8 +296,7 @@ export default class SceneRoomPractice extends WSRC<{
 
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);
-        console.log(data)
-        console.log(data.action)
+        console.log('action', data.action)
         switch (data.action) {
             case WS_CONTROL_COMMAND.loss_session:
                 this.endSession();
@@ -171,8 +310,13 @@ export default class SceneRoomPractice extends WSRC<{
             case WS_CONTROL_COMMAND.enter_room:
                 this.switchRoomScene();
                 break;
+            case WS_CONTROL_COMMAND.start_test:
+                this.requestTrial('T');
+                break;
+            case WS_CONTROL_COMMAND.start_exp:
+                this.requestTrial('F');
+                break;
         }
-
     }
 
     componentWillUnmount() {
@@ -180,19 +324,18 @@ export default class SceneRoomPractice extends WSRC<{
     }
 
     render() {
-        return (
-            <>
-                <HelperText>
-                    <p>请想象你正以第一人称视角处于游戏环境中</p>
-                    <button
-                        className={classes.buttonStartVR}
-                        ref={this.startButtonRef}
-                        onClick={() => {
-                            this.startSession()
-                        }}>进入沉浸式VR场景
-                    </button>
-                </HelperText>
-                <div ref={this.divRef}/>
-            </>)
+        return <>
+            <HelperText>
+                <p>请想象你正以第一人称视角处于游戏环境中</p>
+                <button
+                    className={classes.buttonStartVR}
+                    ref={this.startButtonRef}
+                    onClick={() => {
+                        this.startSession()
+                    }}>进入沉浸式VR场景
+                </button>
+            </HelperText>
+            <div ref={this.divRef}/>
+        </>
     }
 }
