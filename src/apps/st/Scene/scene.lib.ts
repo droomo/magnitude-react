@@ -1,7 +1,6 @@
-import {Group, MeshStandardMaterial, Object3DEventMap, RepeatWrapping, Vector2} from 'three';
+import {Group, RepeatWrapping, Vector2} from 'three';
 import * as THREE from 'three';
 import {API} from "../../const";
-// @ts-ignore
 import {PropRoom} from "./SceneRoom";
 import {TextureLoader, Texture} from 'three';
 import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
@@ -9,14 +8,9 @@ import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 
 export const TEXTURE_BASE = API.texture_base_url;
 
-// 门
-export const doorWidth = 1;
-export const doorHeight = 2 * doorWidth;
-
-export const eyeHeight = doorHeight * 0.65;
+export const eyeHeight = 1.75;
 
 export const wallThickness = 0.06;
-
 
 export function loadThings(
     texturePaths: string[],
@@ -37,7 +31,7 @@ export function loadThings(
 }
 
 
-function addLight(scene: THREE.Scene, room: PropRoom) {
+export function addLight(scene: THREE.Scene, room: PropRoom) {
     const roomLight = new THREE.PointLight(
         0xffffff, (room.width - 4) / 12 + 2, room.width, (16 - room.width) / 30 + 0.1
     );
@@ -49,12 +43,11 @@ function addLight(scene: THREE.Scene, room: PropRoom) {
 }
 
 
-const createWall = (scene: THREE.Scene, width: number, height: number, depth: number, position: THREE.Vector3, material: THREE.Material) => {
+const createWall = (width: number, height: number, depth: number, position: THREE.Vector3, material: THREE.Material) => {
     const geometry = new THREE.BoxGeometry(width, height, depth);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.set(Math.PI, 0, 0)
     mesh.position.set(position.x, position.y, position.z);
-    scene.add(mesh);
     return mesh;
 };
 
@@ -90,17 +83,15 @@ interface WallShading {
     N: string,
 }
 
-export function updateSceneRoom(
-    scene: THREE.Scene,
+export function createWalls(
     room: PropRoom,
     wall: {
         wall: WallShading,
         floor: WallShading,
         ceiling: WallShading,
-    }
-): THREE.Scene {
-    addLight(scene, room);
-
+    },
+    walls: THREE.Mesh[] = []
+) {
     // 墙壁
     const wallHeight = room.height;
     const wallWidth = room.width;
@@ -127,27 +118,27 @@ export function updateSceneRoom(
 
             const textureCeiling = prepareTextures([map, normal], repeatCeiling);
             const materialCeiling = makeMaterial(textureCeiling, wallMetalness, wallRoughness);
-            createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialCeiling);
+            const wall0 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight - wallThickness / 2, 0), materialCeiling);
             const textureLR = prepareTextures([map, normal], repeatLR);
             const textureFB = prepareTextures([map, normal], repeatBack);
             const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
             const materialFB = makeMaterial(textureFB, wallMetalness, wallRoughness);
-            createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
-            createWall(scene, wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
+            const wall1 = createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
+            const wall2 = createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
             // back
-            createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialFB);
+            const wall3 = createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialFB);
             // front
-            createWall(scene, wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, wallDepth / 2), materialFB);
+            const wall4 = createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, wallDepth / 2), materialFB);
 
             // floor
             const material = makeMaterial(prepareTextures([mapFloor, normalFloor], repeatFloor), wallMetalness, wallRoughness);
-            createWall(scene, wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+            const wall5 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
 
+            walls.push(wall0, wall1, wall2, wall3, wall4, wall5);
         },
         exr_loader
     );
 
-    return scene
 }
 
 export const webGlConfig = {

@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import Stats from 'stats.js';
 import {
     eyeHeight,
-    updateSceneRoom,
-    webGlConfig,
+    createWalls,
+    webGlConfig, addLight,
 } from './scene.lib';
 import {PropRoom} from "./SceneRoom";
 import {floorNameList, getFloorUrl, getWallUrl, wallNameList, WS_CONTROL_COMMAND} from "../../const";
@@ -13,12 +13,28 @@ import {message} from "antd";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
 import PureShapeRadius from "./PureShapeRadius";
+import {Scene} from "three";
 
 
 export interface TypeExploringRecord {
     start_date: number,
     end_date: number,
     key_pressed: string,
+}
+
+const roomWall = {
+    wall: {
+        D: getWallUrl(wallNameList[0], 'D'),
+        N: getWallUrl(wallNameList[0], 'N'),
+    },
+    floor: {
+        D: getFloorUrl(floorNameList[0], 'D'),
+        N: getFloorUrl(floorNameList[0], 'N'),
+    },
+    ceiling: {
+        D: getWallUrl(wallNameList[0], 'D'),
+        N: getWallUrl(wallNameList[0], 'N'),
+    },
 }
 
 export default class SceneRoomPractice extends WSRC<{
@@ -32,6 +48,9 @@ export default class SceneRoomPractice extends WSRC<{
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.PerspectiveCamera;
     private scene: THREE.Scene;
+    private walls: THREE.Mesh[];
+    private shapeScene: PureShapeRadius | null = null;
+
 
     constructor(props: any) {
         super(props);
@@ -41,33 +60,47 @@ export default class SceneRoomPractice extends WSRC<{
         this.record = {end_date: 0, key_pressed: '', start_date: 0};
         this.renderer = new THREE.WebGLRenderer(webGlConfig);
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+
         this.scene = new THREE.Scene();
+
+        this.walls = [];
+
+        createWalls(this.props.room, roomWall, this.walls)
     }
 
     switchRoomScene() {
         this.clearScene();
-        this.scene = updateSceneRoom(
-            this.scene,
-            this.props.room,
-            {
-                wall: {
-                    D: getWallUrl(wallNameList[0], 'D'),
-                    N: getWallUrl(wallNameList[0], 'N'),
-                },
-                floor: {
-                    D: getFloorUrl(floorNameList[0], 'D'),
-                    N: getFloorUrl(floorNameList[0], 'N'),
-                },
-                ceiling: {
-                    D: getWallUrl(wallNameList[0], 'D'),
-                    N: getWallUrl(wallNameList[0], 'N'),
-                },
+        addLight(this.scene, this.props.room)
+        for (const wall of this.walls) {
+            this.scene.add(wall)
+        }
+    }
+
+    switchShapeScene = () => {
+        this.clearScene();
+
+        this.camera.position.set(0, 0, 30);
+        this.camera.add(new THREE.PointLight(0xffffff, 3, 0, 0));
+
+        this.shapeScene = new PureShapeRadius({
+            renderer: this.renderer,
+            camera: this.camera,
+            scene: this.scene,
+            done: () => {
+                alert(1)
             }
-        );
+        })
     }
 
     clearScene() {
-        this.scene.clear()
+        this.shapeScene?.clear();
+        this.scene.clear();
+        this.scene = new Scene();
+        this.scene.add(this.camera);
+        this.camera.clear();
+        this.camera.position.set(0, this.props.room.height / 2, -this.props.room.depth * 0.5);
+        this.camera.lookAt(0, this.props.room.height / 2, 0);
+        this.renderer.setAnimationLoop(this.animate);
     }
 
     componentDidMount() {
@@ -89,36 +122,27 @@ export default class SceneRoomPractice extends WSRC<{
             this.divRef.current.appendChild(this.renderer.domElement);
         }
 
-        this.adjustCamera();
-        const animate = () => {
-            this.stats.begin();
-            this.renderer.render(this.scene, this.camera);
-            this.stats.end();
-        };
-
-        this.renderer.setAnimationLoop(animate);
-
         navigator.xr!.addEventListener('sessiongranted', () => {
             this.startSession();
         });
     }
 
-    adjustCamera() {
-        this.camera.position.set(0, this.props.room.height / 2, -this.props.room.depth * 0.5);
-        this.camera.lookAt(0, this.props.room.height / 2, 0);
-    }
+    animate = () => {
+        this.stats.begin();
+        this.renderer.render(this.scene, this.camera);
+        this.stats.end();
+    };
 
     startSession = () => {
         if (this.renderer.xr.getSession()) {
             return
         }
-        this.switchRoomScene();
         const xr = navigator.xr!;
         xr.requestSession('immersive-vr', {
             optionalFeatures: ['local-floor', 'bounded-floor', 'layers']
         }).then((session) => {
             this.renderer.xr.setSession(session);
-            this.sendCommand('in_practice');
+            this.switchRoomScene();
         }).catch((err) => {
             this.sendCommand(`${err}`);
             message.error(`Error happened while starting VR session: ${err}`);
@@ -130,29 +154,25 @@ export default class SceneRoomPractice extends WSRC<{
         this.renderer.xr.getSession()?.end()
     };
 
-    switchShapeScene = () => {
-        this.clearScene();
-        const shapeScene = new PureShapeRadius({
-            renderer: this.renderer,
-            camera: this.camera,
-            scene: this.scene,
-            done: () => {
-                alert(1)
-            }
-        })
-    }
-
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);
         console.log(data)
         console.log(data.action)
-        if (data.action === WS_CONTROL_COMMAND.loss_session) {
-            this.endSession()
-        } else if (data.action === WS_CONTROL_COMMAND.start_session) {
-            this.startSession()
-        } else if (data.action === WS_CONTROL_COMMAND.enter_shape) {
-            this.switchShapeScene()
+        switch (data.action) {
+            case WS_CONTROL_COMMAND.loss_session:
+                this.endSession();
+                break;
+            case WS_CONTROL_COMMAND.start_session:
+                this.startSession();
+                break;
+            case WS_CONTROL_COMMAND.enter_shape:
+                this.switchShapeScene();
+                break;
+            case WS_CONTROL_COMMAND.enter_room:
+                this.switchRoomScene();
+                break;
         }
+
     }
 
     componentWillUnmount() {

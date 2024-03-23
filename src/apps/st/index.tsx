@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Route, Routes} from "react-router-dom"
 import Experiment from "./Experiment";
-import Login from "./Login";
 import './css/style.css'
 import Introduction from "./Introduction";
 import ExperimentTest from "./ExperimentTest";
@@ -24,7 +23,6 @@ root.render(
             }}/>}/>
             <Route path="/test/distance/" element={<ExperimentTest blockType={BlockType.Distance}/>}/>
             <Route path="/intro/*" element={<Introduction/>}/>
-            <Route path="/login/" element={<Login/>}/>
         </Routes>
     </BrowserRouter>
 );

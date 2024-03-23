@@ -157,4 +157,5 @@ export const WS_CONTROL_COMMAND = {
     start_session: 'start_session',
     loss_session: 'loss_session',
     enter_shape: 'enter_shape',
+    enter_room: 'enter_room',
 }

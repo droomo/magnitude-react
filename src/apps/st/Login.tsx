@@ -6,7 +6,7 @@ import {api_subject, getCsrfToken} from "../const";
 import {useNavigate} from "react-router-dom";
 
 
-interface SubjectFormValues {
+export interface SubjectFormValues {
     name: string;
     age: number;
     code: string;
@@ -16,7 +16,9 @@ interface SubjectFormValues {
 }
 
 
-const SubjectForm: React.FC = () => {
+const SubjectForm = (props: {
+    done: (user: SubjectFormValues) => void
+}) => {
     const [form] = Form.useForm();
 
     const navigate = useNavigate();
@@ -30,13 +32,11 @@ const SubjectForm: React.FC = () => {
         })
             .then((resp) => {
                 if (resp.data.user) {
-                    localStorage.setItem('username', values.name);
-                    navigate('/intro/');
+                    props.done(resp.data.user)
                 } else {
                     alert('error');
                 }
 
-                localStorage.setItem('username', values.name);
                 navigate('/intro/');
             })
             .catch(error => {

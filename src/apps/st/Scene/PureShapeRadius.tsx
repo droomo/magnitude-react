@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import {TEXTURE_BASE, webGlConfig} from './scene.lib';
+import {TEXTURE_BASE} from './scene.lib';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 
 import {DEBUG} from "../../const";
+import {AmbientLight} from "three";
 
 interface MouseEvent {
     d: number;
@@ -53,8 +54,7 @@ class PureShapeRadius {
         this.scene = this.props.scene;
 
         this.group = new THREE.Group();
-        this.camera.position.set(0, 0, 30);
-        this.camera.add(new THREE.PointLight(0xffffff, 3, 0, 0));
+
         const texture = new THREE.TextureLoader().load(`${TEXTURE_BASE}/src/disc.png`);
         texture.colorSpace = THREE.SRGBColorSpace;
         this.pointsMaterial = new THREE.PointsMaterial({
@@ -63,8 +63,7 @@ class PureShapeRadius {
             size: 0.2,
             alphaTest: 0.7
         });
-        this.scene.add(new THREE.AmbientLight(0x666666));
-        this.scene.add(this.camera);
+
         this.scene.add(this.group);
 
         this.group.position.set(0, 0, -this.distance);
@@ -82,7 +81,19 @@ class PureShapeRadius {
         this.setupScene();
     }
 
+    clear = () => {
+        this.renderer.setAnimationLoop(null);
+        while (this.group.children.length) {
+            this.group.remove(this.group.children[0]);
+        }
+
+        this.scene.remove(this.group);
+    }
+
     onXRFrame = (time: number, frame: { session: any; }) => {
+        if (this.group.children.length === 0) {
+            return
+        }
         let session = frame.session;
         session.requestAnimationFrame(this.onXRFrame);
 
@@ -94,12 +105,6 @@ class PureShapeRadius {
             this.handleWheelEvent(y, Math.round(time * 100) / 100)
         }
 
-    }
-
-    componentWillUnmount() {
-        this.scene.clear();
-        this.renderer.forceContextLoss();
-        this.renderer.domElement.remove();
     }
 
     handleWheelEvent = (y: number, time: number) => {
@@ -118,10 +123,8 @@ class PureShapeRadius {
     };
 
     setupAspect = () => {
-        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
     };
 
     animate = () => {

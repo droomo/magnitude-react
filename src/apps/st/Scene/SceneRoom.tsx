@@ -1,6 +1,8 @@
 import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
-import {updateSceneRoom, webGlConfig} from './scene.lib';
+import {
+    // updateSceneRoom,
+    webGlConfig} from './scene.lib';
 import {
     DEBUG,
     DELAY_TRIAL_START_MASK,
@@ -78,20 +80,20 @@ export default function SceneRoom(props: PropScene) {
         roomStat.wall = wallNameList[0];
         roomStat.ceiling = wallNameList[0];
 
-        const scene = updateSceneRoom(new Scene(), room, {
-            wall: {
-                D: getWallUrl(roomStat.wall, 'D'),
-                N: getWallUrl(roomStat.wall, 'N'),
-            },
-            floor: {
-                D: getFloorUrl(roomStat.floor, 'D'),
-                N: getFloorUrl(roomStat.floor, 'N'),
-            },
-            ceiling: {
-                D: getWallUrl(roomStat.ceiling, 'D'),
-                N: getWallUrl(roomStat.ceiling, 'N'),
-            },
-        });
+        // const scene = updateSceneRoom(new Scene(), room, {
+        //     wall: {
+        //         D: getWallUrl(roomStat.wall, 'D'),
+        //         N: getWallUrl(roomStat.wall, 'N'),
+        //     },
+        //     floor: {
+        //         D: getFloorUrl(roomStat.floor, 'D'),
+        //         N: getFloorUrl(roomStat.floor, 'N'),
+        //     },
+        //     ceiling: {
+        //         D: getWallUrl(roomStat.ceiling, 'D'),
+        //         N: getWallUrl(roomStat.ceiling, 'N'),
+        //     },
+        // });
 
         let cameraMoved = -1;
 
@@ -112,7 +114,7 @@ export default function SceneRoom(props: PropScene) {
                     cameraMoved = now;
                     camera.position.set(0, room.height / 2, room.depth / 2);
                     camera.lookAt(0, room.height / 2, 0);
-                    renderer.render(scene, camera);
+                    // renderer.render(scene, camera);
                 }
             }
             requestAnimationFrame(check);
