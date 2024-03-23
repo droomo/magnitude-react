@@ -154,6 +154,7 @@ window.oncontextmenu = function (e) {
 }
 
 export const WS_CONTROL_COMMAND = {
-    enter_practice: 'enter_practice',
-    exit_practice: 'exit_practice',
+    start_session: 'start_session',
+    loss_session: 'loss_session',
+    enter_shape: 'enter_shape',
 }

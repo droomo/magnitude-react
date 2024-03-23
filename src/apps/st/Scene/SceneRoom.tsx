@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
-import {makeScene, webGlConfig} from './scene.lib';
+import {updateSceneRoom, webGlConfig} from './scene.lib';
 import {
     DEBUG,
     DELAY_TRIAL_START_MASK,
@@ -10,6 +10,7 @@ import {
     getWallUrl,
     wallNameList
 } from "../../const";
+import {Scene} from "three";
 
 export interface PropRoom {
     width: number;
@@ -77,7 +78,7 @@ export default function SceneRoom(props: PropScene) {
         roomStat.wall = wallNameList[0];
         roomStat.ceiling = wallNameList[0];
 
-        const scene = makeScene(room, {
+        const scene = updateSceneRoom(new Scene(), room, {
             wall: {
                 D: getWallUrl(roomStat.wall, 'D'),
                 N: getWallUrl(roomStat.wall, 'N'),

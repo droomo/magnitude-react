@@ -90,7 +90,8 @@ interface WallShading {
     N: string,
 }
 
-export function makeScene(
+export function updateSceneRoom(
+    scene: THREE.Scene,
     room: PropRoom,
     wall: {
         wall: WallShading,
@@ -98,8 +99,6 @@ export function makeScene(
         ceiling: WallShading,
     }
 ): THREE.Scene {
-    const scene = new THREE.Scene();
-
     addLight(scene, room);
 
     // 墙壁

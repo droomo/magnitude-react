@@ -27,14 +27,19 @@ export default class Control extends WSRC<{}, {}> {
         return <>
             <Button
                 onClick={() => {
-                    this.sendCommand(WS_CONTROL_COMMAND.enter_practice)
+                    this.sendCommand(WS_CONTROL_COMMAND.start_session)
                 }}
-            >开始练习</Button>
+            >开始VR Session</Button>
             <Button
                 onClick={() => {
-                    this.sendCommand(WS_CONTROL_COMMAND.exit_practice)
+                    this.sendCommand(WS_CONTROL_COMMAND.enter_shape)
                 }}
-            >退出练习</Button>
+            >进入Shape</Button>
+            <Button
+                onClick={() => {
+                    this.sendCommand(WS_CONTROL_COMMAND.loss_session)
+                }}
+            >！！！终止VR Session！！！</Button>
         </>;
     }
 }

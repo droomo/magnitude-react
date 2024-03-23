@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import Stats from 'stats.js';
 import {
     eyeHeight,
-    makeScene,
+    updateSceneRoom,
     webGlConfig,
 } from './scene.lib';
 import {PropRoom} from "./SceneRoom";
@@ -12,6 +12,7 @@ import {HelperText} from "../Page/HelperText";
 import {message} from "antd";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
+import PureShapeRadius from "./PureShapeRadius";
 
 
 export interface TypeExploringRecord {
@@ -40,7 +41,14 @@ export default class SceneRoomPractice extends WSRC<{
         this.record = {end_date: 0, key_pressed: '', start_date: 0};
         this.renderer = new THREE.WebGLRenderer(webGlConfig);
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        this.scene = makeScene(
+        this.scene = new THREE.Scene();
+        this.switchRoomScene();
+    }
+
+    switchRoomScene() {
+        this.clearScene();
+        this.scene = updateSceneRoom(
+            this.scene,
             this.props.room,
             {
                 wall: {
@@ -59,6 +67,10 @@ export default class SceneRoomPractice extends WSRC<{
         );
     }
 
+    clearScene() {
+        this.scene.clear()
+    }
+
     componentDidMount() {
         super.componentDidMount()
         this.record.start_date = new Date().getTime();
@@ -67,6 +79,7 @@ export default class SceneRoomPractice extends WSRC<{
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 0.5;
 
@@ -116,18 +129,28 @@ export default class SceneRoomPractice extends WSRC<{
         this.renderer.xr.getSession()?.end()
     };
 
-    startShapeScene = () => {
-        
+    switchShapeScene = () => {
+        this.clearScene();
+        const shapeScene = new PureShapeRadius({
+            renderer: this.renderer,
+            camera: this.camera,
+            scene: this.scene,
+            done: () => {
+                alert(1)
+            }
+        })
     }
 
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);
         console.log(data)
         console.log(data.action)
-        if (data.action === WS_CONTROL_COMMAND.exit_practice) {
+        if (data.action === WS_CONTROL_COMMAND.loss_session) {
             this.endSession()
-        } else if (data.action === WS_CONTROL_COMMAND.enter_practice) {
+        } else if (data.action === WS_CONTROL_COMMAND.start_session) {
             this.startSession()
+        } else if (data.action === WS_CONTROL_COMMAND.enter_shape) {
+            this.switchShapeScene()
         }
     }
 

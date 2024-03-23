@@ -6,7 +6,6 @@ import Login from "./Login";
 import './css/style.css'
 import Introduction from "./Introduction";
 import ExperimentTest from "./ExperimentTest";
-import SceneRoomDev from "./Scene/SceneRoomDev";
 import {BlockType} from "../const";
 import Control from "./control/Control";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
@@ -26,14 +25,6 @@ root.render(
             <Route path="/test/distance/" element={<ExperimentTest blockType={BlockType.Distance}/>}/>
             <Route path="/intro/*" element={<Introduction/>}/>
             <Route path="/login/" element={<Login/>}/>
-            <Route path="/dev/" element={<SceneRoomDev room={{
-                width: 8,
-                height: 3,
-                depth: 5,
-                wall: 0,
-                ground: 0,
-                duration: 10000
-            }}/>}/>
         </Routes>
     </BrowserRouter>
 );
