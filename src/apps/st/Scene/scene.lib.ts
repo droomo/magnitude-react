@@ -41,8 +41,9 @@ function addLight(scene: THREE.Scene, room: PropRoom) {
     const roomLight = new THREE.PointLight(
         0xffffff, (room.width - 4) / 12 + 2, room.width, (16 - room.width) / 30 + 0.1
     );
-    roomLight.position.set(0, room.height * 0.8, 0);
+    roomLight.position.set(0, room.height * 0.5, 0);
     scene.add(roomLight);
+
     const ambientLight = new THREE.AmbientLight(0xffffff, (room.width - 4) / 24 + 2);
     scene.add(ambientLight);
 }
@@ -51,6 +52,7 @@ function addLight(scene: THREE.Scene, room: PropRoom) {
 const createWall = (scene: THREE.Scene, width: number, height: number, depth: number, position: THREE.Vector3, material: THREE.Material) => {
     const geometry = new THREE.BoxGeometry(width, height, depth);
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.set(Math.PI, 0, 0)
     mesh.position.set(position.x, position.y, position.z);
     scene.add(mesh);
     return mesh;
@@ -77,31 +79,11 @@ const makeMaterial = ([map, normalMap]: Texture[], metalness: number, roughness:
         normalMap,
         metalness,
         roughness,
-        normalScale: new Vector2(2, 2),
+        normalScale: new Vector2(1, 1),
         emissive: new THREE.Color(0x333333)
     });
 }
 
-
-export function loadFBXModel(pathModel: string, pathD: string, pathN: string, onLoad: (model: Group<Object3DEventMap>, material: MeshStandardMaterial) => void) {
-    loadThings(
-        [pathD, pathN,],
-        ([d, n]) => {
-            loadThings(
-                [pathModel,],
-                ([model]) => {
-                    onLoad(model as Group<THREE.Object3DEventMap>, new THREE.MeshStandardMaterial({
-                        map: d as Texture,
-                        normalMap: n as Texture,
-                        normalScale: new Vector2(2, 2),
-                    }));
-                },
-                new FBXLoader()
-            )
-        },
-        new EXRLoader()
-    )
-}
 
 interface WallShading {
     D: string,

@@ -11,6 +11,9 @@ import {floorNameList, getFloorUrl, getWallUrl, wallNameList, WS_CONTROL_COMMAND
 import {HelperText} from "../Page/HelperText";
 import {message} from "antd";
 import WSRC, {TypeSendData} from "../WSRC";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import classes from "../css/exp.module.scss";
+
 
 export interface TypeExploringRecord {
     start_date: number,
@@ -43,15 +46,15 @@ export default class SceneRoomPractice extends WSRC<{
             {
                 wall: {
                     D: getWallUrl(wallNameList[0], 'D'),
-                    N: getWallUrl(wallNameList[0], 'D'),
+                    N: getWallUrl(wallNameList[0], 'N'),
                 },
                 floor: {
                     D: getFloorUrl(floorNameList[0], 'D'),
-                    N: getFloorUrl(floorNameList[0], 'D'),
+                    N: getFloorUrl(floorNameList[0], 'N'),
                 },
                 ceiling: {
                     D: getWallUrl(wallNameList[0], 'D'),
-                    N: getWallUrl(wallNameList[0], 'D'),
+                    N: getWallUrl(wallNameList[0], 'N'),
                 },
             }
         );
@@ -75,10 +78,18 @@ export default class SceneRoomPractice extends WSRC<{
             this.divRef.current.appendChild(this.renderer.domElement);
         }
 
-        this.camera.position.set(0, eyeHeight, this.props.room.depth * 0.5);
-        this.camera.lookAt(0, eyeHeight, 0);
+        this.camera.position.set(0, this.props.room.height / 2, -this.props.room.depth * 0.5);
+        this.camera.lookAt(0, this.props.room.height / 2, 0);
+
+        const controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        controls.enableDamping = true; // 启用阻尼效果
+        controls.dampingFactor = 0.05; // 阻尼系数
+        controls.screenSpacePanning = false; // 不使用屏幕空间平移
 
         const animate = () => {
+            controls.update();
+
             this.stats.begin();
             this.renderer.render(this.scene, this.camera);
             this.stats.end();
@@ -133,10 +144,11 @@ export default class SceneRoomPractice extends WSRC<{
                 <HelperText>
                     <p>请想象你正以第一人称视角处于游戏环境中</p>
                     <button
+                        className={classes.buttonStartVR}
                         ref={this.startButtonRef}
                         onClick={() => {
                             this.startSession()
-                        }}>Start VR
+                        }}>进入沉浸式VR场景
                     </button>
                 </HelperText>
                 <div ref={this.divRef}/>

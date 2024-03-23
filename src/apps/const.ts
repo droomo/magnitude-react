@@ -87,7 +87,7 @@ export const wallNameList = [
     "T_Painted_Wall_Plaster_xepkaecs_1K",
     // "T_Stucco_Wall_vigrejf_1K",
     // "T_Stucco_Wall_ve4meimcw_1K",
-    // "T_Brick_Wall_vhhkfjp_1K", // 砖头
+    "T_Brick_Wall_vhhkfjp_1K", // 砖头
     // "T_Painted_Wall_Plaster_xevifcds_1K",// 太重复
     // "T_Worn_Paint_Wall_vjyifds_1K", // 太重复
     // "T_Brick_Wall_xbjeffk_1K", // 砖头
