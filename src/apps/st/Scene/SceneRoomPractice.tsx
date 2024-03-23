@@ -1,7 +1,6 @@
 import React from 'react';
 import {eyeHeight, createWalls, webGlConfig, addLight,} from './scene.lib';
 import {API, BlockType, getCsrfToken, getTimestamp, page_data, WS_CONTROL_COMMAND} from "../../const";
-import {HelperText} from "../Page/HelperText";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
 import PureShapeRadius from "./PureShapeRadius";
@@ -325,7 +324,10 @@ export default class SceneRoomPractice extends WSRC<{}, {}> {
 
     render() {
         return <>
-            <HelperText>
+            <div style={{
+                position: 'absolute', fontSize: '2rem', color: 'white',
+                top: '2rem', left: '2rem'
+            }}>
                 <p>请想象你正以第一人称视角处于游戏环境中</p>
                 <button
                     className={classes.buttonStartVR}
@@ -334,7 +336,7 @@ export default class SceneRoomPractice extends WSRC<{}, {}> {
                         this.startSession()
                     }}>进入沉浸式VR场景
                 </button>
-            </HelperText>
+            </div>
             <div ref={this.divRef}/>
         </>
     }

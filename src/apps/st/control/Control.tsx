@@ -67,6 +67,16 @@ export default class Control extends WSRC<{}, {
                     }}
                 >Enter Shape</Button>
                 <Button
+                    onClick={() => {
+                        this.sendCommand(WS_CONTROL_COMMAND.start_test)
+                    }}
+                >Start Test Trial</Button>
+                <Button
+                    onClick={() => {
+                        this.sendCommand(WS_CONTROL_COMMAND.start_exp)
+                    }}
+                >Start Formal Exp</Button>
+                <Button
                     danger
                     onClick={() => {
                         this.sendCommand(WS_CONTROL_COMMAND.loss_session)

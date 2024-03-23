@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {EXRLoader} from "three/examples/jsm/loaders/EXRLoader";
 import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
-import {TextureLoader} from "three";
+import {Group, Texture, TextureLoader} from "three";
 
 THREE.Cache.enabled = true;
 
@@ -53,9 +53,6 @@ export const getTimestamp = function () {
 }
 
 export const DELAY_TRIAL_START_MASK = 1000; // ms
-export const DELAY_INFORM_REACTION_TYPE = 1000; // ms
-export const DELAY_TRIAL_DONE = 1000; // ms
-
 
 export const floorNameList = [
     "T_Wood_Stamped_Concrete_Floor_vlkhdgn_1K",
@@ -103,17 +100,6 @@ export const wallNameList = [
 ]
 
 const exr_loader = new EXRLoader();
-const fbx_loader = new FBXLoader();
-const texture_loader = new TextureLoader();
-
-export function loader_selector(file_name: string) {
-    if (file_name.endsWith('.EXR')) {
-        return exr_loader;
-    } else if (file_name.endsWith('.FBX')) {
-        return fbx_loader;
-    }
-    return texture_loader;
-}
 
 export function getFloorUrl(name: string, type: string) {
     return `${TEXTURE_BASE}/floor/${name}_${type}.EXR`
@@ -123,24 +109,54 @@ export function getWallUrl(name: string, type: string) {
     return `${TEXTURE_BASE}/wall/internal/${name}_${type}.EXR`
 }
 
-const floor_url_list = [
-    ...floorNameList.map(name => getFloorUrl(name, 'D')),
-    ...floorNameList.map(name => getFloorUrl(name, 'N'))
-]
-const wall_url_list = [
-    ...wallNameList.map(name => getWallUrl(name, 'D')),
-    ...wallNameList.map(name => getWallUrl(name, 'N'))
-]
-for (const url of [...floor_url_list, ...wall_url_list]) {
-    exr_loader.load(url, function (texture) {
-        console.log(`{${texture.uuid}} ${url} loaded`);
+const roomWall = {
+    wall: {
+        D: getWallUrl(wallNameList[0], 'D'),
+        N: getWallUrl(wallNameList[0], 'N'),
+    },
+    floor: {
+        D: getFloorUrl(floorNameList[0], 'D'),
+        N: getFloorUrl(floorNameList[0], 'N'),
+    },
+    ceiling: {
+        D: getWallUrl(wallNameList[0], 'D'),
+        N: getWallUrl(wallNameList[0], 'N'),
+    },
+}
+
+function loadThings(
+    texturePaths: string[],
+    onLoad: (objs: Texture[] | Group<THREE.Object3DEventMap>[]) => void,
+    loader: TextureLoader | EXRLoader | FBXLoader = new TextureLoader()
+) {
+    const objs: Texture[] | Group<THREE.Object3DEventMap>[] = [];
+    let loaded = 0;
+    texturePaths.forEach((path, index) => {
+        loader.load(path, (texture) => {
+            objs[index] = texture;
+            loaded++;
+            if (loaded === texturePaths.length) {
+                onLoad(objs);
+            }
+        });
     });
 }
 
-export function getRandomElement(arr: string[]) {
-    const randomIndex = Math.floor(Math.random() * arr.length);
-    return arr[randomIndex];
-}
+
+export let mapWall = new THREE.Texture();
+export let normalWall = new THREE.Texture();
+export let mapFloor = new THREE.Texture();
+export let normalFloor = new THREE.Texture();
+loadThings(
+    [roomWall.wall.D, roomWall.wall.N, roomWall.floor.D, roomWall.floor.N],
+    ([map, normal, mapf, normalf]) => {
+        mapWall = map as Texture;
+        normalWall = normal as Texture;
+        mapFloor = mapf as Texture;
+        normalFloor = normalf as Texture;
+    },
+    exr_loader
+);
 
 export enum BlockType {
     Space = 'S',
@@ -158,4 +174,6 @@ export const WS_CONTROL_COMMAND = {
     loss_session: 'loss_session',
     enter_shape: 'enter_shape',
     enter_room: 'enter_room',
+    start_test: 'start_test',
+    start_exp: 'start_exp',
 }
