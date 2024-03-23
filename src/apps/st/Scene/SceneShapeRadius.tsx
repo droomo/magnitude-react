@@ -1,136 +1,139 @@
 import * as THREE from 'three';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React from 'react';
 import {TEXTURE_BASE, webGlConfig} from './scene.lib';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import classes from "../css/exp.module.scss";
 import PageMask from "../Page/PageMask";
-// @ts-ignore
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
 import {DEBUG} from "../../const";
 
 interface MouseEvent {
-    d: number,
-    dt: number
+    d: number;
+    dt: number;
 }
 
 export interface TypeSceneShapeResult {
-    radius: number
-    control_times: number
-    control_event: MouseEvent[]
-    page_start_date: number
-    page_end_date: number
-    location: THREE.Vector2
+    radius: number;
+    control_times: number;
+    control_event: MouseEvent[];
+    page_start_date: number;
+    page_end_date: number;
+    location: THREE.Vector2;
 }
 
-export default function SceneShapeRadius(props: {
-    done: (result: TypeSceneShapeResult) => void,
-}) {
-    const page_start_date = new Date().getTime()
-    const [radius, setRadius] = useState(6);
-    const [controlTimes, setControlTimes] = useState(0);
-    const controlEvents = useRef<MouseEvent[]>([]);
+interface SceneShapeRadiusProps {
+    done: (result: TypeSceneShapeResult) => void;
+}
 
-    const divRef = useRef<HTMLDivElement>(null);
-    const rotationYRef = useRef(0);
-    const rotationXRef = useRef(0);
+interface SceneShapeRadiusState {
+    radius: number;
+    controlTimes: number;
+    controlEvents: MouseEvent[];
+    done: boolean;
+}
 
-    const [done, setDone] = useState(false);
+class SceneShapeRadius extends React.Component<SceneShapeRadiusProps, SceneShapeRadiusState> {
+    page_start_date = new Date().getTime();
+    divRef: React.RefObject<HTMLDivElement> = React.createRef();
+    rotationYRef = 0;
+    rotationXRef = 0;
+    renderer: THREE.WebGLRenderer;
+    camera: THREE.PerspectiveCamera;
+    group: THREE.Group;
+    pointsMaterial: THREE.PointsMaterial;
+    scene: THREE.Scene;
+    point_location: THREE.Vector2;
+    state = {
+        radius: 6,
+        controlTimes: 0,
+        controlEvents: [] as MouseEvent[],
+        done: false
+    };
 
-    const renderer = useMemo(() => {
-        return new THREE.WebGLRenderer(webGlConfig);
-    }, [])
+    constructor(props: SceneShapeRadiusProps) {
+        super(props);
 
-    useEffect(() => {
-        renderer.domElement.addEventListener('wheel', (event: WheelEvent) => {
-            setRadius(r => {
-                const target = r - event.deltaY / 400;
-                return target > 0 ? target : r;
-            })
-            setControlTimes(t => t + 1);
-            controlEvents.current.push({
-                d: event.deltaY,
-                dt: event.timeStamp
-            })
-        });
-    }, [renderer]);
-
-    const group = useMemo(() => {
-        return new THREE.Group();
-    }, [])
-
-    const camera = useMemo(() => {
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight)
-        camera.position.set(0, 0, 30);
-        camera.add(new THREE.PointLight(0xffffff, 3, 0, 0));
-        return camera
-    }, [])
-
-    const pointsMaterial = useMemo(() => {
+        this.renderer = new THREE.WebGLRenderer(webGlConfig);
+        this.group = new THREE.Group();
+        this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight);
+        this.camera.position.set(0, 0, 30);
+        this.camera.add(new THREE.PointLight(0xffffff, 3, 0, 0));
         const texture = new THREE.TextureLoader().load(`${TEXTURE_BASE}/src/disc.png`);
         texture.colorSpace = THREE.SRGBColorSpace;
-        return new THREE.PointsMaterial({
+        this.pointsMaterial = new THREE.PointsMaterial({
             color: 0x0080ff,
             map: texture,
             size: 0.6,
             alphaTest: 0.7
         });
-    }, [])
-
-    const scene = useMemo(() => {
-        const scene = new THREE.Scene();
-        scene.add(new THREE.AmbientLight(0x666666));
-        scene.add(camera);
-        scene.add(group);
-        return scene
-    }, [camera, group])
-
-    useEffect(() => {
-        divRef.current?.append(renderer.domElement)
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if (rotationYRef.current) {
-                group.rotation.y = rotationYRef.current;
-                rotationYRef.current = 0;
-            }
-            if (rotationXRef.current) {
-                group.rotation.x = rotationXRef.current;
-                rotationXRef.current = 0;
-            }
-            group.rotation.y += 0.005;
-            group.rotation.x += 0.003;
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
-        return () => {
-            renderer.forceContextLoss();
-            renderer.domElement.remove();
-        }
-    }, [camera, group, scene, renderer]);
-
-    const point_location = useMemo(() => {
+        this.scene = new THREE.Scene();
+        this.scene.add(new THREE.AmbientLight(0x666666));
+        this.scene.add(this.camera);
+        this.scene.add(this.group);
         const x_rand = (Math.random() - 0.5) * 20; // +-10
         const y_rand = (Math.random() - 0.5) * 6; // +-10
-        return new THREE.Vector2(x_rand, y_rand);
-    }, [])
+        this.point_location = new THREE.Vector2(x_rand, y_rand);
 
-    useEffect(() => {
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        this.group.position.set(this.point_location.x, this.point_location.y, 0);
+    }
 
-        let dodecahedronGeometry = new THREE.DodecahedronGeometry(radius, 0);
+    componentDidMount() {
+        this.divRef.current?.append(this.renderer.domElement);
+        this.renderer.domElement.addEventListener('wheel', this.handleWheelEvent);
 
-        // if normal and uv attributes are not removed, mergeVertices() can't consolidate indentical vertices with different normal/uv data
-        dodecahedronGeometry.deleteAttribute('normal');
-        dodecahedronGeometry.deleteAttribute('uv');
+        this.setupAspect();
+        this.animate();
+        this.setupScene();
+    }
 
-        dodecahedronGeometry = BufferGeometryUtils.mergeVertices(dodecahedronGeometry);
+    componentWillUnmount() {
+        this.scene.clear();
+        this.renderer.forceContextLoss();
+        this.renderer.domElement.remove();
+        this.renderer.domElement.removeEventListener('wheel', this.handleWheelEvent);
+    }
+
+    handleWheelEvent = (event: WheelEvent) => {
+        this.setState(prevState => {
+            const newRadius = prevState.radius - event.deltaY / 400;
+            return {
+                radius: newRadius > 0 ? newRadius : prevState.radius,
+                controlTimes: prevState.controlTimes + 1,
+                controlEvents: [...prevState.controlEvents, {d: event.deltaY, dt: event.timeStamp}]
+            };
+        }, () => {
+            this.setupScene()
+        });
+    };
+
+    setupAspect = () => {
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    animate = () => {
+        requestAnimationFrame(this.animate);
+        if (this.rotationYRef) {
+            this.group.rotation.y = this.rotationYRef;
+            this.rotationYRef = 0;
+        }
+        if (this.rotationXRef) {
+            this.group.rotation.x = this.rotationXRef;
+            this.rotationXRef = 0;
+        }
+        this.group.rotation.y += 0.005;
+        this.group.rotation.x += 0.003;
+        this.renderer.render(this.scene, this.camera);
+    };
+
+    setupScene = () => {
+        this.group.clear();
+        let dodecahedronGeometry = new THREE.DodecahedronGeometry(this.state.radius, 0);
 
         const vertices = [];
         const positionAttribute = dodecahedronGeometry.getAttribute('position');
-
         for (let i = 0; i < positionAttribute.count; i++) {
             const vertex = new THREE.Vector3();
             vertex.fromBufferAttribute(positionAttribute, i);
@@ -138,65 +141,54 @@ export default function SceneShapeRadius(props: {
         }
 
         const pointsGeometry = new THREE.BufferGeometry().setFromPoints(vertices);
+        const points = new THREE.Points(pointsGeometry, this.pointsMaterial);
 
-        const points = new THREE.Points(pointsGeometry, pointsMaterial);
-
-        // convex hull
+        // Convex hull
         const meshMaterial = new THREE.MeshLambertMaterial({
             color: 0xffffff,
             opacity: 0.5,
             side: THREE.DoubleSide,
             transparent: true
         });
-
         const meshGeometry = new ConvexGeometry(vertices);
         const mesh = new THREE.Mesh(meshGeometry, meshMaterial);
 
-        group.add(points);
-        group.add(mesh);
-
-        group.position.set(point_location.x, point_location.y, 0);
-
-        window.addEventListener('resize', onWindowResize);
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        this.group.add(mesh, points);
 
         if (DEBUG) {
             setTimeout(() => {
                 document.querySelector('span')?.click();
-            }, 100)
+            }, 100);
         }
+    };
 
-        return () => {
-            group.remove(mesh)
-            group.remove(points)
-            rotationYRef.current = group.rotation.y;
-            rotationXRef.current = group.rotation.x;
-            window.removeEventListener('resize', onWindowResize);
-        }
-    }, [radius, camera, group, scene, renderer, pointsMaterial, point_location.x, point_location.y])
+    handleCompleteClick = () => {
+        this.setState({done: true});
+        this.props.done({
+            radius: this.state.radius,
+            page_start_date: this.page_start_date,
+            page_end_date: new Date().getTime(),
+            control_times: this.state.controlTimes,
+            location: this.point_location,
+            control_event: this.state.controlEvents
+        });
+    };
 
-    return (
-        <>
-            {done ? <PageMask/> : <div ref={divRef}/>}
-            {!done && <span
-                className={[classes.shapeButton, classes.fakeButton].join(' ')}
-                onClick={() => {
-                    setDone(true)
-                    props.done({
-                        radius,
-                        page_start_date,
-                        page_end_date: new Date().getTime(),
-                        control_times: controlTimes,
-                        location: point_location,
-                        control_event: controlEvents.current
-                    })
-                }}
-            >完&nbsp;成</span>}
-        </>
-    );
+    render() {
+        return (
+            <>
+                {this.state.done ? <PageMask/> : <div ref={this.divRef}/>}
+                {!this.state.done && (
+                    <span
+                        className={[classes.shapeButton, classes.fakeButton].join(' ')}
+                        onClick={this.handleCompleteClick}
+                    >
+                    完&nbsp;成
+                </span>
+                )}
+            </>
+        );
+    }
 }
+
+export default SceneShapeRadius;

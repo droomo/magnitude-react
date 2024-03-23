@@ -11,7 +11,6 @@ import {floorNameList, getFloorUrl, getWallUrl, wallNameList, WS_CONTROL_COMMAND
 import {HelperText} from "../Page/HelperText";
 import {message} from "antd";
 import WSRC, {TypeSendData} from "../WSRC";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import classes from "../css/exp.module.scss";
 
 
@@ -78,18 +77,8 @@ export default class SceneRoomPractice extends WSRC<{
             this.divRef.current.appendChild(this.renderer.domElement);
         }
 
-        this.camera.position.set(0, this.props.room.height / 2, -this.props.room.depth * 0.5);
-        this.camera.lookAt(0, this.props.room.height / 2, 0);
-
-        const controls = new OrbitControls(this.camera, this.renderer.domElement);
-
-        controls.enableDamping = true; // 启用阻尼效果
-        controls.dampingFactor = 0.05; // 阻尼系数
-        controls.screenSpacePanning = false; // 不使用屏幕空间平移
-
+        this.adjustCamera();
         const animate = () => {
-            controls.update();
-
             this.stats.begin();
             this.renderer.render(this.scene, this.camera);
             this.stats.end();
@@ -100,6 +89,11 @@ export default class SceneRoomPractice extends WSRC<{
         navigator.xr!.addEventListener('sessiongranted', () => {
             this.startSession();
         });
+    }
+
+    adjustCamera() {
+        this.camera.position.set(0, this.props.room.height / 2, -this.props.room.depth * 0.5);
+        this.camera.lookAt(0, this.props.room.height / 2, 0);
     }
 
     startSession = () => {
@@ -122,6 +116,9 @@ export default class SceneRoomPractice extends WSRC<{
         this.renderer.xr.getSession()?.end()
     };
 
+    startShapeScene = () => {
+        
+    }
 
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);

@@ -9,6 +9,7 @@ import ExperimentTest from "./ExperimentTest";
 import SceneRoomDev from "./Scene/SceneRoomDev";
 import {BlockType} from "../const";
 import Control from "./control/Control";
+import SceneShapeRadius from "./Scene/SceneShapeRadius";
 
 
 const root = ReactDOM.createRoot(
@@ -20,6 +21,8 @@ root.render(
             <Route path="/control" element={<Control/>}/>
             <Route path="/" element={<Experiment/>}/>
             <Route path="/test/space/" element={<ExperimentTest blockType={BlockType.Space}/>}/>
+            <Route path="/test/S/" element={<SceneShapeRadius done={() => {
+            }}/>}/>
             <Route path="/test/distance/" element={<ExperimentTest blockType={BlockType.Distance}/>}/>
             <Route path="/intro/*" element={<Introduction/>}/>
             <Route path="/login/" element={<Login/>}/>
