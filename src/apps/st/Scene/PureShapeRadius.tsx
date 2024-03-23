@@ -15,7 +15,7 @@ export interface TypeSceneShapeResult {
     control_event: MouseEvent[];
     page_start_date: number;
     page_end_date: number;
-    location: THREE.Vector2;
+    location: THREE.Vector3;
 }
 
 interface SceneShapeRadiusProps {
@@ -36,11 +36,13 @@ class PureShapeRadius {
     group: THREE.Group;
     pointsMaterial: THREE.PointsMaterial;
     scene: THREE.Scene;
-    point_location: THREE.Vector2;
     radius: number;
     controlTimes: number;
     controlEvents: MouseEvent[];
     private props: SceneShapeRadiusProps;
+    private session: XRSession;
+
+    protected distance = 18;
 
     constructor(props: SceneShapeRadiusProps) {
 
@@ -58,19 +60,18 @@ class PureShapeRadius {
         this.pointsMaterial = new THREE.PointsMaterial({
             color: 0x0080ff,
             map: texture,
-            size: 0.6,
+            size: 0.2,
             alphaTest: 0.7
         });
         this.scene.add(new THREE.AmbientLight(0x666666));
         this.scene.add(this.camera);
         this.scene.add(this.group);
-        const x_rand = (Math.random() - 0.5) * 20; // +-10
-        const y_rand = (Math.random() - 0.5) * 6; // +-10
-        this.point_location = new THREE.Vector2(x_rand, y_rand);
 
-        this.group.position.set(this.point_location.x, this.point_location.y, 0);
+        this.group.position.set(0, 0, -this.distance);
 
-        this.renderer.domElement.addEventListener('wheel', this.handleWheelEvent);
+        this.session = this.renderer.xr.getSession()!;
+
+        this.session.requestAnimationFrame(this.onXRFrame);
 
         this.radius = 6
         this.controlTimes = 0
@@ -81,19 +82,37 @@ class PureShapeRadius {
         this.setupScene();
     }
 
+    onXRFrame = (time: number, frame: { session: any; }) => {
+        let session = frame.session;
+        session.requestAnimationFrame(this.onXRFrame);
+
+        const inputSource = session.inputSources[0]
+
+        const axes = inputSource.gamepad.axes;
+        const y = axes[3];
+        if (y) {
+            this.handleWheelEvent(y, Math.round(time * 100) / 100)
+        }
+
+    }
+
     componentWillUnmount() {
         this.scene.clear();
         this.renderer.forceContextLoss();
         this.renderer.domElement.remove();
-        this.renderer.domElement.removeEventListener('wheel', this.handleWheelEvent);
     }
 
-    handleWheelEvent = (event: WheelEvent) => {
-        const newRadius = this.radius - event.deltaY / 400;
+    handleWheelEvent = (y: number, time: number) => {
+        const newRadius = this.radius - y / 10;
 
-        this.radius = newRadius > 0 ? newRadius : this.radius
+        if (newRadius < 0.1 || newRadius > this.distance) {
+            return
+        }
+
+        this.radius = newRadius;
+
         this.controlTimes = this.controlTimes + 1
-        this.controlEvents = [...this.controlEvents, {d: event.deltaY, dt: event.timeStamp}]
+        this.controlEvents = [...this.controlEvents, {d: y, dt: time}]
 
         this.setupScene()
     };
@@ -161,7 +180,7 @@ class PureShapeRadius {
             page_start_date: this.page_start_date,
             page_end_date: new Date().getTime(),
             control_times: this.controlTimes,
-            location: this.point_location,
+            location: this.group.position,
             control_event: this.controlEvents
         });
     };

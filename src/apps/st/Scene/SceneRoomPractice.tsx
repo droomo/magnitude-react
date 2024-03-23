@@ -42,7 +42,6 @@ export default class SceneRoomPractice extends WSRC<{
         this.renderer = new THREE.WebGLRenderer(webGlConfig);
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         this.scene = new THREE.Scene();
-        this.switchRoomScene();
     }
 
     switchRoomScene() {
@@ -113,6 +112,7 @@ export default class SceneRoomPractice extends WSRC<{
         if (this.renderer.xr.getSession()) {
             return
         }
+        this.switchRoomScene();
         const xr = navigator.xr!;
         xr.requestSession('immersive-vr', {
             optionalFeatures: ['local-floor', 'bounded-floor', 'layers']
@@ -126,6 +126,7 @@ export default class SceneRoomPractice extends WSRC<{
     }
 
     endSession = () => {
+        this.clearScene()
         this.renderer.xr.getSession()?.end()
     };
 
