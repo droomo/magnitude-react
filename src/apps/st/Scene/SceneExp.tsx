@@ -6,7 +6,6 @@ import classes from "../css/exp.module.scss";
 import PureShapeRadius from "./PureShapeRadius";
 import * as THREE from 'three';
 import {message} from "antd";
-import {Scene} from "three";
 import axios from "axios";
 
 interface TrialData {
@@ -42,7 +41,7 @@ export interface TypeRoom {
 
 const api_trial = `${API.base_url}${page_data['api_trial']}`;
 
-export default class SceneRoomPractice extends WSRC<{}, {}> {
+export default class SceneExp extends WSRC<{}, {}> {
     private divRef: React.RefObject<HTMLDivElement>;
     private startButtonRef: React.RefObject<HTMLButtonElement>;
     private renderer: THREE.WebGLRenderer;
@@ -166,7 +165,7 @@ export default class SceneRoomPractice extends WSRC<{}, {}> {
 
     clearScene() {
         this.shapeScene?.clear();
-        this.scene = new Scene();
+        this.scene = new THREE.Scene();
         this.camera.clear();
         this.scene.add(this.camera);
         this.renderer.setAnimationLoop(this.animate);
@@ -234,7 +233,7 @@ export default class SceneRoomPractice extends WSRC<{}, {}> {
             console.log(11111111111122)
             if (this.trial && this.roomStat && this.trial.duration - (getTimestamp() - this.roomStat.camera_moved_fss) < 500 / this.frameRate) {
                 this.shouldSwitchShape = true;
-                this.scene = new Scene();
+                this.scene = new THREE.Scene();
                 console.log(111111111133)
             }
         }

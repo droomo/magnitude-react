@@ -1,8 +1,6 @@
-import {RepeatWrapping, Vector2} from 'three';
-import {API, mapFloor, mapWall, normalFloor, normalWall,} from "../../const";
-import {Texture} from 'three';
 import * as THREE from 'three';
-import {TypeRoom} from "./SceneRoomPractice";
+import {TypeRoom} from "./SceneExp";
+import {API, mapFloor, mapWall, normalFloor, normalWall,} from "../../const";
 
 export const TEXTURE_BASE = API.texture_base_url;
 
@@ -30,27 +28,27 @@ const createWall = (width: number, height: number, depth: number, position: THRE
 };
 
 const prepareTextures = (
-    [map, normal]: Texture[],
-    repeat: Vector2,
-    offset: Vector2 = new THREE.Vector2(0, 0)
+    [map, normal]: THREE.Texture[],
+    repeat: THREE.Vector2,
+    offset: THREE.Vector2 = new THREE.Vector2(0, 0)
 ) => {
     return [map, normal].map(texture => {
-        const clonedTexture = texture.clone() as Texture;
-        clonedTexture.wrapS = RepeatWrapping;
-        clonedTexture.wrapT = RepeatWrapping;
+        const clonedTexture = texture.clone() as THREE.Texture;
+        clonedTexture.wrapS = THREE.RepeatWrapping;
+        clonedTexture.wrapT = THREE.RepeatWrapping;
         clonedTexture.repeat.set(repeat.x, repeat.y);
         clonedTexture.offset.set(offset.x, offset.y);
         return clonedTexture;
     });
 };
 
-const makeMaterial = ([map, normalMap]: Texture[], metalness: number, roughness: number) => {
+const makeMaterial = ([map, normalMap]: THREE.Texture[], metalness: number, roughness: number) => {
     return new THREE.MeshStandardMaterial({
         map,
         normalMap,
         metalness,
         roughness,
-        normalScale: new Vector2(1, 1),
+        normalScale: new THREE.Vector2(1, 1),
         emissive: new THREE.Color(0x333333)
     });
 }
@@ -65,10 +63,10 @@ export function createWalls(room: TypeRoom, done: (walls: THREE.Group) => void) 
     const wallDepth = room.depth;
 
     const repeatTimes = 5;
-    const repeatBack = new Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
-    const repeatLR = new Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
-    const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
-    const repeatCeiling = new Vector2(repeatFloor.x, repeatFloor.y);
+    const repeatBack = new THREE.Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
+    const repeatLR = new THREE.Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
+    const repeatFloor = new THREE.Vector2(repeatBack.x, repeatLR.x);
+    const repeatCeiling = new THREE.Vector2(repeatFloor.x, repeatFloor.y);
 
     const wallMetalness = 0.02;
     const wallRoughness = 0.96;
