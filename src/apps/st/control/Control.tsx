@@ -8,7 +8,7 @@ import {TypeTrial} from "../Scene/SceneExp";
 import {Button, Chip, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import DoneIcon from '@mui/icons-material/Done';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import SceneControl, {TypeRoom} from "./SceneControl";
+import SceneControl, {TypeRoom, VIEWER_RATE} from "./SceneControl";
 import {Col, Row} from "antd";
 
 
@@ -162,7 +162,7 @@ export default class Control extends WSRC<{}, {
     render(): React.JSX.Element {
         return <div className={classes.controlPage}>
             {this.state.subject && <Row>
-                <Col span={6} className={classes.controlWrapper}>
+                <Col span={8} className={classes.controlWrapper}>
                     <div className={classes.buttonGroup}>
                         <div>
                             <p>Name: {this.state.subject.name}</p>
@@ -233,8 +233,8 @@ export default class Control extends WSRC<{}, {
                         >Logout Subject</Button>
                     </div>
                 </Col>
-                <Col span={16}>
-                    <TableContainer sx={{height: '50vh'}}>
+                <Col span={15}>
+                    <TableContainer sx={{height: `${(1 - VIEWER_RATE) * 100}vh`}}>
                         <Table stickyHeader size="medium">
                             <TableHead>
                                 <TableRow>

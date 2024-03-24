@@ -9,17 +9,7 @@ import {TypeSubject} from "../Login";
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import {MAX_DISTANCE} from "../Scene/PureShapeRadius";
 
-export interface TypeTrial {
-    done: boolean
-    id: number
-    duration: number
-    width: number
-    depth: number
-    height: number
-    updated_at_room: string | null
-    updated_at_reaction: string | null
-}
-
+export const VIEWER_RATE = 0.65;
 
 export interface TypeRoom {
     width: number;
@@ -126,16 +116,16 @@ export default class SceneControl extends WSRC<{
     }
 
     componentDidMount() {
-        this.camera = new THREE.PerspectiveCamera(100, this.divRef.current!.clientWidth / window.innerHeight * 0.5, 1, 1000);
+        this.camera = new THREE.PerspectiveCamera(100, this.divRef.current!.clientWidth / window.innerHeight * VIEWER_RATE, 1, 1000);
 
         super.componentDidMount()
 
         this.renderer.xr.enabled = true;
         this.renderer.setPixelRatio(window.devicePixelRatio);
 
-        this.renderer.setSize(this.divRef.current!.clientWidth, window.innerHeight * 0.5);
+        this.renderer.setSize(this.divRef.current!.clientWidth, window.innerHeight * VIEWER_RATE);
 
-        this.camera.aspect = this.divRef.current!.clientWidth / (window.innerHeight * 0.5);
+        this.camera.aspect = this.divRef.current!.clientWidth / (window.innerHeight * VIEWER_RATE);
         this.camera.updateProjectionMatrix();
 
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -172,7 +162,12 @@ export default class SceneControl extends WSRC<{
     }
 
     render() {
-        return <div className={classes.viewer}>
+        return <div
+            className={classes.viewer}
+            style={{
+                height: window.innerHeight * VIEWER_RATE,
+            }}
+        >
             <div ref={this.divRef}/>
         </div>
     }
