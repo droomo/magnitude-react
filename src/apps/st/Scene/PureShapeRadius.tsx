@@ -3,7 +3,7 @@ import {TEXTURE_BASE} from './scene.lib';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 
 import {DEBUG} from "../../const";
-import {AmbientLight} from "three";
+
 
 interface MouseEvent {
     d: number;
@@ -78,7 +78,6 @@ class PureShapeRadius {
         this.controlTimes = 0
         this.controlEvents = []
 
-        this.setupAspect();
         this.animate();
         this.setupScene();
     }
@@ -89,7 +88,6 @@ class PureShapeRadius {
         while (this.group.children.length) {
             this.group.remove(this.group.children[0]);
         }
-
         this.scene.remove(this.group);
     }
 
@@ -100,10 +98,13 @@ class PureShapeRadius {
         let session = frame.session;
         session.requestAnimationFrame(this.onXRFrame);
 
-        const axes1 = session.inputSources[0].gamepad.axes;
-        const axes2 = session.inputSources[1].gamepad.axes;
+        let y: number = 0;
 
-        const y = axes1[3] + axes2[3];
+        for (let inputSource of session.inputSources) {
+            if (inputSource.gamepad.axes) {
+                y += inputSource.gamepad.axes[3];
+            }
+        }
 
         if (y) {
             this.handleWheelEvent(y, Math.round(time * 100) / 100)
@@ -123,11 +124,6 @@ class PureShapeRadius {
         this.controlEvents = [...this.controlEvents, {d: y, dt: time}]
 
         this.setupScene()
-    };
-
-    setupAspect = () => {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
     };
 
     animate = () => {

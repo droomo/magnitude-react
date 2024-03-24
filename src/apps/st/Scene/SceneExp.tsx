@@ -7,6 +7,7 @@ import PureShapeRadius from "./PureShapeRadius";
 import * as THREE from 'three';
 import {message} from "antd";
 import axios from "axios";
+import {TypeSubject} from "../Login";
 
 interface TrialData {
     reaction_type: string
@@ -41,13 +42,15 @@ export interface TypeRoom {
 
 const api_trial = `${API.base_url}${page_data['api_trial']}`;
 
-export default class SceneExp extends WSRC<{}, {}> {
+export default class SceneExp extends WSRC<{}, {
+    subject: TypeSubject | null
+}> {
     private divRef: React.RefObject<HTMLDivElement>;
     private startButtonRef: React.RefObject<HTMLButtonElement>;
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.PerspectiveCamera;
     private scene: THREE.Scene;
-    private shapeScene: PureShapeRadius | undefined;
+    private shapeScene: PureShapeRadius | null;
     private trials: TrialData[]
     private trial: TrialData | undefined
     private roomStat: TypeRoomStat | undefined;
@@ -58,6 +61,7 @@ export default class SceneExp extends WSRC<{}, {}> {
     protected frameRate: number;
     private shouldSwitchShape: boolean;
 
+    private wallGroup: THREE.Group;
 
     constructor(props: any) {
         super(props);
@@ -76,6 +80,12 @@ export default class SceneExp extends WSRC<{}, {}> {
         this.lastTime = (new Date()).getTime();
         this.frames = 0;
         this.frameRate = 60;
+
+        this.state = {
+            subject: null
+        }
+        this.shapeScene = null;
+        this.wallGroup = new THREE.Group()
     }
 
     switchRoomScene() {
@@ -91,16 +101,18 @@ export default class SceneExp extends WSRC<{}, {}> {
             }
         } else {
             room = {
-                width: 3,
-                height: 2.2,
-                depth: 4,
+                height: 3,
+                width: 4,
+                depth: 5,
             }
         }
         addLight(this.scene, room);
 
         createWalls(room,
             wallGroup => {
-                this.scene.add(wallGroup);
+                this.wallGroup = wallGroup;
+
+                this.scene.add(this.wallGroup);
 
                 this.roomStat = {
                     stage_started_date: new Date().getTime(),
@@ -133,6 +145,8 @@ export default class SceneExp extends WSRC<{}, {}> {
             camera: this.camera,
             scene: this.scene,
             done: (result) => {
+                this.shapeScene?.clear();
+
                 if (this.trial) {
                     axios.post(api_trial, {
                         stat_reaction: result,
@@ -159,16 +173,22 @@ export default class SceneExp extends WSRC<{}, {}> {
                 } else {
                     this.switchRoomScene();
                 }
+                this.shapeScene = null;
             }
         })
     }
 
     clearScene() {
         this.shapeScene?.clear();
-        this.scene = new THREE.Scene();
+        this.scene.clear();
+        while (this.wallGroup.children.length) {
+            this.wallGroup.remove(this.wallGroup.children[0]);
+        }
+        // this.scene = new THREE.Scene();
         this.camera.clear();
-        this.scene.add(this.camera);
+        // this.scene.add(this.camera);
         this.renderer.setAnimationLoop(this.animate);
+        this.setupAspect();
     }
 
     requestTrial = (trial_type: string) => {
@@ -196,6 +216,8 @@ export default class SceneExp extends WSRC<{}, {}> {
     componentDidMount() {
         super.componentDidMount()
 
+        this.requestUser()
+
         this.renderer.xr.enabled = true;
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -207,10 +229,14 @@ export default class SceneExp extends WSRC<{}, {}> {
         if (this.divRef.current) {
             this.divRef.current.appendChild(this.renderer.domElement);
         }
+    }
 
-        navigator.xr!.addEventListener('sessiongranted', () => {
-            this.startSession();
-        });
+    requestUser = () => {
+        axios.get(`${API.base_url}${page_data['api_subject']}`).then(resp => {
+            this.setState({
+                subject: resp.data.subject
+            })
+        })
     }
 
     animate = () => {
@@ -233,8 +259,9 @@ export default class SceneExp extends WSRC<{}, {}> {
             console.log(11111111111122)
             if (this.trial && this.roomStat && this.trial.duration - (getTimestamp() - this.roomStat.camera_moved_fss) < 500 / this.frameRate) {
                 this.shouldSwitchShape = true;
-                this.scene = new THREE.Scene();
-                console.log(111111111133)
+                // this.scene = new THREE.Scene();
+                this.scene.clear();
+                console.log(111111111133);
             }
         }
 
@@ -292,6 +319,12 @@ export default class SceneExp extends WSRC<{}, {}> {
         this.renderer.xr.getSession()?.end()
     };
 
+    setupAspect = () => {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+    };
+
+
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);
         console.log('action', data.action)
@@ -308,10 +341,10 @@ export default class SceneExp extends WSRC<{}, {}> {
             case WS_CONTROL_COMMAND.enter_room:
                 this.switchRoomScene();
                 break;
-            case WS_CONTROL_COMMAND.start_test:
+            case WS_CONTROL_COMMAND.start_test_exp:
                 this.requestTrial('T');
                 break;
-            case WS_CONTROL_COMMAND.start_exp:
+            case WS_CONTROL_COMMAND.start_formal_exp:
                 this.requestTrial('F');
                 break;
         }
@@ -322,21 +355,24 @@ export default class SceneExp extends WSRC<{}, {}> {
     }
 
     render() {
-        return <>
-            <div style={{
-                position: 'absolute', fontSize: '2rem', color: 'white',
-                top: '2rem', left: '2rem'
-            }}>
-                <p>请想象你正以第一人称视角处于游戏环境中</p>
-                <button
-                    className={classes.buttonStartVR}
-                    ref={this.startButtonRef}
-                    onClick={() => {
-                        this.startSession()
-                    }}>进入沉浸式VR场景
-                </button>
-            </div>
-            <div ref={this.divRef}/>
-        </>
+        return <div className={classes.scene}>
+            {this.state.subject ?
+                <>
+                    <h3>时空探索虚拟现实（Virtual Reality, VR）实验</h3>
+                    <p>欢迎你，{this.state.subject.name}（{this.state.subject.code}）！</p>
+                    <button
+                        className={classes.buttonStartVR}
+                        ref={this.startButtonRef}
+                        onClick={() => {
+                            this.startSession()
+                        }}>开始实验
+                    </button>
+                    <div ref={this.divRef}/>
+                </> :
+                <div>
+                    <p>实验尚未开始</p>
+                </div>
+            }
+        </div>
     }
 }

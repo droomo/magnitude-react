@@ -171,9 +171,9 @@ window.oncontextmenu = function (e) {
 
 export const WS_CONTROL_COMMAND = {
     start_session: 'start_session',
-    loss_session: 'loss_session',
     enter_shape: 'enter_shape',
     enter_room: 'enter_room',
-    start_test: 'start_test',
-    start_exp: 'start_exp',
+    start_test_exp: 'start_test',
+    start_formal_exp: 'start_exp',
+    loss_session: 'loss_session',
 }

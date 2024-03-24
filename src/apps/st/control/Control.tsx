@@ -1,12 +1,14 @@
 import WSRC from "../WSRC";
 import {API, page_data, WS_CONTROL_COMMAND} from "../../const";
+import Login, {TypeSubject} from "../Login";
 import React from "react";
 import {Button} from "antd";
 import axios from "axios";
-import Login, {SubjectFormValues} from "../Login";
+import classes from '../css/exp.module.scss'
+
 
 export default class Control extends WSRC<{}, {
-    subject: SubjectFormValues | null
+    subject: TypeSubject | null
 }> {
     constructor(props: any) {
         super(props);
@@ -18,9 +20,7 @@ export default class Control extends WSRC<{}, {
 
     componentDidMount() {
         super.componentDidMount();
-
         this.requestRunningSubject()
-
     }
 
     requestRunningSubject = () => {
@@ -28,12 +28,15 @@ export default class Control extends WSRC<{}, {
             this.setState({
                 subject: resp.data.subject
             })
-
         })
     }
 
     onMessage = () => {
 
+    }
+    capitalizeFirstLetter = (str: string) => {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
     render(): React.JSX.Element {
@@ -55,28 +58,26 @@ export default class Control extends WSRC<{}, {
                     onClick={() => {
                         this.sendCommand(WS_CONTROL_COMMAND.start_session)
                     }}
-                >Start VR Session</Button>
+                >Start Session</Button>
+                {[
+                    'enter_room',
+                    'enter_shape',
+                    'start_test_exp',
+                    'start_formal_exp',
+                ].map((command) => {
+                    return <div
+                        key={command}
+                        className={classes.controlButton}
+                    >
+                        <Button
+                            onClick={() => {
+                                this.sendCommand(command)
+                            }}
+                        >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
+                    </div>
+                })}
                 <Button
-                    onClick={() => {
-                        this.sendCommand(WS_CONTROL_COMMAND.enter_room)
-                    }}
-                >Enter Room</Button>
-                <Button
-                    onClick={() => {
-                        this.sendCommand(WS_CONTROL_COMMAND.enter_shape)
-                    }}
-                >Enter Shape</Button>
-                <Button
-                    onClick={() => {
-                        this.sendCommand(WS_CONTROL_COMMAND.start_test)
-                    }}
-                >Start Test Trial</Button>
-                <Button
-                    onClick={() => {
-                        this.sendCommand(WS_CONTROL_COMMAND.start_exp)
-                    }}
-                >Start Formal Exp</Button>
-                <Button
+                    className={classes.controlButton}
                     danger
                     onClick={() => {
                         this.sendCommand(WS_CONTROL_COMMAND.loss_session)

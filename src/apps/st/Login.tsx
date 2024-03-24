@@ -6,7 +6,7 @@ import {api_subject, getCsrfToken} from "../const";
 import {useNavigate} from "react-router-dom";
 
 
-export interface SubjectFormValues {
+export interface TypeSubject {
     name: string;
     age: number;
     code: string;
@@ -17,13 +17,13 @@ export interface SubjectFormValues {
 
 
 const SubjectForm = (props: {
-    done: (user: SubjectFormValues) => void
+    done: (user: TypeSubject) => void
 }) => {
     const [form] = Form.useForm();
 
     const navigate = useNavigate();
 
-    const onFinish = (values: SubjectFormValues) => {
+    const onFinish = (values: TypeSubject) => {
         axios.post(api_subject, values, {
             headers: {
                 'Content-Type': 'application/json',
