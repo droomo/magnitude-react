@@ -181,6 +181,9 @@ export const WS_CONTROL_COMMAND: {[key: string]: string} = {
     subject_done: 'subject_done',
     subject_login: 'subject_login',
     update_trial: 'update_trial',
+
+    switch_room: 'switch_room',
+    switch_shape: 'switch_shape',
 }
 
 const texture = new THREE.TextureLoader().load(`${TEXTURE_BASE}/src/disc.png`);

@@ -107,6 +107,8 @@ export default class SceneExp extends WSRC<{}, {
             }
         }
 
+        this.sendCommand(WS_CONTROL_COMMAND.switch_room, {room: room})
+
         for (const light of makeLight(room)) {
             this.scene.add(light);
         }
@@ -139,12 +141,16 @@ export default class SceneExp extends WSRC<{}, {
         this.scene = new THREE.Scene()
         this.scene.add(new THREE.PointLight(0xffffff, 3, 0, 0))
 
-        this.camera.position.set(0, 0, 30);
-
         this.shapeScene = new PureShapeRadius({
             renderer: this.renderer,
             camera: this.camera,
             scene: this.scene,
+            onRadiusChange: (radius: number) => {
+                this.sendCommand(WS_CONTROL_COMMAND.switch_shape, {
+                    radius: radius,
+                    newShape: false
+                })
+            },
             done: (result) => {
                 this.shapeScene?.clear();
 
@@ -178,6 +184,10 @@ export default class SceneExp extends WSRC<{}, {
                 }
                 this.shapeScene = null;
             }
+        })
+        this.sendCommand(WS_CONTROL_COMMAND.switch_shape, {
+            radius: 6,
+            newShape: true
         })
     }
 
@@ -242,7 +252,7 @@ export default class SceneExp extends WSRC<{}, {
 
         if (currentTime - this.lastTime >= 1000) {
             this.frameRate = this.frames;
-            console.log(`FPS: ${this.frameRate}`);
+            // console.log(`FPS: ${this.frameRate}`);
             this.frames = 0;
             this.lastTime = currentTime;
         }

@@ -20,12 +20,13 @@ export interface TypeSceneShapeResult {
 
 interface SceneShapeRadiusProps {
     done: (result: TypeSceneShapeResult) => void;
+    onRadiusChange: (radius: number) => void;
     renderer: THREE.WebGLRenderer;
     camera: THREE.PerspectiveCamera;
     scene: THREE.Scene;
 }
 
-
+export const MAX_DISTANCE = 18;
 class PureShapeRadius {
     page_start_date = new Date().getTime();
 
@@ -36,14 +37,13 @@ class PureShapeRadius {
     private props: SceneShapeRadiusProps;
     private session: XRSession;
 
-    protected distance = 18;
 
     constructor(props: SceneShapeRadiusProps) {
 
         this.props = props;
 
         this.group = new THREE.Group();
-        this.group.position.set(0, 0, -this.distance);
+        this.group.position.set(0, 0, -MAX_DISTANCE);
 
         this.props.scene.add(this.group);
 
@@ -88,10 +88,10 @@ class PureShapeRadius {
     handleWheelEvent = (y: number, time: number) => {
         const newRadius = this.radius - y / 10;
 
-        if (newRadius < 0.1 || newRadius > this.distance) {
+        if (newRadius < 0.1 || newRadius > MAX_DISTANCE) {
             return
         }
-
+        this.props.onRadiusChange(newRadius);
         this.radius = newRadius;
 
         this.controlTimes = this.controlTimes + 1

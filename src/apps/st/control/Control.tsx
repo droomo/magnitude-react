@@ -8,6 +8,8 @@ import {TypeTrial} from "../Scene/SceneExp";
 import {Button, Chip, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import DoneIcon from '@mui/icons-material/Done';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import SceneControl, {TypeRoom} from "./SceneControl";
+import {Col, Row} from "antd";
 
 
 const sideWidth = 60;
@@ -72,12 +74,19 @@ export default class Control extends WSRC<{}, {
     subject: TypeSubject | null,
     trials: TypeTrial[]
 }> {
+    private updateRoom: (room: TypeRoom) => void;
+    private updateShape: (radius: number, newShape: boolean) => void;
+
     constructor(props: any) {
         super(props);
         this.setUrl(`${API.ws_url}/ws/control/`)
         this.state = {
             subject: null,
             trials: []
+        }
+        this.updateRoom = () => {
+        }
+        this.updateShape = () => {
         }
     }
 
@@ -136,10 +145,15 @@ export default class Control extends WSRC<{}, {
             case WS_CONTROL_COMMAND.done_trial_event:
                 this.updateTrial(data.data.trial_id)
                 break
-
+            case WS_CONTROL_COMMAND.switch_room:
+                this.updateRoom(data.data.room)
+                break;
+            case WS_CONTROL_COMMAND.switch_shape:
+                this.updateShape(data.data.radius, data.data.newShape)
+                break;
         }
-
     }
+
     capitalizeFirstLetter = (str: string) => {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -147,105 +161,117 @@ export default class Control extends WSRC<{}, {
 
     render(): React.JSX.Element {
         return <div className={classes.controlPage}>
-            {this.state.subject && <>
-                <div className={classes.buttonGroup}>
-                    <div>
-                        <p>Name: {this.state.subject.name}</p>
-                        <p>Code(ID): {this.state.subject.code}</p>
-                    </div>
-                    <Divider>Starting session not working under real quest2 device</Divider>
-                    <Button
-                        className={classes.controlButton}
-                        variant="outlined"
-                        size="small"
-                        onClick={() => {
-                            this.sendCommand(WS_CONTROL_COMMAND.start_session)
-                        }}
-                    >Start Session</Button>
-                    <Divider>Practice stage</Divider>
-                    {[
-                        'enter_room',
-                        'enter_shape',
-                        'start_test_exp',
-                    ].map((command) => {
-                        return <Button
-                            key={command}
+            {this.state.subject && <Row>
+                <Col span={6} className={classes.controlWrapper}>
+                    <div className={classes.buttonGroup}>
+                        <div>
+                            <p>Name: {this.state.subject.name}</p>
+                            <p>Code(ID): {this.state.subject.code}</p>
+                        </div>
+                        <Divider>Starting session not working under real quest2 device</Divider>
+                        <Button
                             className={classes.controlButton}
                             variant="outlined"
                             size="small"
                             onClick={() => {
-                                this.sendCommand(WS_CONTROL_COMMAND[command])
+                                this.sendCommand(WS_CONTROL_COMMAND.start_session)
                             }}
-                        >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
-                    })}
-                    <Divider>Formal stage</Divider>
-                    <Button
-                        className={classes.controlButton} style={{margin: '2rem 0'}}
-                        variant="contained"
-                        size="small"
-                        onClick={() => {
-                            this.sendCommand(WS_CONTROL_COMMAND.start_formal_exp)
+                        >Start Session</Button>
+                        <Divider>Practice stage</Divider>
+                        {[
+                            'enter_room',
+                            'enter_shape',
+                            'start_test_exp',
+                        ].map((command) => {
+                            return <Button
+                                key={command}
+                                className={classes.controlButton}
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                    this.sendCommand(WS_CONTROL_COMMAND[command])
+                                }}
+                            >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
+                        })}
+                        <Divider>Formal stage</Divider>
+                        <Button
+                            className={classes.controlButton} style={{margin: '2rem 0'}}
+                            variant="contained"
+                            size="small"
+                            onClick={() => {
+                                this.sendCommand(WS_CONTROL_COMMAND.start_formal_exp)
+                            }}
+                        >Start an formal Exp</Button>
+                        <Divider>Ending session</Divider>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            color="error"
+                            className={classes.controlButton}
+                            onClick={() => {
+                                this.sendCommand(WS_CONTROL_COMMAND.loss_session)
+                            }}
+                        >Stop VR Session</Button>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            className={classes.controlButton}
+                            onClick={() => {
+                                axios.post(`${API.base_url}${page_data.api_subject_done}`, {
+                                    subject_code: this.state.subject?.code
+                                }, {
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': getCsrfToken(),
+                                    }
+                                }).then(() => {
+                                    this.requestRunningSubject()
+                                    this.sendCommand(WS_CONTROL_COMMAND.subject_done)
+                                })
+                            }}
+                        >Logout Subject</Button>
+                    </div>
+                </Col>
+                <Col span={16}>
+                    <TableContainer sx={{height: '50vh'}}>
+                        <Table stickyHeader size="medium">
+                            <TableHead>
+                                <TableRow>
+                                    {columns.map((column, index) => <TableCell
+                                            key={index}
+                                            align='left'
+                                            style={{minWidth: column.width}}
+                                        >{column.title}</TableCell>
+                                    )}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {this.state.trials
+                                    .map((row) => {
+                                        return (
+                                            <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+                                                {columns.map((column) => {
+                                                    return <TableCell key={column.title} align='left'>
+                                                        <>{column.render ? column.render(row) : row[column.index!]}</>
+                                                    </TableCell>
+                                                })}
+                                            </TableRow>
+                                        );
+                                    })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <SceneControl
+                        setSwitchRoom={(callback) => {
+                            this.updateRoom = callback
                         }}
-                    >Start an formal Exp</Button>
-                    <Divider>Ending session</Divider>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                        className={classes.controlButton}
-                        onClick={() => {
-                            this.sendCommand(WS_CONTROL_COMMAND.loss_session)
+                        setSwitchShape={(callback) => {
+                            this.updateShape = callback
                         }}
-                    >Stop VR Session</Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        color="error"
-                        className={classes.controlButton}
-                        onClick={() => {
-                            axios.post(`${API.base_url}${page_data.api_subject_done}`, {
-                                subject_code: this.state.subject?.code
-                            }, {
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRFToken': getCsrfToken(),
-                                }
-                            }).then(() => {
-                                this.requestRunningSubject()
-                                this.sendCommand(WS_CONTROL_COMMAND.subject_done)
-                            })
-                        }}
-                    >Logout Subject</Button>
-                </div>
-                <TableContainer sx={{maxHeight: window.innerHeight - 20}}>
-                    <Table stickyHeader size="medium">
-                        <TableHead>
-                            <TableRow>
-                                {columns.map((column, index) => <TableCell
-                                        key={index}
-                                        align='left'
-                                        style={{minWidth: column.width}}
-                                    >{column.title}</TableCell>
-                                )}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {this.state.trials
-                                .map((row) => {
-                                    return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                                            {columns.map((column) => {
-                                                return <TableCell key={column.title} align='left'>
-                                                    <>{column.render ? column.render(row) : row[column.index!]}</>
-                                                </TableCell>
-                                            })}
-                                        </TableRow>
-                                    );
-                                })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </>
+                    />
+                </Col>
+            </Row>
             }
 
             {this.state.subject === null && <Login done={(subject) => {
