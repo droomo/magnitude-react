@@ -5,11 +5,22 @@ import React from "react";
 import axios from "axios";
 import classes from '../css/exp.module.scss'
 import {TypeTrial} from "../Scene/SceneExp";
-import {Button, Chip, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
+import {
+    Button,
+    Chip,
+    Divider,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow
+} from "@mui/material";
 import DoneIcon from '@mui/icons-material/Done';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import SceneControl, {TypeRoom, VIEWER_RATE} from "./SceneControl";
 import {Col, Row} from "antd";
+import {ChipOwnProps} from "@mui/material/Chip";
 
 
 const sideWidth = 60;
@@ -18,7 +29,7 @@ interface TypeColumn {
     title: string
     width: number
     index?: keyof TypeTrial
-    render?: (v: TypeTrial) => void
+    render?: (v: TypeTrial, index: number, trials: TypeTrial[]) => void
 }
 
 const columns: TypeColumn[] = [
@@ -55,11 +66,24 @@ const columns: TypeColumn[] = [
     {
         title: 'Stage',
         width: 120,
-        render: (v) => {
+        render: (v, index, trials) => {
             const shapeDone = v.updated_at_room !== null;
             const reactionDone = v.updated_at_reaction !== null;
+
+            let shapeColor: ChipOwnProps["color"] = 'default';
+
+            if (index === 0) {
+                if (!shapeDone) {
+                    shapeColor = 'primary'
+                }
+            } else {
+                if (trials[index - 1].updated_at_reaction !== null && !shapeDone) {
+                    shapeColor = 'primary'
+                }
+            }
+
             return <>
-                <Chip label="ROOM" color={shapeDone ? 'success' : reactionDone ? 'primary' : 'default'}
+                <Chip label="ROOM" color={shapeDone ? 'success' : shapeColor}
                       variant="outlined" size="small" icon={shapeDone ? <DoneIcon/> : <HourglassEmptyIcon/>}
                 />
                 <Chip label="SHAPE" color={reactionDone ? 'success' : shapeDone ? 'primary' : 'default'}
@@ -181,7 +205,6 @@ export default class Control extends WSRC<{}, {
                         {[
                             'enter_room',
                             'enter_shape',
-                            'start_test_exp',
                         ].map((command) => {
                             return <Button
                                 key={command}
@@ -189,10 +212,21 @@ export default class Control extends WSRC<{}, {
                                 variant="outlined"
                                 size="small"
                                 onClick={() => {
+                                    this.setState({
+                                        trials: []
+                                    })
                                     this.sendCommand(WS_CONTROL_COMMAND[command])
                                 }}
                             >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
                         })}
+                        <Button
+                            className={classes.controlButton}
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                                this.sendCommand(WS_CONTROL_COMMAND.start_test_exp)
+                            }}
+                        >Start Test Exp</Button>
                         <Divider>Formal stage</Divider>
                         <Button
                             className={classes.controlButton} style={{margin: '2rem 0'}}
@@ -209,6 +243,9 @@ export default class Control extends WSRC<{}, {
                             color="error"
                             className={classes.controlButton}
                             onClick={() => {
+                                this.setState({
+                                    trials: []
+                                })
                                 this.sendCommand(WS_CONTROL_COMMAND.loss_session)
                             }}
                         >Stop VR Session</Button>
@@ -226,6 +263,9 @@ export default class Control extends WSRC<{}, {
                                         'X-CSRFToken': getCsrfToken(),
                                     }
                                 }).then(() => {
+                                    this.setState({
+                                        trials: []
+                                    })
                                     this.requestRunningSubject()
                                     this.sendCommand(WS_CONTROL_COMMAND.subject_done)
                                 })
@@ -248,12 +288,12 @@ export default class Control extends WSRC<{}, {
                             </TableHead>
                             <TableBody>
                                 {this.state.trials
-                                    .map((row) => {
+                                    .map((row, index) => {
                                         return (
                                             <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                                                 {columns.map((column) => {
                                                     return <TableCell key={column.title} align='left'>
-                                                        <>{column.render ? column.render(row) : row[column.index!]}</>
+                                                        <>{column.render ? column.render(row, index, this.state.trials) : row[column.index!]}</>
                                                     </TableCell>
                                                 })}
                                             </TableRow>
