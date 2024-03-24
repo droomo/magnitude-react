@@ -169,7 +169,7 @@ window.oncontextmenu = function (e) {
     e.preventDefault();
 }
 
-export const WS_CONTROL_COMMAND = {
+export const WS_CONTROL_COMMAND: {[key: string]: string} = {
     start_session: 'start_session',
     enter_shape: 'enter_shape',
     enter_room: 'enter_room',
@@ -177,3 +177,12 @@ export const WS_CONTROL_COMMAND = {
     start_formal_exp: 'start_exp',
     loss_session: 'loss_session',
 }
+
+const texture = new THREE.TextureLoader().load(`${TEXTURE_BASE}/src/disc.png`);
+texture.colorSpace = THREE.SRGBColorSpace;
+export const pointsMaterial = new THREE.PointsMaterial({
+    color: 0x0080ff,
+    map: texture,
+    size: 0.2,
+    alphaTest: 0.7
+});

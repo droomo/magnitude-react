@@ -71,7 +71,7 @@ export default class Control extends WSRC<{}, {
                     >
                         <Button
                             onClick={() => {
-                                this.sendCommand(command)
+                                this.sendCommand(WS_CONTROL_COMMAND[command])
                             }}
                         >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
                     </div>

@@ -8,15 +8,15 @@ export const eyeHeight = 1.75;
 
 export const wallThickness = 0.06;
 
-export function addLight(scene: THREE.Scene, room: TypeRoom) {
+export function makeLight(room: TypeRoom): THREE.Light[] {
+    const group: THREE.Light[] = [];
     const roomLight = new THREE.PointLight(
         0xffffff, (room.width - 4) / 12 + 2, room.width, (16 - room.width) / 30 + 0.1
     );
     roomLight.position.set(0, room.height * 0.5, 0);
-    scene.add(roomLight);
-
     const ambientLight = new THREE.AmbientLight(0xffffff, (room.width - 4) / 24 + 2);
-    scene.add(ambientLight);
+    group.push(roomLight, ambientLight);
+    return group
 }
 
 const createWall = (width: number, height: number, depth: number, position: THREE.Vector3, material: THREE.Material) => {
@@ -54,8 +54,8 @@ const makeMaterial = ([map, normalMap]: THREE.Texture[], metalness: number, roug
 }
 
 
-export function createWalls(room: TypeRoom, done: (walls: THREE.Group) => void) {
-    const wallGroup: THREE.Group = new THREE.Group();
+export function createWalls(room: TypeRoom, done: (walls: THREE.Mesh[]) => void) {
+    const walls: THREE.Mesh[] = [];
 
     // 墙壁
     const wallHeight = room.height;
@@ -89,9 +89,9 @@ export function createWalls(room: TypeRoom, done: (walls: THREE.Group) => void) 
     const material = makeMaterial(prepareTextures([mapFloor, normalFloor], repeatFloor), wallMetalness, wallRoughness);
     const wall5 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
 
-    wallGroup.add(wall0, wall1, wall2, wall3, wall4, wall5);
+    walls.push(wall0, wall1, wall2, wall3, wall4, wall5);
 
-    done(wallGroup);
+    done(walls);
 }
 
 export const webGlConfig = {

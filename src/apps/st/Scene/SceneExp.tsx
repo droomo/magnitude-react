@@ -1,5 +1,5 @@
 import React from 'react';
-import {eyeHeight, createWalls, webGlConfig, addLight,} from './scene.lib';
+import {eyeHeight, createWalls, webGlConfig, makeLight,} from './scene.lib';
 import {API, BlockType, getCsrfToken, getTimestamp, page_data, WS_CONTROL_COMMAND} from "../../const";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
@@ -26,12 +26,6 @@ interface TypeRoomStat {
     stage_started: number,
     camera_moved_fss: number,
     done_from_camera_moved_fss: number,
-}
-
-export interface TypeExploringRecord {
-    start_date: number,
-    end_date: number,
-    key_pressed: string,
 }
 
 export interface TypeRoom {
@@ -61,8 +55,6 @@ export default class SceneExp extends WSRC<{}, {
     protected frameRate: number;
     private shouldSwitchShape: boolean;
 
-    private wallGroup: THREE.Group;
-
     constructor(props: any) {
         super(props);
         this.divRef = React.createRef<HTMLDivElement>();
@@ -85,13 +77,21 @@ export default class SceneExp extends WSRC<{}, {
             subject: null
         }
         this.shapeScene = null;
-        this.wallGroup = new THREE.Group()
+
+        this.renderer.setAnimationLoop(this.animate);
+
+    }
+
+    clearScene() {
+        this.shapeScene?.clear();
     }
 
     switchRoomScene() {
         this.clearScene();
+        this.scene = new THREE.Scene();
 
         this.trial = this.trials.shift();
+
         let room: TypeRoom
         if (this.trial) {
             room = {
@@ -101,24 +101,27 @@ export default class SceneExp extends WSRC<{}, {
             }
         } else {
             room = {
-                height: 3,
-                width: 4,
-                depth: 5,
+                height: 3 + Math.random() * 2,
+                width: 4 + Math.random() * 2,
+                depth: 5 + Math.random() * 2,
             }
         }
-        addLight(this.scene, room);
+
+        for (const light of makeLight(room)) {
+            this.scene.add(light);
+        }
 
         createWalls(room,
-            wallGroup => {
-                this.wallGroup = wallGroup;
-
-                this.scene.add(this.wallGroup);
+            walls => {
+                for (const wall of walls) {
+                    this.scene.add(wall);
+                }
 
                 this.roomStat = {
                     stage_started_date: new Date().getTime(),
                     stage_started: getTimestamp(),
-                    camera_moved_fss: 0,
-                    done_from_camera_moved_fss: 0,
+                    camera_moved_fss: -1,
+                    done_from_camera_moved_fss: -1,
                 }
                 this.lookingCenter = false;
                 this.shouldSwitchShape = false;
@@ -127,7 +130,6 @@ export default class SceneExp extends WSRC<{}, {
                 this.camera.lookAt(0, eyeHeight, 0);
 
                 if (this.trial) {
-                    console.log(9898888888888)
                     this.lookingCenter = true;
                 }
             }
@@ -137,8 +139,10 @@ export default class SceneExp extends WSRC<{}, {
     switchShapeScene = () => {
         this.clearScene();
 
+        this.scene = new THREE.Scene()
+        this.scene.add(new THREE.PointLight(0xffffff, 3, 0, 0))
+
         this.camera.position.set(0, 0, 30);
-        this.camera.add(new THREE.PointLight(0xffffff, 3, 0, 0));
 
         this.shapeScene = new PureShapeRadius({
             renderer: this.renderer,
@@ -178,19 +182,6 @@ export default class SceneExp extends WSRC<{}, {
         })
     }
 
-    clearScene() {
-        this.shapeScene?.clear();
-        this.scene.clear();
-        while (this.wallGroup.children.length) {
-            this.wallGroup.remove(this.wallGroup.children[0]);
-        }
-        // this.scene = new THREE.Scene();
-        this.camera.clear();
-        // this.scene.add(this.camera);
-        this.renderer.setAnimationLoop(this.animate);
-        this.setupAspect();
-    }
-
     requestTrial = (trial_type: string) => {
         axios.get(`${API.base_url}${page_data['api_make_or_get_trial']}`, {
             params: {
@@ -218,8 +209,10 @@ export default class SceneExp extends WSRC<{}, {
 
         this.requestUser()
 
-        this.renderer.xr.enabled = true;
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
 
+        this.renderer.xr.enabled = true;
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -240,7 +233,6 @@ export default class SceneExp extends WSRC<{}, {
     }
 
     animate = () => {
-
         const currentTime = (new Date()).getTime();
         this.frames++;
 
@@ -254,16 +246,14 @@ export default class SceneExp extends WSRC<{}, {
         if (this.lookingCenter && this.roomStat) {
             this.lookingCenter = false;
             this.roomStat.camera_moved_fss = getTimestamp();
-            console.log(2222222222)
         } else {
-            console.log(11111111111122)
-            if (this.trial && this.roomStat && this.trial.duration - (getTimestamp() - this.roomStat.camera_moved_fss) < 500 / this.frameRate) {
+            if (this.trial && this.roomStat && this.roomStat.done_from_camera_moved_fss === -1
+                && this.trial.duration - (getTimestamp() - this.roomStat.camera_moved_fss) < 500 / this.frameRate) {
                 this.shouldSwitchShape = true;
-                // this.scene = new THREE.Scene();
-                this.scene.clear();
-                console.log(111111111133);
             }
         }
+
+        this.shapeScene?.animate();
 
         this.renderer.render(this.scene, this.camera);
 
@@ -291,11 +281,8 @@ export default class SceneExp extends WSRC<{}, {
                     alert('error happened 22')
                 })
             }
-
             this.switchShapeScene();
-
         }
-
     };
 
     startSession = () => {
@@ -317,11 +304,6 @@ export default class SceneExp extends WSRC<{}, {
     endSession = () => {
         this.clearScene()
         this.renderer.xr.getSession()?.end()
-    };
-
-    setupAspect = () => {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
     };
 
 
