@@ -175,7 +175,12 @@ export const WS_CONTROL_COMMAND: {[key: string]: string} = {
     enter_room: 'enter_room',
     start_test_exp: 'start_test',
     start_formal_exp: 'start_exp',
+    start_exp_event: 'start_exp_event',
+    done_trial_event: 'done_trial_event',
     loss_session: 'loss_session',
+    subject_done: 'subject_done',
+    subject_login: 'subject_login',
+    update_trial: 'update_trial',
 }
 
 const texture = new THREE.TextureLoader().load(`${TEXTURE_BASE}/src/disc.png`);

@@ -1,23 +1,23 @@
 import React from 'react';
-import {eyeHeight, createWalls, webGlConfig, makeLight,} from './scene.lib';
+import {createWalls, webGlConfig, makeLight,} from './scene.lib';
 import {API, BlockType, getCsrfToken, getTimestamp, page_data, WS_CONTROL_COMMAND} from "../../const";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
 import PureShapeRadius from "./PureShapeRadius";
 import * as THREE from 'three';
-import {message} from "antd";
 import axios from "axios";
 import {TypeSubject} from "../Login";
+import {message} from "antd";
 
-interface TrialData {
-    reaction_type: string
+export interface TypeTrial {
     done: boolean
     id: number
     duration: number
     width: number
     depth: number
     height: number
-    reaction_speed: number
+    updated_at_room: string | null
+    updated_at_reaction: string | null
 }
 
 
@@ -45,8 +45,8 @@ export default class SceneExp extends WSRC<{}, {
     private camera: THREE.PerspectiveCamera;
     private scene: THREE.Scene;
     private shapeScene: PureShapeRadius | null;
-    private trials: TrialData[]
-    private trial: TrialData | undefined
+    private trials: TypeTrial[]
+    private trial: TypeTrial | undefined
     private roomStat: TypeRoomStat | undefined;
     private lookingCenter: boolean
 
@@ -126,9 +126,6 @@ export default class SceneExp extends WSRC<{}, {
                 this.lookingCenter = false;
                 this.shouldSwitchShape = false;
 
-                this.camera.position.set(0, eyeHeight, -room.depth * 0.5 + 0.1);
-                this.camera.lookAt(0, eyeHeight, 0);
-
                 if (this.trial) {
                     this.lookingCenter = true;
                 }
@@ -163,6 +160,8 @@ export default class SceneExp extends WSRC<{}, {
                         },
                     }).then(response => {
                         if (response.data.status === 200) {
+                            this.trialDone(response.data.data.trial_id);
+
                             if (this.trials.length) {
                                 this.switchRoomScene();
                             } else {
@@ -190,16 +189,21 @@ export default class SceneExp extends WSRC<{}, {
             }
         }).then(response => {
             const data: {
-                trials: TrialData[],
+                trials: TypeTrial[],
                 last_trial_index: number
             } = response.data.data;
 
+            this.sendCommand(WS_CONTROL_COMMAND.start_exp_event, {
+                trial_type: trial_type,
+            })
+
             if (trial_type === 'T') {
                 data.trials[0].duration = 6000;
+            } else if (trial_type === 'F' && data.trials.length === 0) {
+                return
             }
 
             this.trials = data.trials;
-
             this.switchRoomScene();
         })
     }
@@ -225,7 +229,7 @@ export default class SceneExp extends WSRC<{}, {
     }
 
     requestUser = () => {
-        axios.get(`${API.base_url}${page_data['api_subject']}`).then(resp => {
+        axios.get(`${API.base_url}${page_data['api_subject']}?running=running`).then(resp => {
             this.setState({
                 subject: resp.data.subject
             })
@@ -274,7 +278,9 @@ export default class SceneExp extends WSRC<{}, {
                         'X-CSRFToken': getCsrfToken(),
                     },
                 }).then(response => {
-                    if (response.data.status !== 200) {
+                    if (response.data.status === 200) {
+                        this.trialDone(response.data.data.trial_id)
+                    } else {
                         alert('error happened 11')
                     }
                 }).catch(() => {
@@ -284,6 +290,12 @@ export default class SceneExp extends WSRC<{}, {
             this.switchShapeScene();
         }
     };
+
+    trialDone = (trial_id: number) => {
+        this.sendCommand(WS_CONTROL_COMMAND.done_trial_event, {
+            trial_id: trial_id
+        })
+    }
 
     startSession = () => {
         if (this.renderer.xr.getSession()) {
@@ -328,6 +340,10 @@ export default class SceneExp extends WSRC<{}, {
                 break;
             case WS_CONTROL_COMMAND.start_formal_exp:
                 this.requestTrial('F');
+                break;
+            case WS_CONTROL_COMMAND.subject_done:
+            case WS_CONTROL_COMMAND.subject_login:
+                window.location.reload()
                 break;
         }
     }

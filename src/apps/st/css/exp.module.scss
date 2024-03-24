@@ -1,3 +1,29 @@
+
+.controlPage {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  height: 100vh;
+  background-color: #ffffff;
+
+  .buttonGroup {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .controlButton {
+      margin-top: 1rem;
+    }
+
+    [role='separator'] {
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+  }
+}
+
 .scene {
   text-align: center;
   font-size: 2rem;
@@ -23,8 +49,4 @@
     background-color: rgba(255, 255, 255, 0.12);
   }
 
-}
-
-.controlButton {
-  margin-top: 1rem;
 }

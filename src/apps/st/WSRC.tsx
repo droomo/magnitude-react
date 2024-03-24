@@ -82,11 +82,12 @@ export default class WSRC<T1, T2> extends React.Component<T1, T2> {
         };
     };
 
-    sendCommand = (command: string) => {
+    sendCommand = (command: string, extras?: any) => {
         this.sendData({
             'action': 'transfer',
             'data': {
-                'target_action': command
+                'target_action': command,
+                ...extras
             }
         })
     }

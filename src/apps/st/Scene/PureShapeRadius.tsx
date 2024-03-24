@@ -106,6 +106,7 @@ class PureShapeRadius {
     };
 
     setupScene = () => {
+        this.group.clear();
         let dodecahedronGeometry = new THREE.DodecahedronGeometry(this.radius, 0);
         const vertices = [];
         const positionAttribute = dodecahedronGeometry.getAttribute('position');

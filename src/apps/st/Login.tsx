@@ -1,9 +1,7 @@
 import React from 'react';
 import axios from 'axios';
-import {Form, Input, Button, Select, InputNumber, message, Row, Col} from 'antd';
-import {UserOutlined, PhoneOutlined} from '@ant-design/icons';
 import {api_subject, getCsrfToken} from "../const";
-import {useNavigate} from "react-router-dom";
+import {message, Row, Col, Select, InputNumber, Button, Input, Form} from "antd";
 
 
 export interface TypeSubject {
@@ -21,8 +19,6 @@ const SubjectForm = (props: {
 }) => {
     const [form] = Form.useForm();
 
-    const navigate = useNavigate();
-
     const onFinish = (values: TypeSubject) => {
         axios.post(api_subject, values, {
             headers: {
@@ -36,8 +32,6 @@ const SubjectForm = (props: {
                 } else {
                     alert('error');
                 }
-
-                navigate('/intro/');
             })
             .catch(error => {
                 message.error('Submission failed: ' + error.message);
@@ -87,7 +81,7 @@ const SubjectForm = (props: {
                             label="姓名"
                             rules={[{required: true, message: 'Please input the subject name!'}]}
                         >
-                            <Input prefix={<UserOutlined/>} placeholder="Name"/>
+                            <Input placeholder="Name"/>
                         </Form.Item>
 
                         <Form.Item
@@ -113,7 +107,7 @@ const SubjectForm = (props: {
                             name="tel"
                             label="电话"
                         >
-                            <Input prefix={<PhoneOutlined/>} placeholder="Mobile"/>
+                            <Input placeholder="Mobile"/>
                         </Form.Item>
 
                         <Form.Item

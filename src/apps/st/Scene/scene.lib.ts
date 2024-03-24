@@ -71,23 +71,25 @@ export function createWalls(room: TypeRoom, done: (walls: THREE.Mesh[]) => void)
     const wallMetalness = 0.02;
     const wallRoughness = 0.96;
 
+    const zOffset = -wallDepth / 2 + 0.15;
+
     const textureCeiling = prepareTextures([mapWall, normalWall], repeatCeiling);
     const materialCeiling = makeMaterial(textureCeiling, wallMetalness, wallRoughness);
-    const wall0 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight + wallThickness / 2, 0), materialCeiling);
+    const wall0 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, wallHeight + wallThickness / 2, zOffset), materialCeiling);
     const textureLR = prepareTextures([mapWall, normalWall], repeatLR);
     const textureFB = prepareTextures([mapWall, normalWall], repeatBack);
     const materialLR = makeMaterial(textureLR, wallMetalness, wallRoughness);
     const materialFB = makeMaterial(textureFB, wallMetalness, wallRoughness);
-    const wall1 = createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, 0), materialLR);
-    const wall2 = createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, 0), materialLR);
+    const wall1 = createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(-wallWidth / 2, wallHeight / 2, zOffset), materialLR);
+    const wall2 = createWall(wallThickness, wallHeight, wallDepth, new THREE.Vector3(wallWidth / 2, wallHeight / 2, zOffset), materialLR);
     // back
-    const wall3 = createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2), materialFB);
+    const wall3 = createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, -wallDepth / 2 + zOffset), materialFB);
     // front
-    const wall4 = createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, wallDepth / 2), materialFB);
+    const wall4 = createWall(wallWidth, wallHeight, wallThickness, new THREE.Vector3(0, wallHeight / 2, wallDepth / 2 + zOffset), materialFB);
 
     // floor
     const material = makeMaterial(prepareTextures([mapFloor, normalFloor], repeatFloor), wallMetalness, wallRoughness);
-    const wall5 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, 0), material);
+    const wall5 = createWall(wallWidth, wallThickness, wallDepth, new THREE.Vector3(0, 0, zOffset), material);
 
     walls.push(wall0, wall1, wall2, wall3, wall4, wall5);
 
