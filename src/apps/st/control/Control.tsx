@@ -254,23 +254,25 @@ export default class Control extends WSRC<{}, {
                             }}
                         >Start Session</Button>
                         <Divider>Practice stage</Divider>
-                        {[
-                            'enter_room',
-                            'enter_shape',
-                        ].map((command) => {
-                            return <Button
-                                key={command}
-                                className={classes.controlButton}
-                                variant="outlined"
-                                size="small"
-                                onClick={() => {
-                                    this.setState({
-                                        trials: []
-                                    })
-                                    this.sendCommand(WS_CONTROL_COMMAND[command as keyof typeof WS_CONTROL_COMMAND])
-                                }}
-                            >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
-                        })}
+                        <Row>
+                            {[
+                                'enter_room',
+                                'enter_shape',
+                            ].map((command) => {
+                                return <Button
+                                    key={command}
+                                    className={classes.controlButton}
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => {
+                                        this.setState({
+                                            trials: []
+                                        })
+                                        this.sendCommand(WS_CONTROL_COMMAND[command as keyof typeof WS_CONTROL_COMMAND])
+                                    }}
+                                >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
+                            })}
+                        </Row>
                         <Button
                             className={classes.controlButton}
                             variant="outlined"
@@ -356,7 +358,7 @@ export default class Control extends WSRC<{}, {
                                                 key={row.id}
                                                 id={`row-${row.id}`}
                                                 sx={{
-                                                    backgroundColor: row.running ? 'cornsilk' : row.done ? 'gainsboro' :'',
+                                                    backgroundColor: row.running ? 'cornsilk' : row.done ? 'gainsboro' : '',
                                                 }}
                                             >
                                                 {columns.map((column) => {
