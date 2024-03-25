@@ -19,8 +19,8 @@ export const API: {
     ws_url: string,
 } = {
     base_url: `${scheme}://${base_host}:8023`,
+    texture_base_url: `${scheme}://${base_host}:8023/src`,
     ws_url: `wss://${base_host}:8023`,
-    texture_base_url: `${scheme}://${base_host}:19000`,
 }
 
 const TEXTURE_BASE = API.texture_base_url;

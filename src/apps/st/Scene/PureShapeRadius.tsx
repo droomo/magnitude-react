@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
-
 import {DEBUG, pointsMaterial} from "../../const";
 
 
@@ -27,6 +26,7 @@ interface SceneShapeRadiusProps {
 }
 
 export const MAX_DISTANCE = 22;
+
 class PureShapeRadius {
     page_start_date = new Date().getTime();
 
@@ -44,7 +44,7 @@ class PureShapeRadius {
         this.props = props;
 
         this.group = new THREE.Group();
-        this.group.position.set(0, RADIUS / 3, -MAX_DISTANCE);
+        this.group.position.set(0, 1, -MAX_DISTANCE);
 
         this.props.scene.add(this.group);
 
@@ -87,7 +87,7 @@ class PureShapeRadius {
     }
 
     handleWheelEvent = (y: number, time: number) => {
-        const newRadius = this.radius - y / 10;
+        const newRadius = this.radius - y / 30;
 
         if (newRadius < 0.1 || newRadius > MAX_DISTANCE) {
             return
@@ -102,8 +102,8 @@ class PureShapeRadius {
     };
 
     animate = () => {
-        this.group.rotation.y += 0.005;
-        this.group.rotation.x += 0.003;
+        this.group.rotation.y += 0.003;
+        this.group.rotation.x += 0.0015;
     };
 
     setupScene = () => {

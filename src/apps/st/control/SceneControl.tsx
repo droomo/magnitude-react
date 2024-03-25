@@ -152,8 +152,8 @@ export default class SceneControl extends React.Component<{
     }
 
     animate = () => {
-        this.group.rotation.y += 0.005;
-        this.group.rotation.x += 0.003;
+        this.group.rotation.y += 0.003;
+        this.group.rotation.x += 0.0015;
 
         requestAnimationFrame(this.animate);
         this.renderer.render(this.scene, this.camera);
