@@ -26,7 +26,7 @@ interface SceneShapeRadiusProps {
     scene: THREE.Scene;
 }
 
-export const MAX_DISTANCE = 18;
+export const MAX_DISTANCE = 22;
 class PureShapeRadius {
     page_start_date = new Date().getTime();
 
@@ -39,11 +39,12 @@ class PureShapeRadius {
 
 
     constructor(props: SceneShapeRadiusProps) {
+        const RADIUS = 6;
 
         this.props = props;
 
         this.group = new THREE.Group();
-        this.group.position.set(0, 0, -MAX_DISTANCE);
+        this.group.position.set(0, RADIUS / 3, -MAX_DISTANCE);
 
         this.props.scene.add(this.group);
 
@@ -53,7 +54,7 @@ class PureShapeRadius {
 
         this.session.addEventListener('select', this.handleCompleteClick);
 
-        this.radius = 6
+        this.radius = RADIUS
         this.controlTimes = 0
         this.controlEvents = []
 

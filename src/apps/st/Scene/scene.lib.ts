@@ -1,20 +1,18 @@
 import * as THREE from 'three';
 import {TypeRoom} from "./SceneExp";
-import {API, mapFloor, mapWall, normalFloor, normalWall,} from "../../const";
-
-export const TEXTURE_BASE = API.texture_base_url;
-
-export const eyeHeight = 1.75;
+import {mapFloor, mapWall, normalFloor, normalWall,} from "../../const";
 
 export const wallThickness = 0.06;
 
 export function makeLight(room: TypeRoom): THREE.Light[] {
+    const zOffset = -room.depth / 2 + 0.15;
+
     const group: THREE.Light[] = [];
     const roomLight = new THREE.PointLight(
-        0xffffff, (room.width - 4) / 12 + 2, room.width, (16 - room.width) / 30 + 0.1
+        0xffffff, (room.width - 3) / 30 + 2, room.width, (24 - room.width) / 40 + 0.1
     );
-    roomLight.position.set(0, room.height * 0.5, 0);
-    const ambientLight = new THREE.AmbientLight(0xffffff, (room.width - 4) / 24 + 2);
+    roomLight.position.set(0, room.height * 0.5, zOffset);
+    const ambientLight = new THREE.AmbientLight(0xffffff, (room.width - 3) / 30 + 2);
     group.push(roomLight, ambientLight);
     return group
 }
