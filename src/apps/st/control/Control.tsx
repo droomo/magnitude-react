@@ -241,10 +241,10 @@ export default class Control extends WSRC<{}, {
                 <Col span={8} className={classes.controlWrapper}>
                     <div className={classes.buttonGroup}>
                         <div>
-                            <p>Name: {this.state.subject.name}</p>
-                            <p>Code(ID): {this.state.subject.code}</p>
+                            <h3>Name: {this.state.subject.name}</h3>
+                            <h3>Code(ID): {this.state.subject.code}</h3>
                         </div>
-                        <Divider>Starting session not working under real quest2 device</Divider>
+                        <Divider>Starting session only working under simulator</Divider>
                         <Button
                             className={classes.controlButton}
                             variant="outlined"
