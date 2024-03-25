@@ -53,6 +53,29 @@ const makeMaterial = ([map, normalMap]: THREE.Texture[], metalness: number, roug
     });
 }
 
+export function create3DText(text: string): THREE.Mesh {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
+    canvas.width = 300 * text.length;
+    canvas.height = 300;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.font = `100px MS YaHei`;
+    context.fillStyle = 'rgba(255, 255, 255, 1.0)';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    const textTexture = new THREE.Texture(canvas);
+    textTexture.needsUpdate = true;
+
+    const material = new THREE.MeshBasicMaterial({map: textTexture});
+    const geometry = new THREE.PlaneGeometry(text.length, 1);
+    const textMesh = new THREE.Mesh(geometry, material);
+    textMesh.position.set(0, 1.5, -5);
+
+    return textMesh;
+}
+
 
 export function createWalls(room: TypeRoom, done: (walls: THREE.Mesh[]) => void) {
     const walls: THREE.Mesh[] = [];

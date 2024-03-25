@@ -100,6 +100,8 @@ export default class Control extends WSRC<{}, {
 }> {
     private updateRoom: (room: TypeRoom) => void;
     private updateShape: (radius: number, newShape: boolean) => void;
+    private setViewerText: (text: string) => void;
+    private clearScene: () => void;
 
     constructor(props: any) {
         super(props);
@@ -111,6 +113,10 @@ export default class Control extends WSRC<{}, {
         this.updateRoom = () => {
         }
         this.updateShape = () => {
+        }
+        this.setViewerText = () => {
+        }
+        this.clearScene = () => {
         }
     }
 
@@ -175,6 +181,18 @@ export default class Control extends WSRC<{}, {
             case WS_CONTROL_COMMAND.switch_shape:
                 this.updateShape(data.data.radius, data.data.newShape)
                 break;
+            case WS_CONTROL_COMMAND.start_session_event:
+            case WS_CONTROL_COMMAND.done_exp_event:
+                this.setState({
+                    trials: []
+                })
+                this.clearScene();
+                this.setViewerText(data.data.text)
+                break;
+            case WS_CONTROL_COMMAND.take_a_break:
+                this.clearScene();
+                this.setViewerText(data.data.text)
+                break;
         }
     }
 
@@ -215,7 +233,7 @@ export default class Control extends WSRC<{}, {
                                     this.setState({
                                         trials: []
                                     })
-                                    this.sendCommand(WS_CONTROL_COMMAND[command])
+                                    this.sendCommand(WS_CONTROL_COMMAND[command as keyof typeof WS_CONTROL_COMMAND])
                                 }}
                             >{command.split('_').map(x => this.capitalizeFirstLetter(x)).join(' ')}</Button>
                         })}
@@ -229,13 +247,22 @@ export default class Control extends WSRC<{}, {
                         >Start Test Exp</Button>
                         <Divider>Formal stage</Divider>
                         <Button
-                            className={classes.controlButton} style={{margin: '2rem 0'}}
-                            variant="contained"
+                            className={classes.controlButton} style={{margin: '2rem 0 0 0'}}
+                            variant="outlined"
                             size="small"
+                            color='warning'
                             onClick={() => {
                                 this.sendCommand(WS_CONTROL_COMMAND.start_formal_exp)
                             }}
                         >Start an formal Exp</Button>
+                        <Button
+                            className={classes.controlButton} style={{margin: '1rem 0 2rem 0'}}
+                            variant="contained"
+                            size="small"
+                            onClick={() => {
+                                this.sendCommand(WS_CONTROL_COMMAND.continue_trial)
+                            }}
+                        >Continue Trial</Button>
                         <Divider>Ending session</Divider>
                         <Button
                             variant="outlined"
@@ -246,6 +273,7 @@ export default class Control extends WSRC<{}, {
                                 this.setState({
                                     trials: []
                                 })
+                                this.clearScene();
                                 this.sendCommand(WS_CONTROL_COMMAND.loss_session)
                             }}
                         >Stop VR Session</Button>
@@ -303,11 +331,17 @@ export default class Control extends WSRC<{}, {
                         </Table>
                     </TableContainer>
                     <SceneControl
-                        setSwitchRoom={(callback) => {
-                            this.updateRoom = callback
+                        setSwitchRoom={(func) => {
+                            this.updateRoom = func
                         }}
-                        setSwitchShape={(callback) => {
-                            this.updateShape = callback
+                        setSwitchShape={(func) => {
+                            this.updateShape = func
+                        }}
+                        setUpdateTextFunc={(func) => {
+                            this.setViewerText = func
+                        }}
+                        setClearFunc={(func) => {
+                            this.clearScene = func
                         }}
                     />
                 </Col>

@@ -1,5 +1,5 @@
 import React from 'react';
-import {createWalls, webGlConfig, makeLight,} from '../Scene/scene.lib';
+import {createWalls, webGlConfig, makeLight, create3DText,} from '../Scene/scene.lib';
 import {pointsMaterial, WS_CONTROL_COMMAND} from "../../const";
 import WSRC from "../WSRC";
 
@@ -18,6 +18,8 @@ export interface TypeRoom {
 }
 
 export default class SceneControl extends WSRC<{
+    setClearFunc: (setsetClearFunc: () => void) => void,
+    setUpdateTextFunc: (setText: (text: string) => void) => void,
     setSwitchRoom: (switchRoom: (room: TypeRoom) => void) => void,
     setSwitchShape: (switchShape: (radius: number, newShape: boolean) => void) => void
 }, {
@@ -28,7 +30,6 @@ export default class SceneControl extends WSRC<{
     private camera: THREE.PerspectiveCamera;
     private scene: THREE.Scene;
     private group: THREE.Group;
-
 
     constructor(props: any) {
         super(props);
@@ -48,14 +49,25 @@ export default class SceneControl extends WSRC<{
         this.props.setSwitchShape((radius, newShape) => {
             this.switchShapeScene(radius, newShape)
         })
+        this.props.setUpdateTextFunc((text) => {
+            this.set3DText(text)
+        })
+        this.props.setClearFunc(() => {
+            this.clear();
+        })
 
         this.camera = new THREE.PerspectiveCamera(75, 1, 1, 1000);
 
         this.group = new THREE.Group();
     }
 
+    set3DText = (text: string) => {
+        this.clear();
+        this.scene.add(create3DText(text));
+    }
+
     switchRoomScene(room: TypeRoom) {
-        this.scene.clear();
+        this.clear();
 
         for (const light of makeLight(room)) {
             this.scene.add(light);
@@ -75,7 +87,8 @@ export default class SceneControl extends WSRC<{
 
     switchShapeScene = (radius: number, newShape: boolean) => {
 
-        this.scene.clear();
+        this.clear();
+
         if (newShape) {
             this.group = new THREE.Group()
         } else {
@@ -146,6 +159,11 @@ export default class SceneControl extends WSRC<{
         this.renderer.render(this.scene, this.camera);
     };
 
+    clear = () => {
+        this.group.clear();
+        this.scene.clear();
+        this.camera.clear();
+    }
 
     onMessage = (data_str: string) => {
         const data = JSON.parse(data_str);

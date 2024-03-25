@@ -1,5 +1,5 @@
 import React from 'react';
-import {createWalls, webGlConfig, makeLight,} from './scene.lib';
+import {createWalls, webGlConfig, makeLight, create3DText,} from './scene.lib';
 import {API, BlockType, getCsrfToken, getTimestamp, page_data, WS_CONTROL_COMMAND} from "../../const";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
@@ -51,9 +51,12 @@ export default class SceneExp extends WSRC<{}, {
     private lookingCenter: boolean
 
     protected lastTime: number;
+    protected trialType: string | undefined;
     protected frames: number;
     protected frameRate: number;
     private shouldSwitchShape: boolean;
+
+    private lastingTimes: number;
 
     constructor(props: any) {
         super(props);
@@ -80,14 +83,22 @@ export default class SceneExp extends WSRC<{}, {
 
         this.renderer.setAnimationLoop(this.animate);
 
+        this.lastingTimes = 0;
+
     }
 
     clearScene() {
         this.shapeScene?.clear();
+        this.scene.clear();
     }
 
     switchRoomScene() {
+        if (!this.renderer.xr.getSession()) {
+            return
+        }
         this.clearScene();
+
+        this.lastingTimes += 1;
         this.scene = new THREE.Scene();
 
         this.trial = this.trials.shift();
@@ -107,7 +118,7 @@ export default class SceneExp extends WSRC<{}, {
             }
         }
 
-        this.sendCommand(WS_CONTROL_COMMAND.switch_room, {room: room})
+        this.sendCommand(WS_CONTROL_COMMAND.switch_room, {room})
 
         for (const light of makeLight(room)) {
             this.scene.add(light);
@@ -136,6 +147,10 @@ export default class SceneExp extends WSRC<{}, {
     }
 
     switchShapeScene = () => {
+        if (!this.renderer.xr.getSession()) {
+            return
+        }
+
         this.clearScene();
 
         this.scene = new THREE.Scene()
@@ -169,9 +184,18 @@ export default class SceneExp extends WSRC<{}, {
                             this.trialDone(response.data.data.trial_id);
 
                             if (this.trials.length) {
-                                this.switchRoomScene();
+
+                                if (this.lastingTimes % 40 === 0) {
+                                    const text = '请休息，稍候由主试提醒继续试验';
+                                    this.scene.add(create3DText(text));
+                                    this.sendCommand(WS_CONTROL_COMMAND.take_a_break, {text});
+                                } else {
+                                    this.switchRoomScene();
+                                }
                             } else {
-                                this.sendCommand('done');
+                                const text = this.trialType === 'F' ? '实验结束，感谢你为心理学的发展做出贡献！' : '练习结束，请稍候'
+                                this.scene.add(create3DText(text));
+                                this.sendCommand(WS_CONTROL_COMMAND.done_exp_event, {text});
                             }
                         } else {
                             alert('error happened 33')
@@ -192,6 +216,8 @@ export default class SceneExp extends WSRC<{}, {
     }
 
     requestTrial = (trial_type: string) => {
+        this.trialType = trial_type;
+
         axios.get(`${API.base_url}${page_data['api_make_or_get_trial']}`, {
             params: {
                 'reaction_type': BlockType.Space,
@@ -203,9 +229,7 @@ export default class SceneExp extends WSRC<{}, {
                 last_trial_index: number
             } = response.data.data;
 
-            this.sendCommand(WS_CONTROL_COMMAND.start_exp_event, {
-                trial_type: trial_type,
-            })
+            this.sendCommand(WS_CONTROL_COMMAND.start_exp_event, {trial_type})
 
             if (trial_type === 'T') {
                 data.trials[0].duration = 6000;
@@ -302,9 +326,7 @@ export default class SceneExp extends WSRC<{}, {
     };
 
     trialDone = (trial_id: number) => {
-        this.sendCommand(WS_CONTROL_COMMAND.done_trial_event, {
-            trial_id: trial_id
-        })
+        this.sendCommand(WS_CONTROL_COMMAND.done_trial_event, {trial_id})
     }
 
     startSession = () => {
@@ -316,7 +338,12 @@ export default class SceneExp extends WSRC<{}, {
             optionalFeatures: ['local-floor', 'bounded-floor', 'layers']
         }).then((session) => {
             this.renderer.xr.setSession(session);
-            this.switchRoomScene();
+
+            const text = '欢迎进入实验场景'
+            this.scene.add(create3DText(text))
+
+            this.sendCommand(WS_CONTROL_COMMAND.start_session_event, {text})
+
         }).catch((err) => {
             this.sendCommand(`${err}`);
             message.error(`Error happened while starting VR session: ${err}`);
@@ -343,6 +370,7 @@ export default class SceneExp extends WSRC<{}, {
                 this.switchShapeScene();
                 break;
             case WS_CONTROL_COMMAND.enter_room:
+            case WS_CONTROL_COMMAND.continue_trial:
                 this.switchRoomScene();
                 break;
             case WS_CONTROL_COMMAND.start_test_exp:

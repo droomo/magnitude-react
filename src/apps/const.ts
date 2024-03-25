@@ -169,22 +169,47 @@ window.oncontextmenu = function (e) {
     e.preventDefault();
 }
 
-export const WS_CONTROL_COMMAND: {[key: string]: string} = {
-    start_session: 'start_session',
-    enter_shape: 'enter_shape',
-    enter_room: 'enter_room',
-    start_test_exp: 'start_test',
-    start_formal_exp: 'start_exp',
-    start_exp_event: 'start_exp_event',
-    done_trial_event: 'done_trial_event',
-    loss_session: 'loss_session',
-    subject_done: 'subject_done',
-    subject_login: 'subject_login',
-    update_trial: 'update_trial',
+const eventList = [
+    'start_session', // only working under computer WebXR extension
 
-    switch_room: 'switch_room',
-    switch_shape: 'switch_shape',
-}
+    'enter_shape', // enter a practice shape
+    'enter_room', // enter a practice room
+    'start_test_exp',  // request a test block of trials
+
+    'start_formal_exp', //request a formal block of trials
+    'continue_trial', // continue next trial from a break in exp
+
+    'loss_session', // force to loss WebXR session
+    'subject_done', // logout current subject
+
+    'subject_login', // subject signed in, need reload EXP page to load subject data
+
+    // Sent by Exp, received by Control
+    'update_trial', // subject completed a room scene or a shape scene, need refresh state in control page
+
+    'start_session_event', // session started
+
+    'start_exp_event', // requested a block of trials, need load trial data in control page
+    'done_trial_event', // subject completed a trial, need load trial data in control page
+
+    'done_exp_event', // subject completed text or formal exp
+
+    // for sync room and shape between Control and Exp
+    'switch_room',
+    'switch_shape',
+
+    'take_a_break',
+] as const;
+
+type WSControlCommandType = {
+    [K in typeof eventList[number]]: K;
+};
+
+export const WS_CONTROL_COMMAND: WSControlCommandType = eventList.reduce<WSControlCommandType>((acc, curr) => {
+    // @ts-ignore
+    acc[curr as typeof eventList[number]] = curr;
+    return acc;
+}, {} as WSControlCommandType);
 
 const texture = new THREE.TextureLoader().load(`${TEXTURE_BASE}/src/disc.png`);
 texture.colorSpace = THREE.SRGBColorSpace;
