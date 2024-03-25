@@ -190,9 +190,10 @@ const eventList = [
     'start_session_event', // session started
 
     'start_exp_event', // requested a block of trials, need load trial data in control page
-    'done_trial_event', // subject completed a trial, need load trial data in control page
-
     'done_exp_event', // subject completed text or formal exp
+
+    'start_trial_event', // subject started a new trial
+    'done_trial_event', // subject completed a trial, need load trial data in control page
 
     // for sync room and shape between Control and Exp
     'switch_room',

@@ -7,7 +7,7 @@ import classes from '../css/exp.module.scss'
 import {TypeTrial} from "../Scene/SceneExp";
 import {
     Button,
-    Chip,
+    Chip, CircularProgress,
     Divider,
     Table,
     TableBody,
@@ -72,22 +72,20 @@ const columns: TypeColumn[] = [
 
             let shapeColor: ChipOwnProps["color"] = 'default';
 
-            if (index === 0) {
+            if (v.running) {
                 if (!shapeDone) {
-                    shapeColor = 'primary'
-                }
-            } else {
-                if (trials[index - 1].updated_at_reaction !== null && !shapeDone) {
                     shapeColor = 'primary'
                 }
             }
 
             return <>
                 <Chip label="ROOM" color={shapeDone ? 'success' : shapeColor}
-                      variant="outlined" size="small" icon={shapeDone ? <DoneIcon/> : <HourglassEmptyIcon/>}
+                      variant="outlined" size="small"
+                      icon={shapeDone ? <DoneIcon/> : v.running ? <HourglassEmptyIcon/> : <></>}
                 />
                 <Chip label="SHAPE" color={reactionDone ? 'success' : shapeDone ? 'primary' : 'default'}
-                      variant="outlined" size="small" icon={reactionDone ? <DoneIcon/> : <HourglassEmptyIcon/>}
+                      variant="outlined" size="small"
+                      icon={reactionDone ? <DoneIcon/> : v.running ? <HourglassEmptyIcon/> : <></>}
                 />
             </>
         },
@@ -96,19 +94,22 @@ const columns: TypeColumn[] = [
 
 export default class Control extends WSRC<{}, {
     subject: TypeSubject | null,
-    trials: TypeTrial[]
+    trials: TypeTrial[],
+    running_trial_id: number | undefined
 }> {
     private updateRoom: (room: TypeRoom) => void;
     private updateShape: (radius: number, newShape: boolean) => void;
     private setViewerText: (text: string) => void;
     private clearScene: () => void;
+    private running_trial_id: number | undefined;
 
     constructor(props: any) {
         super(props);
         this.setUrl(`${API.ws_url}/ws/control/`)
         this.state = {
             subject: null,
-            trials: []
+            trials: [],
+            running_trial_id: undefined
         }
         this.updateRoom = () => {
         }
@@ -142,7 +143,7 @@ export default class Control extends WSRC<{}, {
         }).then((resp) => {
             this.setState({
                 trials: resp.data.trials
-            })
+            }, this.updateRunningState)
         })
     }
     updateTrial = (trial_id: number) => {
@@ -161,35 +162,68 @@ export default class Control extends WSRC<{}, {
                     return item;
                 })
             })
-
         })
     }
+
+    updateRunningState = () => {
+        this.scrollToRow(`row-${this.state.running_trial_id}`);
+        this.setState({
+            trials: this.state.trials.map(item => {
+                if (item.id === this.state.running_trial_id) {
+                    return {
+                        ...item,
+                        running: true
+                    };
+                }
+                return {
+                    ...item,
+                    running: false
+                }
+            })
+        })
+    }
+
+    hoverTrial = (trial_id: number | undefined) => {
+        this.setState({
+            running_trial_id: trial_id
+        }, this.updateRunningState)
+    }
+
+    scrollToRow = (rowId: string) => {
+        const rowElement = document.getElementById(rowId);
+        if (rowElement) {
+            rowElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+    };
 
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);
 
         switch (data.action) {
-            case WS_CONTROL_COMMAND.start_exp_event :
-                this.requestRunningTrials(data.data.trial_type);
+            case WS_CONTROL_COMMAND.switch_shape:
+                this.updateShape(data.data.radius, data.data.newShape)
                 break;
             case WS_CONTROL_COMMAND.done_trial_event:
                 this.updateTrial(data.data.trial_id)
                 break
+            case WS_CONTROL_COMMAND.start_trial_event:
+                this.hoverTrial(data.data.trial_id)
+                break
+            case WS_CONTROL_COMMAND.start_exp_event :
+                this.requestRunningTrials(data.data.trial_type);
+                break;
             case WS_CONTROL_COMMAND.switch_room:
                 this.updateRoom(data.data.room)
                 break;
-            case WS_CONTROL_COMMAND.switch_shape:
-                this.updateShape(data.data.radius, data.data.newShape)
-                break;
             case WS_CONTROL_COMMAND.start_session_event:
             case WS_CONTROL_COMMAND.done_exp_event:
-                this.setState({
-                    trials: []
-                })
+                this.hoverTrial(undefined)
+                this.setState({trials: []})
                 this.clearScene();
                 this.setViewerText(data.data.text)
                 break;
             case WS_CONTROL_COMMAND.take_a_break:
+                this.hoverTrial(undefined)
                 this.clearScene();
                 this.setViewerText(data.data.text)
                 break;
@@ -318,10 +352,23 @@ export default class Control extends WSRC<{}, {
                                 {this.state.trials
                                     .map((row, index) => {
                                         return (
-                                            <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+                                            <TableRow
+                                                key={row.id}
+                                                id={`row-${row.id}`}
+                                                sx={{
+                                                    backgroundColor: row.running ? 'cornsilk' : row.done ? 'gainsboro' :'',
+                                                }}
+                                            >
                                                 {columns.map((column) => {
                                                     return <TableCell key={column.title} align='left'>
-                                                        <>{column.render ? column.render(row, index, this.state.trials) : row[column.index!]}</>
+                                                        <>
+                                                            {column.render ? column.render(row, index, this.state.trials) : row[column.index!]}
+                                                            {column.title === 'Stage' && row.running &&
+                                                                <CircularProgress
+                                                                    style={{width: '20px', height: '20px'}}
+                                                                />
+                                                            }
+                                                        </>
                                                     </TableCell>
                                                 })}
                                             </TableRow>

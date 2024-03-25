@@ -18,6 +18,7 @@ export interface TypeTrial {
     height: number
     updated_at_room: string | null
     updated_at_reaction: string | null
+    running?: boolean
 }
 
 
@@ -110,6 +111,7 @@ export default class SceneExp extends WSRC<{}, {
                 height: this.trial.height,
                 depth: this.trial.depth,
             }
+            this.sendCommand(WS_CONTROL_COMMAND.start_trial_event, {trial_id: this.trial.id})
         } else {
             room = {
                 height: 3 + Math.random() * 2,
