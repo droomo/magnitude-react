@@ -170,6 +170,7 @@ window.oncontextmenu = function (e) {
 }
 
 const eventList = [
+    // Sent from Control, received by Exp
     'start_session', // only working under computer WebXR extension
 
     'enter_shape', // enter a practice shape
@@ -184,7 +185,7 @@ const eventList = [
 
     'subject_login', // subject signed in, need reload EXP page to load subject data
 
-    // Sent by Exp, received by Control
+    // Sent from Exp, received by Control
     'update_trial', // subject completed a room scene or a shape scene, need refresh state in control page
 
     'start_session_event', // session started
@@ -198,6 +199,8 @@ const eventList = [
     // for sync room and shape between Control and Exp
     'switch_room',
     'switch_shape',
+
+    'ready_for_room',
 
     'take_a_break',
 ] as const;

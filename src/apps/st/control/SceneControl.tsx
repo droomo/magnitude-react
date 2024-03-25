@@ -1,7 +1,6 @@
 import React from 'react';
 import {createWalls, webGlConfig, makeLight, create3DText,} from '../Scene/scene.lib';
-import {pointsMaterial, WS_CONTROL_COMMAND} from "../../const";
-import WSRC from "../WSRC";
+import {pointsMaterial} from "../../const";
 
 import classes from "../css/exp.module.scss";
 import * as THREE from 'three';
@@ -17,8 +16,8 @@ export interface TypeRoom {
     depth: number;
 }
 
-export default class SceneControl extends WSRC<{
-    setClearFunc: (setsetClearFunc: () => void) => void,
+export default class SceneControl extends React.Component<{
+    setClearFunc: (clearFunc: () => void) => void,
     setUpdateTextFunc: (setText: (text: string) => void) => void,
     setSwitchRoom: (switchRoom: (room: TypeRoom) => void) => void,
     setSwitchShape: (switchShape: (radius: number, newShape: boolean) => void) => void
@@ -63,7 +62,10 @@ export default class SceneControl extends WSRC<{
 
     set3DText = (text: string) => {
         this.clear();
+        this.camera.position.set(0, 1.5, -2)
+        this.camera.lookAt(0, 1.5, -10)
         this.scene.add(create3DText(text));
+        console.log(text)
     }
 
     switchRoomScene(room: TypeRoom) {
@@ -131,8 +133,6 @@ export default class SceneControl extends WSRC<{
     componentDidMount() {
         this.camera = new THREE.PerspectiveCamera(100, this.divRef.current!.clientWidth / window.innerHeight * VIEWER_RATE, 1, 1000);
 
-        super.componentDidMount()
-
         this.renderer.xr.enabled = true;
         this.renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -165,19 +165,6 @@ export default class SceneControl extends WSRC<{
         this.camera.clear();
     }
 
-    onMessage = (data_str: string) => {
-        const data = JSON.parse(data_str);
-        console.log('action', data.action)
-        switch (data.action) {
-            case WS_CONTROL_COMMAND.switch_room:
-                this.switchRoomScene(data.room);
-                break;
-        }
-    }
-
-    componentWillUnmount() {
-        super.componentWillUnmount()
-    }
 
     render() {
         return <div

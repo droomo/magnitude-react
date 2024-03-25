@@ -212,6 +212,10 @@ export default class Control extends WSRC<{}, {
             case WS_CONTROL_COMMAND.start_exp_event :
                 this.requestRunningTrials(data.data.trial_type);
                 break;
+            case WS_CONTROL_COMMAND.ready_for_room:
+                this.clearScene();
+                this.setViewerText(data.data.text)
+                break;
             case WS_CONTROL_COMMAND.switch_room:
                 this.updateRoom(data.data.room)
                 break;

@@ -120,32 +120,40 @@ export default class SceneExp extends WSRC<{}, {
             }
         }
 
-        this.sendCommand(WS_CONTROL_COMMAND.switch_room, {room})
+        const text = '准备';
+        this.scene.add(create3DText(text));
+        this.sendCommand(WS_CONTROL_COMMAND.ready_for_room, {text});
+
+        const roomScene = new THREE.Scene();
 
         for (const light of makeLight(room)) {
-            this.scene.add(light);
+            roomScene.add(light);
         }
 
         createWalls(room,
             walls => {
                 for (const wall of walls) {
-                    this.scene.add(wall);
-                }
-
-                this.roomStat = {
-                    stage_started_date: new Date().getTime(),
-                    stage_started: getTimestamp(),
-                    camera_moved_fss: -1,
-                    done_from_camera_moved_fss: -1,
-                }
-                this.lookingCenter = false;
-                this.shouldSwitchShape = false;
-
-                if (this.trial) {
-                    this.lookingCenter = true;
+                    roomScene.add(wall);
                 }
             }
         );
+
+        setTimeout(()=>{
+            this.scene = roomScene;
+            this.roomStat = {
+                stage_started_date: new Date().getTime(),
+                stage_started: getTimestamp(),
+                camera_moved_fss: -1,
+                done_from_camera_moved_fss: -1,
+            }
+            this.lookingCenter = false;
+            this.shouldSwitchShape = false;
+
+            if (this.trial) {
+                this.lookingCenter = true;
+            }
+            this.sendCommand(WS_CONTROL_COMMAND.switch_room, {room})
+        }, 500)
     }
 
     switchShapeScene = () => {
