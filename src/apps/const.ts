@@ -185,6 +185,8 @@ const eventList = [
 
     'subject_login', // subject signed in, need reload EXP page to load subject data
 
+    'logout_session', // logout session for subject Django user
+
     // Sent from Exp, received by Control
     'update_trial', // subject completed a room scene or a shape scene, need refresh state in control page
 

@@ -138,7 +138,7 @@ export default class SceneExp extends WSRC<{}, {
             }
         );
 
-        setTimeout(()=>{
+        setTimeout(() => {
             this.scene = roomScene;
             this.roomStat = {
                 stage_started_date: new Date().getTime(),
@@ -392,6 +392,9 @@ export default class SceneExp extends WSRC<{}, {
             case WS_CONTROL_COMMAND.subject_done:
             case WS_CONTROL_COMMAND.subject_login:
                 window.location.reload()
+                break;
+            case WS_CONTROL_COMMAND.logout_session:
+                window.location.href = '/logout/';
                 break;
         }
     }

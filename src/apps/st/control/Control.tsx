@@ -320,7 +320,7 @@ export default class Control extends WSRC<{}, {
                         <Button
                             variant="contained"
                             size="small"
-                            color="error"
+                            color="warning"
                             className={classes.controlButton}
                             onClick={() => {
                                 axios.post(`${API.base_url}${page_data.api_subject_done}`, {
@@ -339,6 +339,20 @@ export default class Control extends WSRC<{}, {
                                 })
                             }}
                         >Logout Subject</Button>
+                        <Divider>HTTP Session Control</Divider>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            className={classes.controlButton}
+                            onClick={() => {
+                                this.setState({
+                                    trials: []
+                                })
+                                this.clearScene();
+                                this.sendCommand(WS_CONTROL_COMMAND.logout_session)
+                            }}
+                        >Logout Session</Button>
                     </div>
                 </Col>
                 <Col span={15}>
