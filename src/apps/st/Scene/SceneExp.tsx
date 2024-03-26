@@ -384,9 +384,11 @@ export default class SceneExp extends WSRC<{}, {
                 this.switchRoomScene();
                 break;
             case WS_CONTROL_COMMAND.start_test_exp:
+                this.lastingTimes = 0;
                 this.requestTrial('T');
                 break;
             case WS_CONTROL_COMMAND.start_formal_exp:
+                this.lastingTimes = 0;
                 this.requestTrial('F');
                 break;
             case WS_CONTROL_COMMAND.subject_done:
