@@ -138,6 +138,9 @@ export default class SceneExp extends WSRC<{}, {
             }
         );
 
+        this.roomStat = undefined;
+        this.lookingCenter = false;
+
         setTimeout(() => {
             this.scene = roomScene;
             this.roomStat = {
@@ -377,9 +380,13 @@ export default class SceneExp extends WSRC<{}, {
                 this.startSession();
                 break;
             case WS_CONTROL_COMMAND.enter_shape:
+                this.trials = [];
                 this.switchShapeScene();
                 break;
             case WS_CONTROL_COMMAND.enter_room:
+                this.trials = [];
+                this.switchRoomScene();
+                break;
             case WS_CONTROL_COMMAND.continue_trial:
                 this.switchRoomScene();
                 break;
