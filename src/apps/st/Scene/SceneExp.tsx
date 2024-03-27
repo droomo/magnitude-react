@@ -129,6 +129,7 @@ export default class SceneExp extends WSRC<{}, {
     }
 
     switchRoomScene() {
+        this.renderer.xr.getSession()!.removeEventListener('selectstart', this.handleCompleteClick);
         this.frameHistory = [];
         if (!this.renderer.xr.getSession()) {
             return
@@ -140,6 +141,7 @@ export default class SceneExp extends WSRC<{}, {
         this.scene = new THREE.Scene();
 
         this.trial = this.trials.shift();
+        console.log(this.trial)
 
         let room: TypeRoom
         if (this.trial) {
@@ -175,6 +177,9 @@ export default class SceneExp extends WSRC<{}, {
             }
         );
 
+        this.roomStat = undefined;
+        // this.lookingCenter = false;
+
         setTimeout(() => {
             this.scene = roomScene;
             this.roomStat = {
@@ -194,6 +199,8 @@ export default class SceneExp extends WSRC<{}, {
     }
 
     switchTimeCounterScene = () => {
+        this.initCounter();
+        this.renderer.xr.getSession()!.removeEventListener('selectstart', this.handleCompleteClick);
         if (!this.renderer.xr.getSession()) {
             return
         }
@@ -427,9 +434,13 @@ export default class SceneExp extends WSRC<{}, {
                 this.startSession();
                 break;
             case WS_CONTROL_COMMAND.enter_time_counter:
+                this.trials = [];
                 this.switchTimeCounterScene();
                 break;
             case WS_CONTROL_COMMAND.enter_room:
+                this.trials = [];
+                this.switchRoomScene();
+                break;
             case WS_CONTROL_COMMAND.continue_trial:
                 this.switchRoomScene();
                 break;
