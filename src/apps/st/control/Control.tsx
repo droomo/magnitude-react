@@ -79,11 +79,11 @@ const columns: TypeColumn[] = [
             }
 
             return <>
-                <Chip label="ROOM" color={shapeDone ? 'success' : shapeColor}
+                <Chip label="R" color={shapeDone ? 'success' : shapeColor}
                       variant="outlined" size="small"
                       icon={shapeDone ? <DoneIcon/> : v.running ? <HourglassEmptyIcon/> : <></>}
                 />
-                <Chip label="SHAPE" color={reactionDone ? 'success' : shapeDone ? 'primary' : 'default'}
+                <Chip label="T" color={reactionDone ? 'success' : shapeDone ? 'primary' : 'default'}
                       variant="outlined" size="small"
                       icon={reactionDone ? <DoneIcon/> : v.running ? <HourglassEmptyIcon/> : <></>}
                 />
@@ -98,7 +98,6 @@ export default class Control extends WSRC<{}, {
     running_trial_id: number | undefined
 }> {
     private updateRoom: (room: TypeRoom) => void;
-    private updateShape: (radius: number, newShape: boolean) => void;
     private setViewerText: (text: string) => void;
     private clearScene: () => void;
     private running_trial_id: number | undefined;
@@ -112,8 +111,6 @@ export default class Control extends WSRC<{}, {
             running_trial_id: undefined
         }
         this.updateRoom = () => {
-        }
-        this.updateShape = () => {
         }
         this.setViewerText = () => {
         }
@@ -200,8 +197,9 @@ export default class Control extends WSRC<{}, {
         const data: TypeSendData = JSON.parse(data_str);
 
         switch (data.action) {
-            case WS_CONTROL_COMMAND.switch_shape:
-                this.updateShape(data.data.radius, data.data.newShape)
+            case WS_CONTROL_COMMAND.switch_cross:
+                this.clearScene();
+                this.setViewerText(data.data.text)
                 break;
             case WS_CONTROL_COMMAND.done_trial_event:
                 this.updateTrial(data.data.trial_id)
@@ -212,7 +210,7 @@ export default class Control extends WSRC<{}, {
             case WS_CONTROL_COMMAND.start_exp_event :
                 this.requestRunningTrials(data.data.trial_type);
                 break;
-            case WS_CONTROL_COMMAND.ready_for_room:
+            case WS_CONTROL_COMMAND.ready_for_thing:
                 this.clearScene();
                 this.setViewerText(data.data.text)
                 break;
@@ -261,7 +259,7 @@ export default class Control extends WSRC<{}, {
                         <Row>
                             {[
                                 'enter_room',
-                                'enter_shape',
+                                'enter_time_counter',
                             ].map((command) => {
                                 return <Button
                                     key={command}
@@ -400,9 +398,6 @@ export default class Control extends WSRC<{}, {
                     <SceneControl
                         setSwitchRoom={(func) => {
                             this.updateRoom = func
-                        }}
-                        setSwitchShape={(func) => {
-                            this.updateShape = func
                         }}
                         setUpdateTextFunc={(func) => {
                             this.setViewerText = func

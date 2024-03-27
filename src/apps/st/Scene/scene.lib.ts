@@ -57,7 +57,7 @@ export function create3DText(text: string): THREE.Mesh {
     canvas.width = 300 * text.length;
     canvas.height = 300;
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = `100px MS YaHei`;
+    context.font = `${text === "+" ? 200: 100}px MS YaHei`;
     context.fillStyle = 'rgba(255, 255, 255, 1.0)';
     context.textAlign = 'center';
     context.textBaseline = 'middle';

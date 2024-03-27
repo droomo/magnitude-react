@@ -173,7 +173,7 @@ const eventList = [
     // Sent from Control, received by Exp
     'start_session', // only working under computer WebXR extension
 
-    'enter_shape', // enter a practice shape
+    'enter_time_counter', // enter a practice shape
     'enter_room', // enter a practice room
     'start_test_exp',  // request a test block of trials
 
@@ -200,9 +200,9 @@ const eventList = [
 
     // for sync room and shape between Control and Exp
     'switch_room',
-    'switch_shape',
+    'switch_cross',
 
-    'ready_for_room',
+    'ready_for_thing',
 
     'take_a_break',
 ] as const;

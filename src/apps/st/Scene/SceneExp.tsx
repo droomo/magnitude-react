@@ -3,7 +3,6 @@ import {createWalls, webGlConfig, makeLight, create3DText,} from './scene.lib';
 import {API, BlockType, getCsrfToken, getTimestamp, page_data, WS_CONTROL_COMMAND} from "../../const";
 import WSRC, {TypeSendData} from "../WSRC";
 import classes from "../css/exp.module.scss";
-import PureShapeRadius from "./PureShapeRadius";
 import * as THREE from 'three';
 import axios from "axios";
 import {TypeSubject} from "../Login";
@@ -19,6 +18,17 @@ export interface TypeTrial {
     updated_at_room: string | null
     updated_at_reaction: string | null
     running?: boolean
+}
+
+interface TypeTimeCounter {
+    prep_disappear_date: number
+    counter_scene_start_date: number
+    pressed_date: number
+    counter_scene_start: number
+    cross_appear_fss: number // from s  tage start
+    pressed_fca: number
+    pressed: number
+    frames?: number[]
 }
 
 
@@ -45,7 +55,6 @@ export default class SceneExp extends WSRC<{}, {
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.PerspectiveCamera;
     private scene: THREE.Scene;
-    private shapeScene: PureShapeRadius | null;
     private trials: TypeTrial[]
     private trial: TypeTrial | undefined
     private roomStat: TypeRoomStat | undefined;
@@ -54,10 +63,14 @@ export default class SceneExp extends WSRC<{}, {
     protected lastTime: number;
     protected trialType: string | undefined;
     protected frames: number;
+    protected frameHistory: number[];
     protected frameRate: number;
-    private shouldSwitchShape: boolean;
+    private shouldSwitchCounterStage: boolean;
+    private shouldDisplayCross: boolean;
 
     private lastingTimes: number;
+
+    private counter: TypeTimeCounter;
 
     constructor(props: any) {
         super(props);
@@ -71,33 +84,57 @@ export default class SceneExp extends WSRC<{}, {
 
         this.trials = [];
         this.lookingCenter = false;
-        this.shouldSwitchShape = false;
+        this.shouldSwitchCounterStage = false;
+        this.shouldDisplayCross = false;
 
         this.lastTime = (new Date()).getTime();
         this.frames = 0;
+        this.frameHistory = [];
         this.frameRate = 60;
 
         this.state = {
             subject: null
         }
-        this.shapeScene = null;
 
         this.renderer.setAnimationLoop(this.animate);
 
         this.lastingTimes = 0;
 
+        this.counter = {
+            cross_appear_fss: -1,
+            counter_scene_start: -1,
+            counter_scene_start_date: -1,
+            prep_disappear_date: -1,
+            pressed_date: -1,
+            pressed_fca: -1,
+            pressed: -1,
+        }
+
+    }
+
+    initCounter = () => {
+        this.counter = {
+            cross_appear_fss: -1,
+            counter_scene_start: -1,
+            counter_scene_start_date: -1,
+            prep_disappear_date: -1,
+            pressed_date: -1,
+            pressed_fca: -1,
+            pressed: -1,
+        }
     }
 
     clearScene() {
-        this.shapeScene?.clear();
         this.scene.clear();
     }
 
     switchRoomScene() {
+        this.frameHistory = [];
         if (!this.renderer.xr.getSession()) {
             return
         }
         this.clearScene();
+        this.initCounter();
 
         this.lastingTimes += 1;
         this.scene = new THREE.Scene();
@@ -122,7 +159,7 @@ export default class SceneExp extends WSRC<{}, {
 
         const text = '准备';
         this.scene.add(create3DText(text));
-        this.sendCommand(WS_CONTROL_COMMAND.ready_for_room, {text});
+        this.sendCommand(WS_CONTROL_COMMAND.ready_for_thing, {text});
 
         const roomScene = new THREE.Scene();
 
@@ -147,7 +184,7 @@ export default class SceneExp extends WSRC<{}, {
                 done_from_camera_moved_fss: -1,
             }
             this.lookingCenter = false;
-            this.shouldSwitchShape = false;
+            this.shouldSwitchCounterStage = false;
 
             if (this.trial) {
                 this.lookingCenter = true;
@@ -156,73 +193,61 @@ export default class SceneExp extends WSRC<{}, {
         }, 500)
     }
 
-    switchShapeScene = () => {
+    switchTimeCounterScene = () => {
         if (!this.renderer.xr.getSession()) {
             return
         }
-
         this.clearScene();
 
-        this.scene = new THREE.Scene()
-        this.scene.add(new THREE.PointLight(0xffffff, 3, 0, 0))
+        const text = '准备';
+        this.scene.add(create3DText(text));
+        this.sendCommand(WS_CONTROL_COMMAND.ready_for_thing, {text: '准备'});
 
-        this.shapeScene = new PureShapeRadius({
-            renderer: this.renderer,
-            camera: this.camera,
-            scene: this.scene,
-            onRadiusChange: (radius: number) => {
-                this.sendCommand(WS_CONTROL_COMMAND.switch_shape, {
-                    radius: radius,
-                    newShape: false
-                })
-            },
-            done: (result) => {
-                this.shapeScene?.clear();
+        this.counter.counter_scene_start_date = new Date().getTime();
 
-                if (this.trial) {
-                    axios.post(api_trial, {
-                        stat_reaction: result,
-                        id: this.trial.id,
-                        done: true
-                    }, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCsrfToken(),
-                        },
-                    }).then(response => {
-                        if (response.data.status === 200) {
-                            this.trialDone(response.data.data.trial_id);
+        this.shouldDisplayCross = false;
 
-                            if (this.trials.length) {
+    }
 
-                                if (this.lastingTimes % 40 === 0) {
-                                    const text = '请休息，稍候由主试提醒继续试验';
-                                    this.scene.add(create3DText(text));
-                                    this.sendCommand(WS_CONTROL_COMMAND.take_a_break, {text});
-                                } else {
-                                    this.switchRoomScene();
-                                }
-                            } else {
-                                const text = this.trialType === 'F' ? '实验结束，感谢你为心理学的发展做出贡献！' : '练习结束，请稍候'
-                                this.scene.add(create3DText(text));
-                                this.sendCommand(WS_CONTROL_COMMAND.done_exp_event, {text});
-                            }
+    trial_done = (result: TypeTimeCounter) => {
+        result.frames = this.frameHistory;
+        if (this.trial) {
+            axios.post(api_trial, {
+                stat_reaction: result,
+                id: this.trial.id,
+                done: true
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+            }).then(response => {
+                if (response.data.status === 200) {
+                    this.trialDone(response.data.data.trial_id);
+
+                    if (this.trials.length) {
+
+                        if (this.lastingTimes % 40 === 0) {
+                            const text = '请休息，稍候由主试提醒继续试验';
+                            this.scene.add(create3DText(text));
+                            this.sendCommand(WS_CONTROL_COMMAND.take_a_break, {text});
                         } else {
-                            alert('error happened 33')
+                            this.switchRoomScene();
                         }
-                    }).catch(() => {
-                        alert('error happened 44')
-                    })
+                    } else {
+                        const text = this.trialType === 'F' ? '实验结束，感谢你为心理学的发展做出贡献！' : '练习结束，请稍候'
+                        this.scene.add(create3DText(text));
+                        this.sendCommand(WS_CONTROL_COMMAND.done_exp_event, {text});
+                    }
                 } else {
-                    this.switchRoomScene();
+                    alert('error happened 33')
                 }
-                this.shapeScene = null;
-            }
-        })
-        this.sendCommand(WS_CONTROL_COMMAND.switch_shape, {
-            radius: 6,
-            newShape: true
-        })
+            }).catch(() => {
+                alert('error happened 44')
+            })
+        } else {
+            this.switchRoomScene();
+        }
     }
 
     requestTrial = (trial_type: string) => {
@@ -287,9 +312,12 @@ export default class SceneExp extends WSRC<{}, {
         if (currentTime - this.lastTime >= 1000) {
             this.frameRate = this.frames;
             // console.log(`FPS: ${this.frameRate}`);
+            this.frameHistory = [...this.frameHistory, this.frames];
             this.frames = 0;
             this.lastTime = currentTime;
         }
+
+        this.renderer.render(this.scene, this.camera);
 
         if (this.lookingCenter && this.roomStat) {
             this.lookingCenter = false;
@@ -297,20 +325,13 @@ export default class SceneExp extends WSRC<{}, {
         } else {
             if (this.trial && this.roomStat && this.roomStat.done_from_camera_moved_fss === -1
                 && this.trial.duration - (getTimestamp() - this.roomStat.camera_moved_fss) < 500 / this.frameRate) {
-                this.shouldSwitchShape = true;
+                this.shouldSwitchCounterStage = true;
             }
         }
 
-        this.shapeScene?.animate();
-
-        this.renderer.render(this.scene, this.camera);
-
-        if (this.shouldSwitchShape) {
-            this.shouldSwitchShape = false;
+        if (this.shouldSwitchCounterStage) {
             this.roomStat!.done_from_camera_moved_fss = getTimestamp() - this.roomStat!.camera_moved_fss;
             this.roomStat!.camera_moved_fss -= this.roomStat!.stage_started;
-
-            console.log(this.roomStat)
 
             if (this.trial) {
                 axios.post(api_trial, {
@@ -331,8 +352,37 @@ export default class SceneExp extends WSRC<{}, {
                     alert('error happened 22')
                 })
             }
-            this.switchShapeScene();
+            this.shouldSwitchCounterStage = false;
+            this.switchTimeCounterScene();
+        } else if (this.counter.cross_appear_fss === -1 && this.counter.counter_scene_start > -1
+            && 500 - (getTimestamp() - this.counter.counter_scene_start) < 500 / this.frameRate) {
+            this.shouldDisplayCross = true;
+            const crossText = create3DText('+');
+            this.scene = new THREE.Scene();
+            this.scene.add(crossText);
+            this.sendCommand(WS_CONTROL_COMMAND.ready_for_thing, {text: '+'});
+        } else if (this.counter.counter_scene_start_date > -1 && this.counter.counter_scene_start === -1) {
+            this.counter.counter_scene_start = getTimestamp();
         }
+
+        if (this.shouldDisplayCross) {
+            this.counter.prep_disappear_date = new Date().getTime();
+            this.counter.cross_appear_fss = getTimestamp() - this.counter.counter_scene_start;
+
+            this.shouldDisplayCross = false;
+
+            this.renderer.xr.getSession()!.addEventListener('select', this.handleCompleteClick);
+        }
+
+    };
+
+    handleCompleteClick = () => {
+        this.counter.pressed_fca = getTimestamp() - this.counter.cross_appear_fss - this.counter.counter_scene_start;
+        this.counter.pressed = getTimestamp();
+        this.counter.pressed_date = new Date().getTime();
+        this.renderer.xr.getSession()!.removeEventListener('select', this.handleCompleteClick);
+
+        this.trial_done(this.counter);
     };
 
     trialDone = (trial_id: number) => {
@@ -368,7 +418,7 @@ export default class SceneExp extends WSRC<{}, {
 
     onMessage = (data_str: string) => {
         const data: TypeSendData = JSON.parse(data_str);
-        console.log('action', data.action)
+        // console.log('action', data.action)
         switch (data.action) {
             case WS_CONTROL_COMMAND.loss_session:
                 this.endSession();
@@ -376,8 +426,8 @@ export default class SceneExp extends WSRC<{}, {
             case WS_CONTROL_COMMAND.start_session:
                 this.startSession();
                 break;
-            case WS_CONTROL_COMMAND.enter_shape:
-                this.switchShapeScene();
+            case WS_CONTROL_COMMAND.enter_time_counter:
+                this.switchTimeCounterScene();
                 break;
             case WS_CONTROL_COMMAND.enter_room:
             case WS_CONTROL_COMMAND.continue_trial:

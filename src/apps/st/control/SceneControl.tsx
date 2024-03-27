@@ -1,12 +1,9 @@
 import React from 'react';
 import {createWalls, webGlConfig, makeLight, create3DText,} from '../Scene/scene.lib';
-import {pointsMaterial} from "../../const";
 
 import classes from "../css/exp.module.scss";
 import * as THREE from 'three';
 import {TypeSubject} from "../Login";
-import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
-import {MAX_DISTANCE} from "../Scene/PureShapeRadius";
 
 export const VIEWER_RATE = 0.65;
 
@@ -20,7 +17,6 @@ export default class SceneControl extends React.Component<{
     setClearFunc: (clearFunc: () => void) => void,
     setUpdateTextFunc: (setText: (text: string) => void) => void,
     setSwitchRoom: (switchRoom: (room: TypeRoom) => void) => void,
-    setSwitchShape: (switchShape: (radius: number, newShape: boolean) => void) => void
 }, {
     subject: TypeSubject | null
 }> {
@@ -44,9 +40,6 @@ export default class SceneControl extends React.Component<{
 
         this.props.setSwitchRoom((room) => {
             this.switchRoomScene(room)
-        })
-        this.props.setSwitchShape((radius, newShape) => {
-            this.switchShapeScene(radius, newShape)
         })
         this.props.setUpdateTextFunc((text) => {
             this.set3DText(text)
@@ -87,48 +80,6 @@ export default class SceneControl extends React.Component<{
         );
     }
 
-    switchShapeScene = (radius: number, newShape: boolean) => {
-
-        this.clear();
-
-        if (newShape) {
-            this.group = new THREE.Group()
-        } else {
-            this.group.clear();
-        }
-
-        this.scene.add(new THREE.PointLight(0xffffff, 5, 0, 0));
-
-        this.camera.position.set(0, 0, 0);
-        this.camera.lookAt(0, 0, -10)
-
-        this.group.position.set(0, 0, -MAX_DISTANCE);
-
-        let dodecahedronGeometry = new THREE.DodecahedronGeometry(radius, 0);
-        const vertices = [];
-        const positionAttribute = dodecahedronGeometry.getAttribute('position');
-        for (let i = 0; i < positionAttribute.count; i++) {
-            const vertex = new THREE.Vector3();
-            vertex.fromBufferAttribute(positionAttribute, i);
-            vertices.push(vertex);
-        }
-
-        const pointsGeometry = new THREE.BufferGeometry().setFromPoints(vertices);
-        const points = new THREE.Points(pointsGeometry, pointsMaterial);
-
-        // Convex hull
-        const meshMaterial = new THREE.MeshLambertMaterial({
-            color: 0xffffff,
-            opacity: 0.5,
-            side: THREE.DoubleSide,
-            transparent: true
-        });
-        const meshGeometry = new ConvexGeometry(vertices);
-        const mesh = new THREE.Mesh(meshGeometry, meshMaterial);
-
-        this.group.add(mesh, points);
-        this.scene.add(this.group);
-    }
 
     componentDidMount() {
         this.camera = new THREE.PerspectiveCamera(100, this.divRef.current!.clientWidth / window.innerHeight * VIEWER_RATE, 1, 1000);
