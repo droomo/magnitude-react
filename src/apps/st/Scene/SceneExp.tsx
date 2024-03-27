@@ -371,7 +371,7 @@ export default class SceneExp extends WSRC<{}, {
 
             this.shouldDisplayCross = false;
 
-            this.renderer.xr.getSession()!.addEventListener('select', this.handleCompleteClick);
+            this.renderer.xr.getSession()!.addEventListener('selectstart', this.handleCompleteClick);
         }
 
     };
@@ -380,7 +380,7 @@ export default class SceneExp extends WSRC<{}, {
         this.counter.pressed_fca = getTimestamp() - this.counter.cross_appear_fss - this.counter.counter_scene_start;
         this.counter.pressed = getTimestamp();
         this.counter.pressed_date = new Date().getTime();
-        this.renderer.xr.getSession()!.removeEventListener('select', this.handleCompleteClick);
+        this.renderer.xr.getSession()!.removeEventListener('selectstart', this.handleCompleteClick);
 
         this.trial_done(this.counter);
     };
