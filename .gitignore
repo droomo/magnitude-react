@@ -25,3 +25,4 @@ yarn-error.log*
 texture/
 
 src/apps/st/threejsDemo
+.idea
