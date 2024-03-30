@@ -40,11 +40,11 @@ export function loadThings(
 
 function addLight(scene: THREE.Scene, room: PropRoom) {
     const roomLight = new THREE.PointLight(
-        0xffffff, (room.width - 4) / 12 + 2, room.width, (16 - room.width) / 30 + 0.1
+        0xffffff, (room.width + 20) / 50 + 2, room.width, (30 - room.width) / 40 + 0.1
     );
     roomLight.position.set(0, room.height * 0.5, 0);
     scene.add(roomLight);
-    const ambientLight = new THREE.AmbientLight(0xffffff, (room.width - 4) / 24 + 2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, (room.width + 20) / 50 + 2);
     scene.add(ambientLight);
 }
 
@@ -431,12 +431,12 @@ export const webGlConfig = {
 export function makeSceneWalk(): THREE.Scene {
     const scene = new THREE.Scene();
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 11);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 5);
     scene.add(ambientLight);
 
     const exr_loader = new EXRLoader();
 
-    const repeat: [number, number] = [1200, 1800];
+    const repeat: [number, number] = [600, 900];
     const size: [number, number] = [600, 900];
 
     loadThings(
