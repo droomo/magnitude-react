@@ -18,11 +18,9 @@
     "three": "^0.161.0"
   },
   "scripts": {
-    "start-ssl": "webpack-dev-server --https --cert E:\\workspace\\magnitude\\cert\\xr.droomo.com_bundle.crt --key E:\\workspace\\magnitude\\cert\\xr.droomo.com.key",
-    "start": "set SSL_CRT_FILE=E:/workspace/magnitude/cert/xr.droomo.com_bundle.crt&& set SSL_KEY_FILE=E:/workspace/magnitude/cert/xr.droomo.com.key&& set HTTPS=true&& set HOST=xr.droomo.com&&node scripts/start.js",
+    "start": "set SSL_CRT_FILE=E:/workspace/magnitude/sites/cert/xr.droomo.com_bundle.crt&& set SSL_KEY_FILE=E:/workspace/magnitude/sites/cert/xr.droomo.com.key&& set HTTPS=true&& set HOST=xr.droomo.com&&node scripts/start.js",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js",
-    "src": "cd E:\\workspace\\magnitude\\texture && http-server --cors -p 19000 --gzip"
+    "test": "node scripts/test.js"
   },
   "eslintConfig": {
     "extends": [
