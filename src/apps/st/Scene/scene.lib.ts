@@ -14,7 +14,7 @@ export const TEXTURE_BASE = API.texture_base_url;
 export const doorWidth = 1;
 export const doorHeight = 2 * doorWidth;
 
-export const eyeHeight = doorHeight * 0.65;
+export const eyeHeight = 1.75;
 
 export const wallThickness = 0.06;
 

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import * as THREE from 'three';
-import {makeScene, webGlConfig} from './scene.lib';
+import {eyeHeight, makeScene, webGlConfig} from './scene.lib';
 import {
     DEBUG,
     DELAY_TRIAL_START_MASK,
@@ -109,8 +109,8 @@ export default function SceneRoom(props: PropScene) {
             if (now - roomStat.stage_started > DELAY_TRIAL_START_MASK - FRAME * 1.01) {
                 if (cameraMoved === -1) {
                     cameraMoved = now;
-                    camera.position.set(0, room.height / 2, room.depth / 2);
-                    camera.lookAt(0, room.height / 2, 0);
+                    camera.position.set(0, eyeHeight, room.depth / 2 - 0.15);
+                    camera.lookAt(0, eyeHeight, 0);
                     renderer.render(scene, camera);
                 }
             }
