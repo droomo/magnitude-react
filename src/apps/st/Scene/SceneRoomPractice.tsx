@@ -58,7 +58,7 @@ export default function SceneRoomPractice(props: {
         const raycaster = new THREE.Raycaster();
 
         let movingDirection: number = 0;
-        const moveSpeed = 2;
+        const moveSpeed = 4;
         const onKeyDown = (event: KeyboardEvent) => {
             record.key_pressed += event.key;
             switch (event.code) {
