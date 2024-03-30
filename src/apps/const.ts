@@ -5,20 +5,15 @@ import {TextureLoader} from "three";
 
 THREE.Cache.enabled = true;
 
-let base_host = 'dev1.droomo.com'
-let scheme = 'https'
-
-if (window.location.href.indexOf(base_host) === -1) {
-    scheme = 'http'
-    base_host = window.location.hostname
-}
+let base_host = window.location.hostname
+let scheme = window.location.protocol
 
 export const API: {
     base_url: string,
     texture_base_url: string,
 } = {
-    base_url: `${scheme}://${base_host}:8023`,
-    texture_base_url: `${scheme}://${base_host}:19000`,
+    base_url: `${scheme}//${base_host}:8033`,
+    texture_base_url: `${scheme}//${base_host}:8033/src`,
 }
 
 const TEXTURE_BASE = API.texture_base_url;
@@ -172,6 +167,6 @@ if (window.location.pathname.includes('intro')) {
     }
 }
 
-window.oncontextmenu=function(e){
+window.oncontextmenu = function (e) {
     e.preventDefault();
 }
