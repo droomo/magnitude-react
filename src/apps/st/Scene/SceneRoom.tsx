@@ -15,15 +15,12 @@ export interface PropRoom {
     width: number;
     height: number;
     depth: number;
-    wall: number;
-    ground: number;
     duration: number;
 }
 
 export interface PropScene {
     room: PropRoom,
     done: (timeStat: TypeRoomStat) => void,
-    startedIndex: number,
 }
 
 const FRAME = 1000 / 60;

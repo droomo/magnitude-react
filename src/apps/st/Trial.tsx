@@ -8,46 +8,38 @@ import {
 } from "../const";
 import SceneRoom, {TypeRoomStat} from "./Scene/SceneRoom";
 import SceneShapeRadius from "./Scene/SceneShapeRadius";
-import PageTimeCounter from "./Scene/PageTimeCounter";
 import axios from "axios";
 
 export interface TrialData {
     reaction_type: string
     done?: boolean
     id?: number
-    room_depth?: number
-    room_duration?: number
-    room_ground?: number
-    room_height?: number
-    room_wall?: number
-    room_width?: number
+    depth?: number
+    height?: number
+    width?: number
+    duration?: number
 }
 
 function ControlledScene(props: {
     trial: TrialData,
     done: (timeStat: TypeRoomStat) => void,
-    startedIndex: number,
 }) {
     return <SceneRoom
         room={{
-            depth: props.trial.room_depth!,
-            height: props.trial.room_height!,
-            width: props.trial.room_width!,
-            ground: props.trial.room_ground!,
-            wall: props.trial.room_wall!,
-            duration: props.trial.room_duration!,
+            depth: props.trial.depth!,
+            height: props.trial.height!,
+            width: props.trial.width!,
+            duration: props.trial.duration!,
         }}
         done={(timeStat: TypeRoomStat) => {
             props.done(timeStat)
         }}
-        startedIndex={props.startedIndex}
     />
 }
 
 export default function Trial(props: {
     trial: TrialData,
     done: () => void,
-    startedIndex: number,
     helperText?: {
         scene?: React.ReactElement,
         reaction?: React.ReactElement,
@@ -61,7 +53,7 @@ export default function Trial(props: {
 
     const sceneDoneAction = (timeStat: TypeRoomStat) => {
         setSceneStage(false)
-        axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
+        axios.post(`${API.base_url}${page_data['api_trial']}`, {
             stat_scene: timeStat,
             id: props.trial.id,
         }, {
@@ -80,7 +72,7 @@ export default function Trial(props: {
     return sceneStage ?
         <>
             {props.helperText && props.helperText.scene && props.helperText.scene}
-            <ControlledScene trial={props.trial} done={sceneDoneAction} startedIndex={props.startedIndex}/>
+            <ControlledScene trial={props.trial} done={sceneDoneAction}/>
         </> :
         <>
             {props.helperText && props.helperText.reaction && props.helperText.reaction}
@@ -94,7 +86,7 @@ function Reaction(props: {
 }) {
     const doneAction = (result: any) => {
         const doneDate = new Date().getTime();
-        axios.post(`${API.base_url}${page_data['api_trial_stat']}`, {
+        axios.post(`${API.base_url}${page_data['api_trial']}`, {
             stat_reaction: result,
             id: props.trial.id,
             done: true
@@ -115,7 +107,5 @@ function Reaction(props: {
             alert('error happened 44')
         })
     }
-    return props.trial.reaction_type === 'S' ?
-        <SceneShapeRadius done={doneAction}/> :
-        <PageTimeCounter done={doneAction}/>
+    return <SceneShapeRadius done={doneAction}/>
 }
