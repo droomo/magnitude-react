@@ -12,8 +12,7 @@ function Description() {
     return <PageMask
         text={<div style={{cursor: 'default', padding: '8rem 0'}}>
             <h1 style={{fontSize: '3rem', margin: '-2rem 0 3rem 0'}}>欢迎参与时空探索实验</h1>
-            <p style={{margin: '5px 0', fontSize: '2rem'}}>实验将两分组进行，每组都有多次实验任务</p>
-            <p style={{margin: '5px 0', fontSize: '2rem'}}>接下来的一组实验需要复现<strong
+            <p style={{margin: '5px 0', fontSize: '2rem'}}>实验需要重复多次完成任务，接下来的实验需要复现<strong
                 style={{color: "red"}}>空间</strong></p>
             <p/>
             <p style={{margin: '5px 0', fontSize: '2rem'}}>实验任务包含<strong
