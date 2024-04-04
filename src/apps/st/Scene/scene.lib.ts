@@ -237,7 +237,7 @@ export function makeScene(
     const wallWidth = room.width;
     const wallDepth = room.depth;
 
-    const repeatTimes = 5;
+    const repeatTimes = 2 * room.width / 3;
     const repeatBack = new Vector2(repeatTimes, repeatTimes * wallHeight / wallWidth);
     const repeatLR = new Vector2(repeatBack.y * wallDepth / wallHeight, repeatBack.y);
     const repeatFloor = new Vector2(repeatBack.x, repeatLR.x);
