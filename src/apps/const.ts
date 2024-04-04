@@ -7,13 +7,14 @@ THREE.Cache.enabled = true;
 
 let base_host = window.location.hostname
 let scheme = window.location.protocol
+let port = window.location.port
 
 export const API: {
     base_url: string,
     texture_base_url: string,
 } = {
-    base_url: `${scheme}//${base_host}:8030`,
-    texture_base_url: `${scheme}//${base_host}:8030/src`,
+    base_url: `${scheme}//${base_host}:${port}`,
+    texture_base_url: `${scheme}//${base_host}:${port}/src`,
 }
 
 const TEXTURE_BASE = API.texture_base_url;
